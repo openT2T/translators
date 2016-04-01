@@ -20,7 +20,7 @@ to locally, then run:
 git clone https://github.com/openT2T/translators.git
 ```
 
-## Create a New Thing
+## Create a New Translator
 
 Follow our getting started guide at http://www.opentranslatorstothings.org.
 
