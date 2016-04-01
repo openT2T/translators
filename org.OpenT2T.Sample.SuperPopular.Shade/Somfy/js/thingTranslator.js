@@ -107,6 +107,6 @@ module.exports = {
 // globals for JxCore host
 global.initDevice = module.exports.initDevice;
 global.disconnect = module.exports.disconnect;
-global.turnOn     = module.exports.open;
-global.turnOff    = module.exports.close;
+global.open       = module.exports.open;
+global.close      = module.exports.close;
 
