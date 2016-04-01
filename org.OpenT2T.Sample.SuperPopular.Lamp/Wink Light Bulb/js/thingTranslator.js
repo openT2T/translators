@@ -101,7 +101,7 @@ module.exports = {
 
     setBrightness: function(brightness) {
         console.log("setBrightness called with value: " + brightness);
-        console.log(" *** NOT IMPLEMENTED");
+        console.log(" *** NOT YET IMPLEMENTED");
     },
 
     disconnect: function() {
