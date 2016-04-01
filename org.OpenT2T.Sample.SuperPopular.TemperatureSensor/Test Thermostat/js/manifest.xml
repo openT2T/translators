@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.CheckTemperature" />
+  <!-- associated schema -->
+  <schema id="org.OpenT2T.Sample.SuperPopular.TemperatureSensor" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.OpenT2T.Onboarding.Manual">
+    <arg name="name" value="Test Thermostat" />
+    <arg name="instructionsUrl" value="http://example.com" />
+  </onboarding>
+</manifest>

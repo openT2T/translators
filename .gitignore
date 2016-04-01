@@ -1,0 +1,8 @@
+# package managers
+node_modules
+# miscellaneous
+.tmp
+.sass-cache
+*.DS_Store
+logs
+*.log

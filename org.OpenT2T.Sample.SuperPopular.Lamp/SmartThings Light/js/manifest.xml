@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.LightControl" />
+  <!-- associated schema -->
+  <schema id="org.OpenT2T.Sample.SuperPopular.Lamp" />
+</manifest>
