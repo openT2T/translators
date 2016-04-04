@@ -60,12 +60,12 @@ module.exports = {
             if (typeof (device.props) !== "undefined") {
                 deviceProps = JSON.parse(device.props);
 
-                if (typeof (deviceProps.hueAddress) !== "undefined" &&
+                if (typeof (deviceProps.ipAddress) !== "undefined" &&
                     typeof (deviceProps.userId) !== "undefined" &&
                     typeof (deviceProps.uniqueId) !== "undefined") {
-                    api = new HueApi(deviceProps.hueAddress, deviceProps.userId);
+                    api = new HueApi(deviceProps.ipAddress, deviceProps.userId);
                 } else {
-                    console.log("props.hueAddress, props.userId or props.uniqueId is missing");
+                    console.log("props.ipAddress, props.userId or props.uniqueId is missing");
                 }
             } else {
                 console.log("props is missing");

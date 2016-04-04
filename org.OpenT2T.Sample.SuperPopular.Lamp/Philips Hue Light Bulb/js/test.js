@@ -1,16 +1,16 @@
 var translator = require('./thingTranslator.js');
 
 var argv = require('optimist')
-    .usage('Usage: $0 -a [hue address] -u [hue user id] -i [hue unique id]')
+    .usage('Usage: $0 -a [ip address of hue bridge] -u [hue user id] -i [hue light unique id]')
     .demand(['a'])
     .demand(['u'])
     .demand(['i'])
     .argv;
 
-function Device(hueAddress, userId, uniqueId) {
+function Device(ipAddress, userId, uniqueId) {
     this.props = JSON.stringify(
         {
-            "hueAddress": hueAddress,
+            "ipAddress": ipAddress,
             "userId": userId,
             "uniqueId": uniqueId
         });
