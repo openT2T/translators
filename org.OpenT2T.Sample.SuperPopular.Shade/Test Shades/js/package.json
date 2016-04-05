@@ -1,0 +1,13 @@
+{
+    "name": "opent2t-translator-test-shades",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {},
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-manual": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}
