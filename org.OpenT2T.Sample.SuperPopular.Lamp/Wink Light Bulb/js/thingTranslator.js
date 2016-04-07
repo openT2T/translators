@@ -5,8 +5,8 @@ var https = require('https');
 // logs device state
 function logDeviceState(device) {
     if (typeof (device) !== 'undefined') {
-        console.log("  device.name          : " + device.name);
-        console.log("  device.props         : " + device.props);
+        console.log('  device.name          : ' + device.name);
+        console.log('  device.props         : ' + device.props);
     } else {
         console.log('device is undefined');
     }
@@ -47,7 +47,6 @@ function sendPowerStateCommandToDevice(powerState) {
     req.on('error', (e) => {
         console.log('problem with request:' + e.message);
     });
-
 
     req.write(postData);
     req.end();
@@ -90,22 +89,22 @@ module.exports = {
     },
 
     turnOn: function() {
-        console.log("turnOn called.");
+        console.log('turnOn called.');
         sendPowerStateCommandToDevice(true);
     },
 
     turnOff: function() {
-        console.log("turnOff called.");
+        console.log('turnOff called.');
         sendPowerStateCommandToDevice(false);
     },
 
     setBrightness: function(brightness) {
-        console.log("setBrightness called with value: " + brightness);
-        console.log(" *** NOT YET IMPLEMENTED");
+        console.log('setBrightness called with value: ' + brightness);
+        console.log(' *** NOT YET IMPLEMENTED');
     },
 
     disconnect: function() {
-        console.log("disconnect called.");
+        console.log('disconnect called.');
         logDeviceState(this.device);
     }
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-var hue = require("node-hue-api"),
+var hue = require('node-hue-api'),
     HueApi = hue.HueApi,
     lightState = hue.lightState;
 
@@ -8,8 +8,8 @@ var hue = require("node-hue-api"),
 // logs device state
 function logDeviceState(device) {
     if (typeof (device) !== 'undefined') {
-        console.log("  device.name          : " + device.name);
-        console.log("  device.props         : " + device.props);
+        console.log('  device.name          : ' + device.name);
+        console.log('  device.props         : ' + device.props);
     } else {
         console.log('device is undefined');
     }
@@ -29,7 +29,7 @@ function getLightIndexFromId(uniqueid, callback) {
                 }
             }
         }
-        console.log("light not found for " + uniqueid);
+        console.log('light not found for ' + uniqueid);
         callback(0);
         return;
     });
@@ -51,30 +51,30 @@ module.exports = {
     initDevice: function(dev) {
         device = dev;
 
-        if (typeof (dev) == "undefined") {
-            console.log("device is invalid");
+        if (typeof (dev) == 'undefined') {
+            console.log('device is invalid');
         } else {
             device = dev;
 
-            console.log("Javascript initialized.");
-            if (typeof (device.props) !== "undefined") {
+            console.log('Javascript initialized.');
+            if (typeof (device.props) !== 'undefined') {
                 deviceProps = JSON.parse(device.props);
 
-                if (typeof (deviceProps.ipAddress) !== "undefined" &&
-                    typeof (deviceProps.userId) !== "undefined" &&
-                    typeof (deviceProps.uniqueId) !== "undefined") {
+                if (typeof (deviceProps.ipAddress) !== 'undefined' &&
+                    typeof (deviceProps.userId) !== 'undefined' &&
+                    typeof (deviceProps.uniqueId) !== 'undefined') {
                     api = new HueApi(deviceProps.ipAddress, deviceProps.userId);
                 } else {
-                    console.log("props.ipAddress, props.userId or props.uniqueId is missing");
+                    console.log('props.ipAddress, props.userId or props.uniqueId is missing');
                 }
             } else {
-                console.log("props is missing");
+                console.log('props is missing');
             }
         }
     },
 
     turnOn: function() {
-        console.log("turnOn called.");
+        console.log('turnOn called.');
         getLightIndexFromId(deviceProps.uniqueId, function(index) {
             var state = lightState.create().on();
             api.setLightState(index, state)
@@ -83,7 +83,7 @@ module.exports = {
     },
 
     turnOff: function() {
-        console.log("turnOff called.");
+        console.log('turnOff called.');
         getLightIndexFromId(deviceProps.uniqueId, function(index) {
             var state = lightState.create().off();
             api.setLightState(index, state)
@@ -92,7 +92,7 @@ module.exports = {
     },
 
     setBrightness: function(brightness) {
-        console.log("setBrightness called.");
+        console.log('setBrightness called.');
         getLightIndexFromId(deviceProps.uniqueId, function(index) {
             var state = lightState.create().brightness(brightness);
             api.setLightState(index, state)
@@ -101,7 +101,7 @@ module.exports = {
     },
 
     disconnect: function() {
-        console.log("disconnect called.");
+        console.log('disconnect called.');
         logDeviceState(device);
     }
 };

@@ -26,11 +26,11 @@ module.exports = {
                 if (typeof (props.id) !== 'undefined') {
                     SensorTag.discoverById(props.id, function(sensorTag) {
 
-                        console.log("discovered");
+                        console.log('discovered');
 
                         tag = sensorTag;
                         tag.connectAndSetup(function(conn_error) {
-                            console.log("connected");
+                            console.log('connected');
 
                             if (conn_error != null) {
                                 console.log(conn_error);
@@ -71,18 +71,18 @@ module.exports = {
 
         if (tag != null) {
             tag.disconnect(function(err) {
-                console.log("disconnected");
+                console.log('disconnected');
             });
         }
     },
 
     getCurrentTemperature: function(callback) {
 
-        console.log("getCurrentTemperature called.");
+        console.log('getCurrentTemperature called.');
 
         if (tag == null) {
-            console.log("initDevice not complete (Is tag awake?)");
-            temperature("(unknown)");
+            console.log('initDevice not complete (Is tag awake?)');
+            temperature('(unknown)');
             return;
         }
 

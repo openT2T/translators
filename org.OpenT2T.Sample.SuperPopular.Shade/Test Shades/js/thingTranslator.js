@@ -3,8 +3,8 @@
 // logs device state
 function logDeviceState(device) {
     if (typeof (device) !== 'undefined') {
-        console.log("  device.name          : " + device.name);
-        console.log("  device.props         : " + device.props);
+        console.log('  device.name          : ' + device.name);
+        console.log('  device.props         : ' + device.props);
     } else {
         console.log('device is undefined');
     }
@@ -18,20 +18,20 @@ module.exports = {
     initDevice: function(dev) {
         this.device = dev;
 
-        console.log("Javascript initialized.");
+        console.log('Javascript initialized.');
         logDeviceState(this.device);
     },
 
     open: function() {
-        console.log("open called.");
+        console.log('open called.');
     },
 
     close: function() {
-        console.log("close called.");
+        console.log('close called.');
     },
 
     disconnect: function() {
-        console.log("disconnect called.");
+        console.log('disconnect called.');
         logDeviceState(this.device);
     }
 };

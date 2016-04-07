@@ -7,8 +7,8 @@ var Point = require('./lib/test-temperature-sensor-helper').Point;
 // logs device state
 function logDeviceState(device) {
     if (typeof (device) !== 'undefined') {
-        console.log("  device.name          : " + device.name);
-        console.log("  device.props         : " + device.props);
+        console.log('  device.name          : ' + device.name);
+        console.log('  device.props         : ' + device.props);
     } else {
         console.log('device is undefined');
     }
@@ -35,28 +35,28 @@ module.exports = {
     initDevice: function(dev) {
         this.device = dev;
 
-        console.log("Javascript initialized.");
+        console.log('Javascript initialized.');
         logDeviceState(this.device);
     },
 
     getCurrentTemperature: function() {
 
-        console.log("getCurrentTemperature called.");
+        console.log('getCurrentTemperature called.');
         var temperature = Math.floor(32 + Math.random() * 78); //random int value in [32, 110] range
-        console.log("returning random temperature: " + temperature);
+        console.log('returning random temperature: ' + temperature);
         return temperature;
     },
 
     getTemperatureTrend: function() {
 
-        console.log("getTemperatureTrend called.");
+        console.log('getTemperatureTrend called.');
         var trend = randomTemperatureTrend();
-        console.log("returning random temperature trend: " + trend);
+        console.log('returning random temperature trend: ' + trend);
         return trend;
     },
 
     disconnect: function() {
-        console.log("disconnect called.");
+        console.log('disconnect called.');
         logDeviceState(this.device);
     }
 }
