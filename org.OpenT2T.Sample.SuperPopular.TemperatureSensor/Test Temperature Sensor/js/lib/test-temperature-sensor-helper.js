@@ -1,4 +1,4 @@
-// Helper library for the test thermostat
+// Helper library for the test temperature sensor
 'use strict';
 
 function Point(x, y) {

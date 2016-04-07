@@ -1,14 +1,14 @@
 var translator = require('./thingTranslator');
 
 var argv = require('optimist')
-    .usage('Usage: $0 -t [thermostatId Id]')
+    .usage('Usage: $0 -t [temperature sensor Id]')
     .demand(['t'])
     .argv;
 
 // device object used for testing purposes (this is normally populated by the runtime)      
 function Device(id) {
     this.props = ' { "id": "' + id + '" }';
-    this.name = "Test Thermostat";
+    this.name = "Test Temperature Sensor";
 }
 
 var device = new Device(argv.t);

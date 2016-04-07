@@ -1,4 +1,4 @@
-# Test Thermostat Translator
+# Test Temperature Sensor Translator
 
 > <b>Note</b>: This translator is only for testing, and does not correspond to any real device. It just does
 > some console logging.
@@ -19,7 +19,7 @@ You should see output that looks like:
 
 ```bash
 Javascript initialized.
-  device.name          : Test
+  device.name          : Test Temperature Sensor.
   device.props         :  { "id": "abc" }
 getCurrentTemperature called.
 returning random temperature: 70

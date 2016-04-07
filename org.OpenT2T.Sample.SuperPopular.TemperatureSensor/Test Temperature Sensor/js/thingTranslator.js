@@ -1,8 +1,8 @@
 'use strict';
 
 // helper library for interacting with this lamp
-var Statistics = require('./lib/test-thermostat-helper').Statistics;
-var Point = require('./lib/test-thermostat-helper').Point;
+var Statistics = require('./lib/test-temperature-sensor-helper').Statistics;
+var Point = require('./lib/test-temperature-sensor-helper').Point;
 
 // logs device state
 function logDeviceState(device) {

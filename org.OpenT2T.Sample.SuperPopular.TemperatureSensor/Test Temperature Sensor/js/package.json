@@ -1,5 +1,5 @@
 {
-    "name": "opent2t-translator-test-thermostat",
+    "name": "opent2t-translator-test-temperature-sensor",
     "version": "1.0.0",
     "description": "",
     "dependencies": {},
