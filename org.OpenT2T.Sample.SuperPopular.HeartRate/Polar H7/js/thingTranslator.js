@@ -1,5 +1,7 @@
+'use strict';
+
 // helper library for interacting with this lamp
-var SensorTag = require('sensortag');
+var LEDBlue = require('./lib/ledblue-helper').LEDBlue;
 
 // logs device state
 function logDeviceState(device) {
@@ -11,43 +13,28 @@ function logDeviceState(device) {
     }
 };
 
-var tag = null;
+var pairKey = 0x01;
+var bulb = null;
 
 // module exports, implementing the schema
 module.exports = {
     device: null,
 
     initDevice: function(dev) {
+
         this.device = dev;
 
         if (typeof this.device != 'undefined') {
             if (typeof (this.device.props) !== 'undefined') {
                 var props = JSON.parse(this.device.props);
                 if (typeof (props.id) !== 'undefined') {
-                    SensorTag.discoverById(props.id, function(sensorTag) {
-
-                        console.log('discovered');
-
-                        tag = sensorTag;
-                        tag.connectAndSetup(function(conn_error) {
+                    LEDBlue.getBulb(props.id, function(b) {
+                        bulb = b;
+                        bulb.connect(function() {
                             console.log('connected');
-
-                            if (conn_error != null) {
-                                console.log(conn_error);
-                                return;
-                            } else {
-                                tag.enableIrTemperature(function(enable_error) {
-
-                                    setTimeout(function() {
-                                        if (enable_error != null) {
-                                            console.log(enable_error);
-                                            return;
-                                        } else {
-                                            return;
-                                        };
-                                    }, 1000);	// wait is neccessary for hardware to startup
-                                });
-                            }
+                            bulb.pair(pairKey, function() {
+                                console.log('paired');
+                            });
                         });
                     });
                 } else {
@@ -65,40 +52,60 @@ module.exports = {
     },
 
     disconnect: function() {
-
         console.log('disconnect called.');
         logDeviceState(this.device);
 
-        if (tag != null) {
-            tag.disconnect(function(err) {
-                console.log('disconnected');
+        if (typeof bulb != 'undefined') {
+            bulb.disconnect(function() {
+                console.log('device disconnected');
             });
+        } else {
+            console.log('disconnect failed: no bulb defined');
         }
     },
 
-    getCurrentTemperature: function(callback) {
+    turnOn: function() {
+        console.log('turnOn called.');
 
-        console.log('getCurrentTemperature called.');
-
-        if (tag == null) {
-            console.log('initDevice not complete (Is tag awake?)');
-            temperature('(unknown)');
-            return;
+        if (typeof bulb != 'undefined') {
+            bulb.turnOn(function() {
+                console.log('turnOn done');
+            });
+        } else {
+            console.log('turnOn failed: no bulb defined');
         }
-
-        tag.readIrTemperature(function(temp_error, objectTemperature, ambient_temp) {
-            if (temp_error != null) {
-                console.log(temp_error);
-            } else {
-                callback(ambient_temp);
-            }
-            return;
-        });
     },
+
+    turnOff: function() {
+        console.log('turnOff called.');
+
+        if (typeof bulb != 'undefined') {
+            bulb.turnOff(function() {
+                console.log('turnOff done');
+            });
+        } else {
+            console.log('turnOff failed: no bulb defined');
+        }
+    },
+
+    setBrightness: function(brightness) {
+        console.log('setBrightness called with value: ' + brightness);
+
+        if (typeof bulb != 'undefined') {
+            // convert 0-100 range to 1-255
+            var b = ((brightness * 254) / 100) + 1;
+            bulb.setColor(brightness, brightness, brightness, function() {
+                console.log('brightness changed');
+            });
+        } else {
+            console.log('setBrightness failed: no bulb defined');
+        }
+    }
 };
 
 // globals for JxCore host
 global.initDevice = module.exports.initDevice;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
+global.turnOn = module.exports.turnOn;
+global.turnOff = module.exports.turnOff;
+global.setBrightness = module.exports.setBrightness;
 global.disconnect = module.exports.disconnect;
-
