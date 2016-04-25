@@ -1,0 +1,15 @@
+{
+    "name": "opent2t-translator-linear-bulbz",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {
+        "openzwave-shared": "~1.1.7"
+    },
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-zwave": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}
