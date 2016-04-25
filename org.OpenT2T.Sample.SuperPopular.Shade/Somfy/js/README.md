@@ -6,38 +6,14 @@ Translator for the Somfy motorized window coverings : https://www.somfysystems.c
 
 This translator depends on the openzwave-shared node package. 
 
-For non-Windows platforms, follow the instructions for your platform from this site: [https://github.com/OpenZWave/node-openzwave-shared] 
+Follow the instructions for your platform from this site: [https://github.com/OpenZWave/node-openzwave-shared] 
 
-For Windows do the following:
-  1. npm install openzwave-shared  (this will fail)
-  1. install open-zwave (https://github.com/OpenZWave/open-zwave)
-  2. modify bynding.gyp to point to the openzwave source. For instance:
-			['OS=="win"', {
-				"variables": {
-					"OZW_HOME": "C:/src/open-zwave"
-				},
-				"include_dirs": [
-					"<!(node -e \"require('nan')\")",
-					"<(OZW_HOME)/cpp/src",
-					"<(OZW_HOME)/cpp/src/value_classes"
-				],
-				"defines": [
-					"OPENZWAVE_ETC=<(OZW_HOME)/config",
-					"OPENZWAVE_SECURITY=1"
-				],
-				'msvs_settings': {
-					'VCLinkerTool': {
-						'AdditionalDependencies': ['setupapi.lib', '<(OZW_HOME)/cpp/build/windows/vs2010/x64/Release/OpenZWave.lib']
-					}
-				}
-			}]
-  3. Build the zwave VS2010 project in cpp\build\windows\vs2010. Select the x64\Release target.
-  4. Rebuild the openzwave-shared node module
   
 The following hardware is required:
-	1. A Somfy motorized window shade
-	2. A Z-Wave to Radio Technology Somfy Interface device (https://www.somfysystems.com/products/controls-integration/z-wave -- Cat No. 1811265)
-	3. A ZWave USB dongle, such as http://aeotec.com/z-wave-usb-stick
+
+1. A Somfy motorized window shade
+2. A Z-Wave to Radio Technology Somfy Interface device (https://www.somfysystems.com/products/controls-integration/z-wave -- Cat No. 1811265)
+3. A ZWave USB dongle, such as http://aeotec.com/z-wave-usb-stick
 
 Follow the instructions with the Somfy Zwave interface device for pairing the Somfy window shade.
 
