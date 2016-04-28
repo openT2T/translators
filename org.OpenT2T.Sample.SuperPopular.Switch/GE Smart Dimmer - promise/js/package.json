@@ -1,0 +1,15 @@
+{
+    "name": "opent2t-translator-ge-smart-dimmer",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {
+        "openzwave-shared": "git+https://github.com/HenryRawas/node-openzwave-shared.git#fixinstall",
+        "q": "~1.0.0"
+    },
+    "devDependencies": {
+        "optimist": "0.6.1",
+        "opent2t-onboarding-zwave": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}
