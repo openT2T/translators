@@ -8,7 +8,7 @@ var argv = require('optimist')
 // device object used for testing purposes (this is normally populated by the runtime)      
 function Device(id) {
     this.props = ' { "id": "' + id + '" }';
-    this.name = "LED Blue Light (Test)";
+    this.name = "Flux Smart LED Light Bulb (Test)";
 }
 
 var device = new Device(argv.i);
@@ -17,34 +17,21 @@ var device = new Device(argv.i);
 translator.initDevice(device);
 
 // Go through a sequence of test operations for the translator
-setTimeout(function() {
+setTimeout(function () {
     translator.setBrightness(100);
-    setTimeout(function() {
+    setTimeout(function () {
         translator.turnOn();
-        setTimeout(function() {
-            translator.setBrightness(80);
-            setTimeout(function() {
-                translator.setBrightness(60);
-                setTimeout(function() {
-                    translator.setBrightness(40);
-                    setTimeout(function() {
-                        translator.setBrightness(20);
-                        setTimeout(function() {
-                            translator.setBrightness(0);
-                            setTimeout(function() {
-                                translator.turnOff();
-                                setTimeout(function() {
-                                    translator.disconnect();
-                                    setTimeout(function() {
-                                        process.exit(0);
-                                    }, 1000);
-                                }, 1000);
-                            }, 1000);
-                        }, 1000);
+        setTimeout(function () {
+            setTimeout(function () {
+                translator.turnOff();
+                setTimeout(function () {
+                    translator.disconnect();
+                    setTimeout(function () {
+                        process.exit(0);
                     }, 1000);
                 }, 1000);
             }, 1000);
         }, 1000);
     }, 1000);
-}, 5000);
+}, 2000);
 
