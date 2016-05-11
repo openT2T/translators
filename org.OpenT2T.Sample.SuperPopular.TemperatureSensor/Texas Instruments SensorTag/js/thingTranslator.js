@@ -82,7 +82,7 @@ module.exports = {
 
         if (tag == null) {
             console.log('initDevice not complete (Is tag awake?)');
-            temperature('(unknown)');
+            callback('(unknown)');
             return;
         }
 
