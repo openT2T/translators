@@ -13,9 +13,8 @@ function PolarH7(peripheral) {
 PolarH7.getSensor = function(sensorId, callback) {
     noble.on('stateChange', function() {
         noble.on('discover', function(peripheral) {
-            console.log("discoverCallback: " + peripheral);
             if (peripheral.id == sensorId) {
-                console.log("discoverCallback: found");
+                console.log('Found sensor');
                 noble.stopScanning();
                 var sensor = new PolarH7(peripheral);
                 callback(sensor);
@@ -42,8 +41,30 @@ PolarH7.prototype.connect = function(callback) {
 
 PolarH7.prototype.getBeatsPerMinute = function(callback) {
     this._peripheral.discoverServices(['180d'], function(error, services) {
+
+        if (services.length != 1) {
+            console.log('Unexpected number of services found: ' + services.length);
+            callback(null);
+            return;
+        }
+        
+        console.log('service found');
         services[0].discoverCharacteristics(['2a37'], function(error, characteristics) {
-            characteristics[0].notify(true , [callback(1234)]);
+            
+            if (characteristics.length != 1) {
+                console.log('Unexpected number of services found: ' + services.length);
+                callback(null);
+                return;
+            }
+            
+            console.log('characteristic found');
+            characteristics[0].notify(true);
+            characteristics[0].on('read', function(value, isNotification) {
+                
+                // all done
+                var rate = value.readUInt8(1);                
+                callback(rate);
+            });
         });
     });
 };
