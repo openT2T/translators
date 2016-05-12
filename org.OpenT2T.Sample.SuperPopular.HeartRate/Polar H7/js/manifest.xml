@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated schema -->
+  <schema id="org.OpenT2T.Sample.SuperPopular.HeartRate" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.OpenT2T.Onboarding.BluetoothLE">
+    <arg name="name" value="Polar H7" />
+    <arg name="advertisementLocalNameFilter" value="^Polar H7*" />
+  </onboarding>
+</manifest>
