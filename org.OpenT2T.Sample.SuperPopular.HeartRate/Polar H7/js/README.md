@@ -1,6 +1,7 @@
-# Texas Instruments SensorTag Temperature Sensor
+# Polar H7 Heart Rate Sensor
 
-Translator for the Texas Instruments SensorTag Temperature Sensor: http://www.ti.com/sensortag
+Translator for the Polar H7 Heart Rate Sensor: http://www.polar.com/H7
+
 
 ## Setup Your Hardware
 
@@ -28,36 +29,41 @@ node node_modules/opent2t-onboarding-bluetoothle/test.js -n "Polar H7" -f "^Pola
 
 The -f parameter is a regular expression to identify this sensor by matching its advertisement local name.
 
-If there is a TI SensorTag nearby, you should see output similar to:
+If there is a Polar H7 nearby, you should see output similar to:
 
 ```bash
-Onboarding device            : TI SensorTag
-advertisementLocalNameFilter : SensorTag
-found peripheral: {"id":"8f0b918386904ca29eed05a18e5f3027","address":"unknown","addressType":"unknown","connectable":true,"advertisement":{"localName":"SensorTag","txPowerLevel":0,"serviceData":[],"serviceUuids":[]},"rssi":-40,"state":"disconnected"}
-Found peripheral matching filter with ID: : 8f0b918386904ca29eed05a18e5f3027
+$ node node_modules/opent2t-onboarding-bluetoothle/test.js -n "Polar H7" -f "^Polar H7*"
+Onboarding device            : Polar H7
+advertisementLocalNameFilter : ^Polar H7*
+found peripheral: {"id":"73338e0d8bcd43378736f146f1c3773c","address":"00:22:d0:41:9b:2f","addressType":"unknown","connectable":true,"advertisement":{"localName":"Polar H7 419B2F1B","txPowerLevel":0,"manufacturerData":{"type":"Buffer","data":[107,0,63,0,0,0]},"serviceData":[],"serviceUuids":["180d"]},"rssi":-36,"state":"disconnected"}
+  id           : 73338e0d8bcd43378736f146f1c3773c
+  message      : All done. Happy coding!
 ```
 
-Copy the ID of the SensorTag that was discovered, and use that to run the translator test file:
+Copy the ID of the Polar H7 that was discovered, and use that to run the translator test file:
 
 ```bash
-node test -i 8f0b918386904ca29eed05a18e5f3027
+node test -i 73338e0d8bcd43378736f146f1c3773c
 ```
 
-If the same SensorTag with the specified ID is nearby, you should be able to read data from it per
+If the same Polar H7 with the specified ID is nearby, you should be able to read data from it per
 the commands in the test file. You should also see output similar to:
 
 ```bash
-Press the button on the sensor tag. (wake sensor)
+Make sure both metal pads are in contact with skin
+Found sensor
+discovered, now connecting...
 Javascript initialized.
-  device.name          : SensorTag (Test)
-  device.props         :  { "id": "8f0b918386904ca29eed05a18e5f3027" }
-discovered
-connected
-getCurrentTemperature called.
-22.90625C
+  device.name          : Polar H7 (Test)
+  device.props         :  { "id": "73338e0d8bcd43378736f146f1c3773c" }
+getBeatsPerMinute called.
+service found
+characteristic found
+Read value: 20 bpm
 disconnect called.
-  device.name          : SensorTag (Test)
-  device.props         :  { "id": "8f0b918386904ca29eed05a18e5f3027" }
+  device.name          : Polar H7 (Test)
+  device.props         :  { "id": "73338e0d8bcd43378736f146f1c3773c" }
+device disconnected
 ```
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type

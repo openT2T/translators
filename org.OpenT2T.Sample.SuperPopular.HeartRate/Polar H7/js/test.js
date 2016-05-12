@@ -20,15 +20,15 @@ translator.initDevice(device);
 
 // Go through a sequence of test operations for the translator
 setTimeout( function(){
-	translator.GetBeatsPerMinute(function(beatsPerMinute) {
+	translator.getBeatsPerMinute(function(beatsPerMinute) {
 		setTimeout( function(){
-			console.log("%s bpm", beatsPerMinute);
+			console.log('Read value: %s bpm', beatsPerMinute);
 
 			translator.disconnect();
+			
 			setTimeout( function(){
-
 				process.exit(0);
-			}, 100);
-		}, 500);
-	}, 1000);
+			}, 1000);
+		}, 1000);
+	}, 2000);
 }, 5000);
