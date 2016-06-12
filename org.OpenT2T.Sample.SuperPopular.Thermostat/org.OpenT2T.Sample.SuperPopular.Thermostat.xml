@@ -10,27 +10,27 @@
     <method name="turnOff"/>
     
     <!-- Get the current ambient temperature -->
-    <method name="getRoomTemperature">
+    <method name="getCurrentTemperature">
       <arg name="temp" type="d" direction="out" />
     </method>
 
      <!-- get the current cooling temperature (a.k.a. max setpoint) -->
-    <method name="getCoolingSetPoint">
+    <method name="getCoolingSetpoint">
       <arg name="temp" type="d" direction="out" />
     </method>
     
     <!-- get the current heating temperature (a.k.a. min setpoint) -->
-    <method name="getHeatingSetPoint">
+    <method name="getHeatingSetpoint">
       <arg name="temp" type="d" direction="out" />
     </method>
   
    <!-- set the desired cooling temperature (a.k.a. max setpoint) -->
-    <method name="setCoolingSetPoint">
+    <method name="setCoolingSetpoint">
       <arg name="temp" type="d" direction="in" />
     </method>
     
     <!-- set the desired heating temperature (a.k.a. min setpoint) -->
-    <method name="setHeatingSetPoint">
+    <method name="setHeatingSetpoint">
       <arg name="temp" type="d" direction="in" />
     </method>
     
@@ -38,6 +38,7 @@
     <method name="setMode">
       <arg name="mode" type="s" direction="in" />
     </method>
+  
     
     <!-- Called when there is an error during usage of this translator -->
     <signal name="error">
