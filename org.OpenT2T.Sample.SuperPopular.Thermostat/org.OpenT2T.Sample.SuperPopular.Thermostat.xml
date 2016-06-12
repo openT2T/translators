@@ -9,18 +9,28 @@
      <!-- Turn off the HVAC -->
     <method name="turnOff"/>
     
-    <!-- Get the current temperature -->
-    <method name="getCurrentTemperature">
+    <!-- Get the current ambient temperature -->
+    <method name="getRoomTemperature">
       <arg name="temp" type="d" direction="out" />
     </method>
-   
+
+     <!-- get the current cooling temperature (a.k.a. max setpoint) -->
+    <method name="getCoolingSetPoint">
+      <arg name="temp" type="d" direction="out" />
+    </method>
+    
+    <!-- get the current heating temperature (a.k.a. min setpoint) -->
+    <method name="getHeatingSetPoint">
+      <arg name="temp" type="d" direction="out" />
+    </method>
+  
    <!-- set the desired cooling temperature (a.k.a. max setpoint) -->
-    <method name="setCoolingTemperature">
+    <method name="setCoolingSetPoint">
       <arg name="temp" type="d" direction="in" />
     </method>
     
     <!-- set the desired heating temperature (a.k.a. min setpoint) -->
-    <method name="setHeatingTemperature">
+    <method name="setHeatingSetPoint">
       <arg name="temp" type="d" direction="in" />
     </method>
     
