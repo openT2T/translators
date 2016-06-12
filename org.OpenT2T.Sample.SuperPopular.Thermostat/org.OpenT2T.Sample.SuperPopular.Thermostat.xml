@@ -14,14 +14,19 @@
       <arg name="temp" type="d" direction="out" />
     </method>
    
-   <!-- set the current temperature -->
-    <method name="setCurrentTemperature">
+   <!-- set the desired cooling temperature (a.k.a. max setpoint) -->
+    <method name="setCoolingTemperature">
       <arg name="temp" type="d" direction="in" />
     </method>
-   
+    
+    <!-- set the desired heating temperature (a.k.a. min setpoint) -->
+    <method name="setHeatingTemperature">
+      <arg name="temp" type="d" direction="in" />
+    </method>
+    
    <!-- set the mode (e.g. Heating, Cooling, Auto)-->
     <method name="setMode">
-      <arg name="mode" type="d" direction="in" />
+      <arg name="mode" type="s" direction="in" />
     </method>
     
     <!-- Called when there is an error during usage of this translator -->
