@@ -38,6 +38,12 @@
     <method name="setMode">
       <arg name="mode" type="s" direction="in" />
     </method>
+    
+      <!-- get the current mode (e.g. Heating, Cooling, Auto)-->
+    <method name="getMode">
+      <arg name="mode" type="s" direction="out" />
+    </method>
+  
   
     
     <!-- Called when there is an error during usage of this translator -->
