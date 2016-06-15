@@ -1,0 +1,14 @@
+{
+    "name": "opent2t-translator-wink-thermostat",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {},
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-winkhub": "*",
+        "q": "1.4.1"
+    },
+    "author": "",
+    "license": "MIT"
+}
