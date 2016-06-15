@@ -1,10 +1,9 @@
 'use strict';
 
-//var request = require('request');
 var https = require('https');
 var q = require('q');
 
-//this is our base, we each call has its own set of options
+//this is our base, we refactor this options in each method
  var options = 
  {
         protocol: 'https:',
@@ -27,7 +26,7 @@ module.exports =
    {
        
     //build our desired state object where the apiField is the target value
-    options.postData = {'desired_state':{}};
+    options.postData = {'desired_state':{}}; //we will add the field in this object
     options.postData.desired_state[apiField] = value;
     
     var deferred = q.defer();   // q will help us with returning a promise
@@ -58,12 +57,15 @@ module.exports =
             deferred.reject(e.message);
         }); });
 
+
     req.on('error', (e) => {
         console.log('problem with request:');
         deferred.reject(e.message);
     });
+
     req.write(JSON.stringify(options.postData));
     req.end();   
+
     //make our Promise and give it back to the caller
     deferred.promise.nodeify(callback);
     return deferred.promise;
@@ -72,8 +74,8 @@ module.exports =
    
    getLastReading: function(apiField,callback)
    {
-        var deferred = q.defer();   // q will help us with returning a promise
     
+    var deferred = q.defer();   // q will help us with returning a promise
     
     //the headers to make our call
     options.headers = 
@@ -85,8 +87,7 @@ module.exports =
      
     //our HTTPS call 
     var req = https.get(options, (res) => {
-       // res.setEncoding('utf8');
-       
+     
        var body = ' '; //holds the chunks of data
         res.on('data', (chunk) => 
         {
@@ -131,8 +132,7 @@ module.exports =
      
     //our HTTPS call 
     var req = https.get(options, (res) => {
-       // res.setEncoding('utf8');
-       
+
        var body = ' '; //holds the chunks of data
         res.on('data', (chunk) => 
         {
@@ -153,8 +153,8 @@ module.exports =
         deferred.reject(e.message);
     });
     
-    
     req.end();   
+
     //make our Promise and give it back to the caller
     deferred.promise.nodeify(callback);
     return deferred.promise;
