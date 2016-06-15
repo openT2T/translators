@@ -45,7 +45,7 @@
     </method>
     
        <!-- get the modes supported (e.g. Heating, Cooling, Auto)-->
-    <method name="getAllModes">
+    <method name="getAvailableModes">
       <arg name="mode" type="as" direction="out" />
     </method>
    
