@@ -43,9 +43,12 @@
     <method name="getMode">
       <arg name="mode" type="s" direction="out" />
     </method>
-  
-  
     
+       <!-- get the modes supported (e.g. Heating, Cooling, Auto)-->
+    <method name="getAllModes">
+      <arg name="mode" type="as" direction="out" />
+    </method>
+   
     <!-- Called when there is an error during usage of this translator -->
     <signal name="error">
         <arg name="type" type="s" direction="out"/>
