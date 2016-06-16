@@ -2,6 +2,6 @@
 *.js
 *.js.map
 
-# But include the test script, which is not compiled by TypeScript.
-!test.js
+# Exclude TypeScript typings that can be automatically restored by the typings tool.
+typings
 

@@ -4,6 +4,7 @@
   "description": "",
   "dependencies": {
     "typescript": "^1.9.0-dev.20160610-1.0",
+    "typings": "^1.2.0",
     "node-hue-api": "~2.2.0"
   },
   "devDependencies": {
@@ -12,7 +13,7 @@
     "opent2t-onboarding-huehub": "*"
   },
   "scripts": {
-    "install": "node ./node_modules/typescript/bin/tsc"
+    "install": "node ./node_modules/typings/dist/bin.js install && node ./node_modules/typescript/bin/tsc"
   },
   "author": "",
   "license": "MIT"

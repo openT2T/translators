@@ -1,17 +1,17 @@
 
-declare function require(module: string): any;
+/// <reference path="./typings/index.d.ts"/>
 
-// Note there are no type definitions for node-hue-api
+// Note there are no type definitions for node-hue-api, so it is required instead of imported.
 var hue = require('node-hue-api'),
     HueApi = hue.HueApi,
     lightState = hue.lightState;
 
-class Device {
+export class Device {
     name: string;
     props: string;
 }
 
-class DeviceProps {
+export class DeviceProps {
     ipAddress: string;
     userId: string;
     uniqueId: string;
