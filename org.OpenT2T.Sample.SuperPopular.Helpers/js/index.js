@@ -3,7 +3,7 @@
 var https = require('https');
 var q = require('q');
 
-//this is our base, we refactor this options in each method
+//this is our base, we refactor these options in each method
  var options = 
  {
         protocol: 'https:',
@@ -22,7 +22,7 @@ module.exports =
         
    },
  
-   sendDesiredStateCommand: function(apiField,value,callback) 
+   sendDesiredStateCommand: function(apiField,value) 
    {
        
     //build our desired state object where the apiField is the target value
@@ -47,32 +47,31 @@ module.exports =
         res.setEncoding('utf8');
         res.on('data', (chunk) => 
         {
-             deferred.resolve('The ' + apiField + ' changed to ' + value);
+             
         });
         res.on('end', () => 
         {
-             deferred.resolve('ended call');
+             deferred.resolve('The ' + apiField + ' changed to ' + value);
         });
         res.on('error', (e) => {
-            deferred.reject(e.message);
+            deferred.reject(e);
         }); });
 
 
     req.on('error', (e) => {
         console.log('problem with request:');
-        deferred.reject(e.message);
+        deferred.reject(e);
     });
 
     req.write(JSON.stringify(options.postData));
     req.end();   
 
     //make our Promise and give it back to the caller
-    deferred.promise.nodeify(callback);
     return deferred.promise;
     
    },
    
-   getLastReading: function(apiField,callback)
+   getLastReading: function(apiField)
    {
     
     var deferred = q.defer();   // q will help us with returning a promise
@@ -91,7 +90,8 @@ module.exports =
        var body = ' '; //holds the chunks of data
         res.on('data', (chunk) => 
         {
-          body += chunk; });
+          body += chunk; 
+        });
         res.on('end', () => 
         {
             //parse the JSON response and look for the apiField we want in the JSON body
@@ -100,28 +100,26 @@ module.exports =
              deferred.resolve(valueToGet);
         });
         res.on('error', (e) => {
-            deferred.reject(e.message);
+            deferred.reject(e);
         }); });
 
     req.on('error', (e) => {
         console.log('problem with request:');
-        deferred.reject(e.message);
+        deferred.reject(e);
     });
     
     
     req.end();   
     //make our Promise and give it back to the caller
-    deferred.promise.nodeify(callback);
     return deferred.promise;
     
    },
    
-   getValueOfDesiredState: function(apiField,callback) 
+   getValueOfDesiredState: function(apiField) 
    {
        
     var deferred = q.defer();   // q will help us with returning a promise
-    
-    
+
     //the headers to make our call
     options.headers = 
     {
@@ -136,7 +134,8 @@ module.exports =
        var body = ' '; //holds the chunks of data
         res.on('data', (chunk) => 
         {
-          body += chunk; });
+          body += chunk; 
+        });
         res.on('end', () => 
         {
             //parse the JSON response and look for the apiField we want in the JSON body
@@ -145,18 +144,17 @@ module.exports =
              deferred.resolve(valueToGet);
         });
         res.on('error', (e) => {
-            deferred.reject(e.message);
+            deferred.reject(e);
         }); });
 
     req.on('error', (e) => {
         console.log('problem with request:');
-        deferred.reject(e.message);
+        deferred.reject(e);
     });
     
     req.end();   
 
     //make our Promise and give it back to the caller
-    deferred.promise.nodeify(callback);
     return deferred.promise;
     
    }   
