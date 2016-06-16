@@ -1,0 +1,15 @@
+{
+  "name": "opent2t-translator-philipshue",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "node-hue-api": "~2.2.0"
+  },
+  "devDependencies": {
+    "optimist": "~0.6.1",
+    "readline": "~1.3.0",
+    "opent2t-onboarding-huehub": "*"
+  },
+  "author": "",
+  "license": "MIT"
+}
