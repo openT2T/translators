@@ -67,7 +67,7 @@ module.exports = {
     getCurrentTemperature: function() {
         console.log('getting current temp');
 
-        wh.getValueOfDesiredState('temperature').then(result => {
+        wh.getLastReading('temperature').then(result => {
         console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
     },
     
