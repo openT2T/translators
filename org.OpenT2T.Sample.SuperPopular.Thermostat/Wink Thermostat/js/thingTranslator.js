@@ -1,7 +1,7 @@
 'use strict';
 
 var https = require('https');
-var wh = require("org.OpenT2T.Sample.SuperPopular.Helpers/js/index.js"); //change this to your local
+var wh = require("opent2t-translator-helper-wink"); //link locally for now
 
 // logs device state
 function logDeviceState(device) {
@@ -52,79 +52,71 @@ module.exports = {
 
     turnOn: function() {
         console.log('turnOn called.');
-        wh.sendDesiredStateCommand("powered",true, function (error, result) 
-        {
-            console.log(result); 
-        }); 
+
+        wh.sendDesiredStateCommand('powered',true).then(result => {
+        console.log(result);}).catch(error => {console.log(error.message);}); 
     },
 
     turnOff: function() {
         console.log('turnOff called.');
-        wh.sendDesiredStateCommand("powered",false, function (error, result) 
-        {
-            console.log(result); 
-        }); 
+
+        wh.sendDesiredStateCommand('powered',false).then(result => {
+        console.log(result);}).catch(error => {console.log(error.message);}); 
     },
 
     getCurrentTemperature: function() {
-        wh.getLastReading('temperature',function (error, result) 
-        {
-             console.log(result); 
-             return result;
-        });
+        console.log('getting current temp');
+
+        wh.getValueOfDesiredState('temperature').then(result => {
+        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
     },
     
     getCoolingSetpoint: function()
     {
-        wh.getValueOfDesiredState('max_set_point',function (error, result) 
-        {
-             console.log(result); 
-             return result;
-        });
+        console.log('getting cooling point');
+
+        wh.getValueOfDesiredState('max_set_point').then(result => {
+        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
     },
     
     getHeatingSetpoint:function()
     {
-         wh.getValueOfDesiredState('min_set_point',function (error, result) 
-        {
-             console.log(result); 
-             return result;
-        });
+        console.log('getting heating point');
+
+         wh.getValueOfDesiredState('min_set_point').then(result => {
+        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
     },
     
     getMode:function()
     {
-         wh.getValueOfDesiredState('mode',function (error, result) 
-        {
-             console.log(result); 
-             return result;
-        });
-    },
+        console.log('getting mode.');
+
+        wh.getValueOfDesiredState('mode').then(result => {
+        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
     
+    },
     
     setMode:function(value)
     {
-       console.log("Trying to set Mode")
-       wh.sendDesiredStateCommand("mode",value, function (error, result) 
-        {
-            console.log(result); 
-        });  
+       console.log("Trying to set Mode");
+        
+        wh.sendDesiredStateCommand('mode',value).then(result => {
+        console.log(result);}).catch(error => {console.log(error.message);}); 
     },
     
     setHeatingSetpoint:function(temp)
     {
-        wh.sendDesiredStateCommand("min_set_point",temp, function (error, result) 
-        {
-            console.log(result); 
-        });  
+        console.log("Changing Heating Setpoint");
+
+        wh.sendDesiredStateCommand('min_set_point',temp).then(result => {
+        console.log(result);}).catch(error => {console.log(error.message);}); 
     },
     
     setCoolingSetpoint:function(temp)
     {
-        wh.sendDesiredStateCommand("max_set_point",temp, function (error, result) 
-        {
-            console.log(result); 
-        });  
+        console.log("Changing Cooling Setpoint");
+        wh.sendDesiredStateCommand('max_set_point',temp).then(result => {
+        console.log(result);}).catch(error => {console.log(error.message);}); 
     },
 
     disconnect: function() {
