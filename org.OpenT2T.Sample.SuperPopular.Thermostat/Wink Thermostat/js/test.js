@@ -21,7 +21,7 @@ translator.initDevice(device);
 
 // Go through a sequence of test operations for the translator
 q.delay(1000)
- .then(() => translator.turnOn())
+ .then(() => translator.turnOff())
  .then(() => q.delay(2000))
  .then(() => translator.setMode("heat_only"))
  .then(() => q.delay(2000))
@@ -31,7 +31,7 @@ q.delay(1000)
  .then(() => q.delay(2000))
  .then(() => console.log(translator.getCoolingSetpoint()))
  .then(() => q.delay(2000))
- .then(() => translator.turnOff())
+ .then(() => translator.turnOn())
  .then(() => q.delay(2000))
  .done();
 

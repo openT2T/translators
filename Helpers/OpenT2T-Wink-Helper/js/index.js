@@ -6,14 +6,15 @@ var q = require('q');
 //this is our base, we refactor these options in each method
 
 
-var  accessToken;  //we will need this when creating the headers
+var  accessToken,ApiPath;  //we will need this when creating the headers
       
 module.exports = 
 {
     //get the initial parameters to build our target endpoint
    initWinkApi: function(apiEndpoint, deviceID, token)
    {
-       options.path = '/' + apiEndpoint + '/' + deviceID;
+       ApiPath = '/' + apiEndpoint + '/' + deviceID;
+       console.log("Api path is " + ApiPath)
        accessToken = token; //the specific token
         
    },
@@ -24,7 +25,8 @@ module.exports =
     var options = 
         {
         protocol: 'https:',
-        host: 'api.wink.com'     
+        host: 'api.wink.com',
+        path: ApiPath     
         };
 
     //build our desired state object where the apiField is the target value
@@ -79,7 +81,8 @@ module.exports =
      var options = 
     {
         protocol: 'https:',
-        host: 'api.wink.com'     
+        host: 'api.wink.com' ,
+        path: ApiPath      
     };
     var deferred = q.defer();   // q will help us with returning a promise
     
@@ -137,7 +140,8 @@ module.exports =
      var options = 
      {
         protocol: 'https:',
-        host: 'api.wink.com'     
+        host: 'api.wink.com' ,
+        path: ApiPath       
      };
     //the headers to make our call
     options.headers = 
@@ -158,7 +162,7 @@ module.exports =
         res.on('end', () => 
         {
             try
-            {
+            {    
             //parse the JSON response and look for the apiField we want in the JSON body
              var results = JSON.parse(body.toString());
              var valueToGet = results.data.desired_state[apiField];

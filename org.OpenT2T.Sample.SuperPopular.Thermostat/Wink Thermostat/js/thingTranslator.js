@@ -15,84 +15,87 @@ function logDeviceState(device) {
 
 var deviceId, accessToken;
 
+function logPromise(p) {
+    return p.then(result => {
+        console.log(result);
+        return result;
+    }).catch(error => {
+        console.log(error.message);
+        throw error;
+    });
+}
+
+function validateArgumentType(arg, argName, expectedType) {
+    if (typeof arg === 'undefined') {
+        throw new Error('Missing argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + '.');
+    } else if (typeof arg !== expectedType) {
+        throw new Error('Invalid argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + ', got: ' + (typeof arg));
+    }
+}
+
+var device;
+var props;
 // module exports, implementing the schema
 module.exports = {
 
-    device: null,
-
     initDevice: function(dev) {
-        this.device = dev;
+        console.log('Initializing device.');
 
-        if (typeof this.device != 'undefined') {
-            if (typeof (this.device.props) !== 'undefined') {
-                var props = JSON.parse(this.device.props);
+        device = dev;
+        validateArgumentType(device, 'device', 'object');
+        validateArgumentType(device.props, 'device.props', 'string');
 
-                if (typeof (props.access_token) !== 'undefined') {
-                    accessToken = props.access_token;
-                } else {
-                    console.log('props.access_token is undefined.');
-                }
+        props = JSON.parse(device.props);
+        validateArgumentType(props.access_token, 'device.props.access_token', 'string');
+        validateArgumentType(props.id, 'device.props.id', 'string');
+       
+        deviceId = props.id; 
+        accessToken = props.access_token;
 
-                if (typeof (props.id) !== 'undefined') {
-                    deviceId = props.id;
-                } else {
-                    console.log('props.id is undefined.');
-                }
-            } else {
-                console.log('props is undefined.');
-            }
-        } else {
-            console.log('device is undefined.');
-        }
         //use the winkHub device and initialize
         wh.initWinkApi("thermostats",deviceId,accessToken);
-        console.log('Javascript and Wink Helper initialized.');
-        logDeviceState(this.device);
+        console.log('Javascript and Wink Helper initialized');
+        logDeviceState(device);
     },
 
     turnOn: function() {
         console.log('turnOn called.');
-
-        wh.sendDesiredStateCommand('powered',true).then(result => {
-        console.log(result);}).catch(error => {console.log(error.message);}); 
+        return logPromise(wh.sendDesiredStateCommand('powered', true));
     },
 
     turnOff: function() {
         console.log('turnOff called.');
 
-        wh.sendDesiredStateCommand('powered',false).then(result => {
-        console.log(result);}).catch(error => {console.log(error.message);}); 
+       return logPromise(wh.sendDesiredStateCommand('powered',false));
     },
 
     getCurrentTemperature: function() {
         console.log('getting current temp');
 
-        wh.getLastReading('temperature').then(result => {
-        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
+        return logPromise(wh.getLastReading('temperature'));
     },
     
     getCoolingSetpoint: function()
     {
         console.log('getting cooling point');
 
-        wh.getValueOfDesiredState('max_set_point').then(result => {
-        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
+        return logPromise(wh.getValueOfDesiredState('max_set_point'));
     },
     
     getHeatingSetpoint:function()
     {
         console.log('getting heating point');
 
-         wh.getValueOfDesiredState('min_set_point').then(result => {
-        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
+        return logPromise(wh.getValueOfDesiredState('min_set_point'));
     },
     
     getMode:function()
     {
         console.log('getting mode.');
 
-        wh.getValueOfDesiredState('mode').then(result => {
-        console.log(result); return result; }).catch(error => {console.log(error.message); throw error; });
+       return logPromise(wh.getValueOfDesiredState('mode'));
     
     },
     
@@ -100,23 +103,20 @@ module.exports = {
     {
        console.log("Trying to set Mode");
         
-        wh.sendDesiredStateCommand('mode',value).then(result => {
-        console.log(result);}).catch(error => {console.log(error.message);}); 
+       return logPromise(wh.sendDesiredStateCommand('mode',value)); 
     },
     
     setHeatingSetpoint:function(temp)
     {
         console.log("Changing Heating Setpoint");
 
-        wh.sendDesiredStateCommand('min_set_point',temp).then(result => {
-        console.log(result);}).catch(error => {console.log(error.message);}); 
+        return logPromise(wh.sendDesiredStateCommand('min_set_point',temp));
     },
     
     setCoolingSetpoint:function(temp)
     {
         console.log("Changing Cooling Setpoint");
-        wh.sendDesiredStateCommand('max_set_point',temp).then(result => {
-        console.log(result);}).catch(error => {console.log(error.message);}); 
+        return logPromise(wh.sendDesiredStateCommand('max_set_point',temp)); 
     },
 
     disconnect: function() {
