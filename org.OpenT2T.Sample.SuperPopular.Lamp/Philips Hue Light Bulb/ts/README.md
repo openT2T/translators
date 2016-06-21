@@ -13,6 +13,8 @@ To install dependencies for this translator, run:
 npm install
 ```
 
+The npm install process also automatically compiles the TypeScript code to JavaScript.
+
 ## Test Device
 After everything is installed, run:
 
@@ -49,7 +51,7 @@ If the device is on and connected to the Hue hub, you should see it turn on/off 
 the commands in the test file. You should also see output similar to:
 
 ```bash
-Javascript initialized.
+Initializing device.
 turnOn called.
 turnOff called.
 turnOn called.
