@@ -4,12 +4,8 @@ var https = require('https');
 var q = require('q');
 
 //this is our base, we refactor these options in each method
- var options = 
- {
-        protocol: 'https:',
-        host: 'api.wink.com'     
- };
-    
+
+
 var  accessToken;  //we will need this when creating the headers
       
 module.exports = 
@@ -25,6 +21,12 @@ module.exports =
    sendDesiredStateCommand: function(apiField,value) 
    {
        
+    var options = 
+        {
+        protocol: 'https:',
+        host: 'api.wink.com'     
+        };
+
     //build our desired state object where the apiField is the target value
     options.postData = {'desired_state':{}}; //we will add the field in this object
     options.postData.desired_state[apiField] = value;
@@ -74,6 +76,11 @@ module.exports =
    getLastReading: function(apiField)
    {
     
+     var options = 
+    {
+        protocol: 'https:',
+        host: 'api.wink.com'     
+    };
     var deferred = q.defer();   // q will help us with returning a promise
     
     //the headers to make our call
@@ -95,9 +102,16 @@ module.exports =
         res.on('end', () => 
         {
             //parse the JSON response and look for the apiField we want in the JSON body
+            try
+            {
              var results = JSON.parse(body.toString());
              var valueToGet = results.data.last_reading[apiField];
              deferred.resolve(valueToGet);
+            } catch(err) 
+            {
+                deferred.reject(err);
+            }
+
         });
         res.on('error', (e) => {
             deferred.reject(e);
@@ -119,7 +133,12 @@ module.exports =
    {
        
     var deferred = q.defer();   // q will help us with returning a promise
-
+   
+     var options = 
+     {
+        protocol: 'https:',
+        host: 'api.wink.com'     
+     };
     //the headers to make our call
     options.headers = 
     {
@@ -138,10 +157,17 @@ module.exports =
         });
         res.on('end', () => 
         {
+            try
+            {
             //parse the JSON response and look for the apiField we want in the JSON body
              var results = JSON.parse(body.toString());
              var valueToGet = results.data.desired_state[apiField];
              deferred.resolve(valueToGet);
+            } catch(err)
+            {
+             deferred.reject(err);
+            }
+
         });
         res.on('error', (e) => {
             deferred.reject(e);
