@@ -121,7 +121,7 @@ module.exports = {
 
     disconnect: function() {
         console.log('disconnect called.');
-        logDeviceState(this.device);
+        logDeviceState(device);
     }
     
 };
