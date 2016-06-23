@@ -95,14 +95,10 @@ module.exports = {
     setTemperatureProperty: function(name, scale, value, callback) {
 
         var postData;
-        if (scale == "c"){
-            postData = { name : value };
-        }
-        else {
-            postData = { name : value };
-        }
-        postData = JSON.stringify(postData);
-
+        postData = JSON.stringify({
+            name : value
+        });
+           
         var options = {
             protocol: 'https:',
             host: 'developer-api.nest.com',

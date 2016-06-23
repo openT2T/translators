@@ -1,15 +1,3 @@
-access_token : 
-c.MEA5Tv8LioblS3q4b0aeRQmDPUzBHFTpq7P5QqQuWcKr7i8irVA8VQFb68VParJlG9yuM56R9ux4ijZcvkK2ZltlBBCelSwNte9EUTDz6wwFxEwCOftja1feG7WaSYgQyhqQBC4UiU1R4C1z
-  expires_in   : 315360000
-  device_id    : WIoTQV105WnaOA4-gcROVFQLiwepexno
-  message      : All done. Happy coding!
-
-https://developer-api.nest.com/devices/thermostats
-  access_token : c.tMQqkeEVFQGv4nrkHkBiwSgwprWWZnyoYD1UJNF0kC9PzMAUbvA0UI3bgjqNGFBiQ4kjmnhSkQWkgXzuVMwGlCIoh5ndhrnMJOWtQlr729nBcJDFpO8PWNqSwu3WM62zW63solO6EHbfCtyG
-  expires_in   : 315360000
-  device_id    : WIoTQV105WnaOA4-gcROVFQLiwepexno
-  message      : All done. Happy coding!
-
 # Nest Thermostat
 Translator for Nest thermostat (https://developers.nest.com)
 
