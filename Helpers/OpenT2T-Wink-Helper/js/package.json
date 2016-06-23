@@ -1,0 +1,13 @@
+{
+    "name": "opent2t-translator-helper-wink",
+    "version": "1.0.0",
+    "description": "",
+    "dependencies": {
+        "request":"2.72.0",
+        "q":"1.4.1"
+    },
+    "devDependencies": { 
+    },
+    "author": "",
+    "license": "MIT"
+}
