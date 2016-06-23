@@ -1,0 +1,15 @@
+{
+  "name": "translator-nest-thermostat",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+        "follow-redirects": "0.2.0"
+    },
+  "devDependencies": {
+    "async": "~1.5.2",
+    "opent2t-onboarding-nest": "^1.0.0",
+    "optimist": "0.6.1"
+  },
+  "author": "",
+  "license": "MIT"
+}

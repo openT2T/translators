@@ -10,8 +10,18 @@
     <method name="turnOff"/>
     
     <!-- Get the current ambient temperature -->
-    <method name="getCurrentTemperature">
+    <method name="getAmbientTemperature">
+      <!-- Temperature scale:  'f' for Fahrenheit. 'c' for celsius -->
+      <arg name="scale" type="s" direction="in" />
       <arg name="temp" type="d" direction="out" />
+    </method>
+
+    <!-- Set the current ambient temperature -->
+    <method name="setTargetTemperature">
+      <!-- Temperature scale:  'f' for Fahrenheit. 'c' for celsius -->
+      <arg name="scale" type="s" direction="in" />
+      <arg name="value" type="f" direction="in" />
+      <arg name="temp" type="d" direction="in" />
     </method>
 
      <!-- get the current cooling temperature (a.k.a. max setpoint) -->
