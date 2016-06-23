@@ -67,63 +67,47 @@ module.exports = {
 
     turnOff: function() {
         console.log('turnOff called.');
-
-       return logPromise(wh.sendDesiredStateCommand('powered',false));
+        return logPromise(wh.sendDesiredStateCommand('powered',false));
     },
 
     getCurrentTemperature: function() {
         console.log('getting current temp');
+        return logPromise(wh.getLastReading('temperature')); 
+    },   
 
-        return logPromise(wh.getLastReading('temperature'));
-    },
-    
-    getCoolingSetpoint: function()
-    {
+    getCoolingSetpoint: function() {
         console.log('getting cooling point');
-
         return logPromise(wh.getValueOfDesiredState('max_set_point'));
-    },
-    
-    getHeatingSetpoint:function()
-    {
+    },   
+
+    getHeatingSetpoint:function() {
         console.log('getting heating point');
-
         return logPromise(wh.getValueOfDesiredState('min_set_point'));
-    },
-    
-    getMode:function()
-    {
-        console.log('getting mode.');
+    },  
 
-       return logPromise(wh.getValueOfDesiredState('mode'));
-    
-    },
-    
-    setMode:function(value)
-    {
-       console.log("Trying to set Mode");
-        
+    getMode:function() {
+        console.log('getting mode.');
+        return logPromise(wh.getValueOfDesiredState('mode'));
+    },   
+
+    setMode:function(value) {
+       console.log("Trying to set Mode"); 
        return logPromise(wh.sendDesiredStateCommand('mode',value)); 
     },
-    
-    setHeatingSetpoint:function(temp)
-    {
-        console.log("Changing Heating Setpoint");
 
+    setHeatingSetpoint:function(temp) {
+        console.log("Changing Heating Setpoint");
         return logPromise(wh.sendDesiredStateCommand('min_set_point',temp));
     },
-    
-    setCoolingSetpoint:function(temp)
-    {
+    setCoolingSetpoint:function(temp) {
         console.log("Changing Cooling Setpoint");
         return logPromise(wh.sendDesiredStateCommand('max_set_point',temp)); 
     },
-
+    
     disconnect: function() {
         console.log('disconnect called.');
         logDeviceState(device);
-    }
-    
+    }  
 };
 
 // globals for JxCore host

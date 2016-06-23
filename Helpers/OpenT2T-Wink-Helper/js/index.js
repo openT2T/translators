@@ -5,16 +5,18 @@ var q = require('q');
 
 //this is our base, we refactor these options in each method
 
+var protocolVal = 'https:';
+var hostVal = "api.wink.com";
 
-var  accessToken,ApiPath;  //we will need this when creating the headers
+var  accessToken,apiPath;  //we will need this when creating the headers
       
 module.exports = 
 {
     //get the initial parameters to build our target endpoint
    initWinkApi: function(apiEndpoint, deviceID, token)
    {
-       ApiPath = '/' + apiEndpoint + '/' + deviceID;
-       console.log("Api path is " + ApiPath)
+       apiPath = '/' + apiEndpoint + '/' + deviceID;
+       console.log("Api path is " + apiPath)
        accessToken = token; //the specific token
         
    },
@@ -23,11 +25,11 @@ module.exports =
    {
        
     var options = 
-        {
-        protocol: 'https:',
-        host: 'api.wink.com',
-        path: ApiPath     
-        };
+    {
+        protocol: protocolVal,
+        host: hostVal,
+        path: apiPath     
+     };
 
     //build our desired state object where the apiField is the target value
     options.postData = {'desired_state':{}}; //we will add the field in this object
@@ -51,15 +53,16 @@ module.exports =
         res.setEncoding('utf8');
         res.on('data', (chunk) => 
         {
-             
+
         });
         res.on('end', () => 
         {
-             deferred.resolve('The ' + apiField + ' changed to ' + value);
+            deferred.resolve('The ' + apiField + ' changed to ' + value);
         });
         res.on('error', (e) => {
             deferred.reject(e);
-        }); });
+        }); 
+    });
 
 
     req.on('error', (e) => {
@@ -78,12 +81,13 @@ module.exports =
    getLastReading: function(apiField)
    {
     
-     var options = 
+    var options = 
     {
-        protocol: 'https:',
-        host: 'api.wink.com' ,
-        path: ApiPath      
+        protocol: protocolVal,
+        host: hostVal,
+        path: apiPath     
     };
+
     var deferred = q.defer();   // q will help us with returning a promise
     
     //the headers to make our call
@@ -132,17 +136,18 @@ module.exports =
     
    },
    
-   getValueOfDesiredState: function(apiField) 
+   getValueOfDesiredState: function(apiField)  
    {
        
     var deferred = q.defer();   // q will help us with returning a promise
    
-     var options = 
-     {
-        protocol: 'https:',
-        host: 'api.wink.com' ,
-        path: ApiPath       
-     };
+    var options = 
+    {
+        protocol: protocolVal,
+        host: hostVal,
+        path: apiPath     
+    };
+    
     //the headers to make our call
     options.headers = 
     {
@@ -153,7 +158,6 @@ module.exports =
      
     //our HTTPS call 
     var req = https.get(options, (res) => {
-
        var body = ' '; //holds the chunks of data
         res.on('data', (chunk) => 
         {
