@@ -60,6 +60,11 @@ module.exports = {
         logDeviceState(device);
     },
 
+    isTurnedOn: function() {
+        console.log('isTurnedOn called.');
+        return logPromise(wh.getValueOfDesiredState('powered', true));
+    },
+
     turnOn: function() {
         console.log('turnOn called.');
         return logPromise(wh.sendDesiredStateCommand('powered', true));
@@ -120,3 +125,4 @@ global.setCoolingSetpoint = module.exports.setCoolingSetpoint;
 global.setHeatingSetpoint = module.exports.setHeatingSetpoint;
 global.getCurrentTemperature = module.exports.getCurrentTemperature;
 global.getMode = module.exports.getMode;
+global.setMode = module.exports.setMode;

@@ -1,4 +1,5 @@
 var translator = require('./thingTranslator');
+var q = require('q');
 
 var argv = require('optimist')
     .usage('Usage: $0 -i [device Id] -a [access token]')
@@ -6,10 +7,26 @@ var argv = require('optimist')
     .demand(['a'])
     .argv;
 
+function logAndValidate(p, expected) {
+    return p.then(result => {
+        if((expected !== undefined) && (result != expected))
+        {
+            throw "Expected: "+ expected + ", Actual: "+ result;
+        }
+        else
+        {
+            console.log("Result (As expcted) : " +result);
+        }
+        return result;
+    }).catch(error => {
+        console.log("Error: " + error.message);
+        throw error;
+    });
+};
+
 // device object used for testing purposes (this is normally populated by the runtime)
 function Device(deviceId, accessToken) {
     this.props = ' { "id": "' + deviceId + '", "access_token": "' + accessToken + '" }';
-
     this.name = "Nest Thermostat (Test)";
 }
 
@@ -19,50 +36,38 @@ var device = new Device(argv.i, argv.a);
 translator.initDevice(device);
 
 /// Go through a sequence of test operations for the translator
-//Get ambient temperature
-setTimeout(function() {
-    translator.getAmbientTemperature("f", function(temp) {
-        setTimeout(function() {
-            console.log("%s", temp);
+// Turn On/Off
+q.delay(1000)
+	.then(() => translator.turnOff())
+	.then(() => q.delay(2000))
+    .then(() => logAndValidate(translator.isTurnedOn(), false))
+    .then(() => q.delay(2000))
+	.then(() => translator.turnOn())
+	.then(() => q.delay(2000))
+    .then(() => logAndValidate(translator.isTurnedOn(), true))
+    .then(() => q.delay(6000))
+    .done();
 
-            translator.disconnect();
-            setTimeout(function() {
-                process.exit(0);
-            }, 1000);
-        }, 5000);
-    }, 5000);
-}, 5000);
+// Set-Get Mode
+q.delay(1000)
+	.then(() => logAndValidate(translator.getAvailableModes()))
+    .then(() => q.delay(2000))
+    .then(() => translator.setMode('cool'))
+	.then(() => q.delay(2000))
+    .then(() => logAndValidate(translator.getMode(), 'cool'))
+    .then(() => q.delay(2000))
+	.then(() => translator.setMode('heat'))
+	.then(() => q.delay(2000))
+    .then(() => logAndValidate(translator.getMode(), 'heat'))
+    .then(() => q.delay(6000))
+    .done();
 
-// 24'C  == 75'F
-// Set & Get desired target temperature
-setTimeout(function() {
-    translator.setTargetTemperature("c", 24, function(temp) {
-        setTimeout(function() {
-            console.log("%s", temp);
-
-            translator.disconnect();
-            setTimeout(function() {
-                process.exit(0);
-            }, 1000);
-        }, 5000);
-    }, 5000);
-}, 5000);
-
-setTimeout(function() {
-    translator.getTargetTemperature("f", function(temp) {
-        setTimeout(function() {
-            if(temp != 75)
-            {
-                throw "Desired target temperature is not as expected (24'C/75'F)"
-            }
-            else
-            {
-                console.log("Desired target temperature is as expected: %s-F", temp);
-            }
-            translator.disconnect();
-            setTimeout(function() {
-                process.exit(0);
-            }, 1000);
-        }, 5000);
-    }, 5000);
-}, 5000);
+// Set-Get temperature
+q.delay(1000)
+    .then(() => logAndValidate(translator.getCurrentTemperature(), 3))
+	.then(() => q.delay(2000))
+    .then(() => translator.setHeatingSetpoint(26))
+	.then(() => q.delay(2000))
+	.then(() => logAndValidate(translator.getHeatingSetpoint(), 26))
+	.then(() => q.delay(2000))
+	.done();
