@@ -1,7 +1,6 @@
 'use strict';
-
-var https = require('follow-redirects').https;
-var httpsNoRedirect = require('https');
+var helper = require('opent2t-translator-helper-nest');
+var q = require('q');
 
 // logs device state
 function logDeviceState(device) {
@@ -13,163 +12,117 @@ function logDeviceState(device) {
     }
 };
 
-var deviceId, accessToken;
+function validateArgumentType(arg, argName, expectedType) {
+    if (typeof arg === 'undefined') {
+        throw new Error('Missing argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + '.');
+    } else if (typeof arg !== expectedType) {
+        throw new Error('Invalid argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + ', got: ' + (typeof arg));
+    }
+}
+
+var device, props;
 
 // module exports, implementing the schema
 module.exports = {
 
-    device: null,
+    initDevice : function(dev) {
+        device = dev;
+        console.log('Initializing device.');
 
-    initDevice: function(dev) {
-        this.device = dev;
+        device = dev;
+        validateArgumentType(device, 'device', 'object');
+        validateArgumentType(device.props, 'device.props', 'string');
 
-        if (typeof this.device != 'undefined') {
-            if (typeof (this.device.props) !== 'undefined') {
-                var props = JSON.parse(this.device.props);
-
-                if (typeof (props.access_token) !== 'undefined') {
-                    accessToken = props.access_token;
-                } else {
-                    console.log('props.access_token is undefined.');
-                }
-
-                if (typeof (props.id) !== 'undefined') {
-                    deviceId = props.id;
-                } else {
-                    console.log('props.id is undefined.');
-                }
-            } else {
-                console.log('props is undefined.');
-            }
-        } else {
-            console.log('device is undefined.');
-        }
-
-        console.log('javascript initialized.');
-        logDeviceState(this.device);
+        props = JSON.parse(device.props);
+        validateArgumentType(props.access_token, 'device.props.access_token', 'string');
+        validateArgumentType(props.id, 'device.props.id', 'string');
+       
+        helper.init('thermostats',  props.id, props.access_token)
+        logDeviceState(device);
+	    console.log('Initialized.');
     },
 
-    disconnect: function() {
+    disconnect : function() {
         console.log('disconnect called.');
         logDeviceState(this.device);
     },
     
-    getTemperatureProperty: function(name, scale, callback) {
-        var options = {
-            protocol: 'https:',
-            host: 'developer-api.nest.com',
-            path: '/devices/thermostats/' + deviceId,
-            headers: {
-                'Authorization': 'Bearer ' + accessToken
-            },
-            method: 'GET'
-        };
-
-        var httpsRequest = https.get(options, function(getRes) {
-            var body = '';
-            getRes.setEncoding('utf8');
-            getRes.on('data', function(data) {
-                body += data;
-            });
-
-            getRes.on('end', function() {
-                if (getRes.statusCode != 200) {
-                    if (callback) {
-                        callback("Error Code:" + getRes.statusCode);
-                        return;
-                    }
-                } else {
-                    var data = JSON.parse(body);
-                    callback(data[name]);
-                    }
-            });
-
-            getRes.on('error', function(e) {
-                callback('error');
-            });
+    isTurnedOn : function() {
+        console.log('isTurnedOn called.');
+        return helper.getProperty('hvac_state').then(state => {
+            console.log("state: "+ state);
+            return state != 'off';
+        }).catch(error => {
+            throw error;
         });
-
-        httpsRequest.end();
+    },
+    
+    // Default to Heating. THe call must be followed by setMode(heating/cooling), as desired.
+    turnOn : function() {
+        console.log('turnOn called.');
+        return helper.setProperty('hvac_state', 'heating');
     },
 
-    setTemperatureProperty: function(name, scale, value, callback) {
-
-        var postData;
-        postData = JSON.stringify({
-            name : value
-        });
-           
-        var options = {
-            protocol: 'https:',
-            host: 'developer-api.nest.com',
-            path: '/devices/thermostats/' + deviceId,
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Content-length': Buffer.byteLength(postData),
-            },
-            method: 'PUT',
-        };
-
-        var httpsRequest = https.request(options, (getRes) => {
-            console.log("Request sent");
-            var body = '';
-            getRes.setEncoding('utf8');
-            getRes.on('data', (data) => {
-                body += data;
-            });
-
-            getRes.on('end', () => {
-                if (getRes.statusCode != 200) {
-                    if (callback) {
-                        callback("Error Code:" + getRes.statusCode);
-                        return;
-                    }
-                } else {
-                    var data = JSON.parse(body);
-                    if ((scale == "c") && !!data.target_temperature_c) {
-                        callback(data.target_temperature_c);
-                    }
-                    else if ((scale == "f") && !!data.target_temperature_f) {
-                        callback(data.target_temperature_f);
-                    }
-                }
-            });
-
-            getRes.on('error', (e) => {
-                callback('error');
-            });
-        });
-        httpsRequest.write(postData);
-        httpsRequest.end();
+    turnOff : function() {
+        console.log('turnOff called.');
+        return helper.setProperty('hvac_state', 'off');
     },
 
-    getAmbientTemperature: function(scale, callback) {
-        console.log('getAmbientTemperature called.');
-        getTemperatureProperty('ambient_temperature_'+scale, scale, callback);
+    getCurrentTemperature : function() {
+        console.log('getCurrentTemperature called.');
+        return helper.getProperty('ambient_temperature_c');
     },
 
-    getTargetTemperature: function(scale, callback) {
-        console.log('getTargetTemperature called.');
-        getTemperatureProperty('target_temperature_'+scale, scale, callback);
+    getHeatingSetpoint : function() {
+        console.log('getHeatingSetpoint called.');
+        return helper.getProperty('target_temperature_high_c');
     },
 
-    setTargetTemperature: function(scale, value, callback) {
-        console.log('setTargetTemperature called.');
-        if (scale == "c"){
-            setTemperatureProperty('target_temperature_c', scale, value, callback);
-        }
-        else {
-            setTemperatureProperty('target_temperature_f', scale, value, callback);
-        }
-    }
+    setHeatingSetpoint : function(value) {
+        console.log("setHeatingSetpoint called");
+         return helper.setProperty('target_temperature_high_c', value);
+    },
+
+     getCoolingSetpoint : function() {
+        console.log('getCoolingSetpoint called.');
+        return helper.getProperty('target_temperature_low_c');
+    },
+
+    setCoolingSetpoint : function(value) {
+        console.log("setCoolingSetpoint called.");
+        return helper.setProperty('target_temperature_low_c', value);
+    },
+
+    getMode : function() {
+        console.log('getMode called.');
+        return helper.getProperty('hvac_mode', 'off');
+    },   
+
+    setMode : function(value) {
+       console.log("setMode called."); 
+       return helper.setProperty('hvac_mode', value);
+    },
+    
+    getAvailableModes: function(value) {
+       var deferred = q.defer();   // Take a deferral
+       deferred.resolve(['heat', 'cool', 'heat-cool','off']);
+       return deferred.promise; // return the promise
+    },
 }
 
 // globals for JxCore host
 global.initDevice = module.exports.initDevice;
-global.getTemperatureProperty = module.exports.getTemperatureProperty;
-global.setTemperatureProperty = module.exports.setTemperatureProperty;
-global.getAmbientTemperature = module.exports.getAmbientTemperature;
-global.setTargetTemperature = module.exports.setTargetTemperature;
+global.isTurnedOn = module.exports.isTurnedOn;
+global.turnOn = module.exports.turnOn;
+global.turnOff = module.exports.turnOff;
+global.getCurrentTemperature = module.exports.getCurrentTemperature;
+global.getHeatingSetpoint = module.exports.getHeatingSetpoint;
+global.setHeatingSetpoint = module.exports.setHeatingSetpoint;
+global.getCoolingSetpoint = module.exports.getCoolingSetpoint;
+global.setCoolingSetpoint = module.exports.setCoolingSetpoint;
+global.getMode = module.exports.getMode;
+global.setMode = module.exports.setMode;
+global.getAvailableModes = module.exports.getAvailableModes;
 global.disconnect = module.exports.disconnect;
