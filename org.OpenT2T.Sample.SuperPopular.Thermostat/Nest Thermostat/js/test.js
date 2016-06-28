@@ -36,9 +36,8 @@ var device = new Device(argv.i, argv.a);
 translator.initDevice(device);
 
 /// Go through a sequence of test operations for the translator
-// Turn On/Off
 q.delay(1000)
-	.then(() => translator.turnOff())
+	.then(() => translator.turnOff()) // Turn On/Off
 	.then(() => q.delay(2000))
     .then(() => logAndValidate(translator.isTurnedOn(), false))
     .then(() => q.delay(2000))
@@ -46,11 +45,7 @@ q.delay(1000)
 	.then(() => q.delay(2000))
     .then(() => logAndValidate(translator.isTurnedOn(), true))
     .then(() => q.delay(6000))
-    .done();
-
-// Set-Get Mode
-q.delay(1000)
-	.then(() => logAndValidate(translator.getAvailableModes()))
+	.then(() => logAndValidate(translator.getAvailableModes())) // Set-Get Mode
     .then(() => q.delay(2000))
     .then(() => translator.setMode('cool'))
 	.then(() => q.delay(2000))
@@ -59,12 +54,8 @@ q.delay(1000)
 	.then(() => translator.setMode('heat'))
 	.then(() => q.delay(2000))
     .then(() => logAndValidate(translator.getMode(), 'heat'))
-    .then(() => q.delay(6000))
-    .done();
-
-// Set-Get temperature
-q.delay(1000)
-    .then(() => logAndValidate(translator.getCurrentTemperature(), 3))
+    .then(() => q.delay(2000))
+    .then(() => logAndValidate(translator.getCurrentTemperature(), 3)) // Set-Get temperature
 	.then(() => q.delay(2000))
     .then(() => translator.setHeatingSetpoint(26))
 	.then(() => q.delay(2000))

@@ -51,7 +51,7 @@ module.exports = {
     
     isTurnedOn : function() {
         console.log('isTurnedOn called.');
-        return helper.getProperty('hvac_state').then(state => {
+        return helper.getProperty('hvac_mode').then(state => {
             console.log("state: "+ state);
             return state != 'off';
         }).catch(error => {
@@ -62,12 +62,12 @@ module.exports = {
     // Default to Heating. THe call must be followed by setMode(heating/cooling), as desired.
     turnOn : function() {
         console.log('turnOn called.');
-        return helper.setProperty('hvac_state', 'heating');
+        return helper.setProperty({'hvac_mode' :'heat'});
     },
 
     turnOff : function() {
         console.log('turnOff called.');
-        return helper.setProperty('hvac_state', 'off');
+        return helper.setProperty({'hvac_mode' : 'off'});
     },
 
     getCurrentTemperature : function() {
@@ -82,7 +82,7 @@ module.exports = {
 
     setHeatingSetpoint : function(value) {
         console.log("setHeatingSetpoint called");
-         return helper.setProperty('target_temperature_high_c', value);
+         return helper.setProperty({'target_temperature_high_c' : value});
     },
 
      getCoolingSetpoint : function() {
@@ -92,7 +92,7 @@ module.exports = {
 
     setCoolingSetpoint : function(value) {
         console.log("setCoolingSetpoint called.");
-        return helper.setProperty('target_temperature_low_c', value);
+        return helper.setProperty({'target_temperature_low_c' : value});
     },
 
     getMode : function() {
@@ -102,7 +102,7 @@ module.exports = {
 
     setMode : function(value) {
        console.log("setMode called."); 
-       return helper.setProperty('hvac_mode', value);
+       return helper.setProperty({'hvac_mode' : value});
     },
     
     getAvailableModes: function(value) {

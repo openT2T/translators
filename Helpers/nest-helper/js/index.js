@@ -35,11 +35,10 @@ module.exports = {
 
             getRes.on('end', function() {
                 if (getRes.statusCode != 200) {
-                        deferred.reject("Error Code:" + getRes.statusCode);
-                } else {
-                    var data = JSON.parse(body);
-                    deferred.resolve(data[name]);
+                    deferred.reject(new Error("Error Code:" + getRes.statusCode));
                 }
+                var data = JSON.parse(body);
+                deferred.resolve(data[name]);
             });
 
             getRes.on('error', function(e) {
@@ -51,10 +50,11 @@ module.exports = {
         return deferred.promise; // return the promise
     },
     
-    setProperty : function(name, value) {
+    setProperty : function(command) {
         var deferred = q.defer();   // Take a deferral
 
-        var postData = JSON.stringify({name : value});
+        var postData = JSON.stringify(command);
+
         var options = {
             protocol: 'https:',
             host: 'developer-api.nest.com',
@@ -67,7 +67,6 @@ module.exports = {
             },
             method: 'PUT',
         };
-        options.postData = postData;
 
         var httpsRequest = https.request(options, (getRes) => {
             var body = '';
@@ -78,11 +77,9 @@ module.exports = {
 
             getRes.on('end', () => {
                 if (getRes.statusCode != 200) {
-                    deferred.reject("Error Code:" + getRes.statusCode);
-                } else {
-                    var data = JSON.parse(body);
-                    deferred.resolve(target_temperature_c);
+                    deferred.reject(new Error("Error Code:" + getRes.statusCode));
                 }
+                deferred.resolve();
             });
 
             getRes.on('error', (e) => {
@@ -95,7 +92,3 @@ module.exports = {
         return deferred.promise; // return the promise
     },
 }
-
-// globals
-global.getProperty = module.exports.getProperty;
-global.setProperty = module.exports.setProperty;
