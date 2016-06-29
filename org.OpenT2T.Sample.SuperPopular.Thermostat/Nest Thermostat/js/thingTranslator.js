@@ -54,8 +54,6 @@ module.exports = {
         return helper.getProperty('hvac_mode').then(state => {
             console.log("state: "+ state);
             return state != 'off';
-        }).catch(error => {
-            throw error;
         });
     },
     
