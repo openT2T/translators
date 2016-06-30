@@ -37,8 +37,11 @@ module.exports = {
                 if (getRes.statusCode != 200) {
                     deferred.reject(new Error("Error Code:" + getRes.statusCode));
                 }
-                var data = JSON.parse(body);
-                deferred.resolve(data[name]);
+                else
+                {
+                    var data = JSON.parse(body);
+                    deferred.resolve(data[name]);
+                }
             });
 
             getRes.on('error', function(e) {
@@ -79,7 +82,10 @@ module.exports = {
                 if (getRes.statusCode != 200) {
                     deferred.reject(new Error("Error Code:" + getRes.statusCode));
                 }
-                deferred.resolve();
+                else
+                {
+                    deferred.resolve();
+                }
             });
 
             getRes.on('error', (e) => {

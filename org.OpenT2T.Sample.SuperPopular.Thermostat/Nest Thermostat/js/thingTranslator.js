@@ -60,7 +60,12 @@ module.exports = {
     // Default to Heating. THe call must be followed by setMode(heating/cooling), as desired.
     turnOn : function() {
         console.log('turnOn called.');
-        return helper.setProperty({'hvac_mode' :'heat'});
+        return getMode().then( mode => {
+            if(mode == 'off')
+            {
+                return helper.setProperty({'hvac_mode' : 'heat-cool'});
+            }
+        });
     },
 
     turnOff : function() {
