@@ -65,6 +65,12 @@ module.exports = {
             {
                 return helper.setProperty({'hvac_mode' : 'heat-cool'});
             }
+            else
+            {
+                var deferred = q.defer();   // Take a deferral
+                deferred.resolve();
+                return deferred.promise; // return the promise
+            }
         });
     },
 
