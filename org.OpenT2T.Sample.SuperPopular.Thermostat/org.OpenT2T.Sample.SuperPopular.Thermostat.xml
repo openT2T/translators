@@ -9,6 +9,9 @@
      <!-- Turn off the HVAC -->
     <method name="turnOff"/>
     
+    <!-- Gets current status: true(On) / false(Off) -->
+    <method name="isTurnedOn"/>
+
     <!-- Get the current ambient temperature -->
     <method name="getCurrentTemperature">
       <arg name="temp" type="d" direction="out" />
