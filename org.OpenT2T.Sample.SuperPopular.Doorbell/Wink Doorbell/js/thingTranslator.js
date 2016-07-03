@@ -55,60 +55,21 @@ module.exports = {
         accessToken = props.access_token;
 
         //use the winkHub device and initialize
-        wh.initWinkApi("thermostats",deviceId,accessToken);
+        wh.initWinkApi("door_bells",deviceId,accessToken);
         console.log('Javascript and Wink Helper initialized');
         logDeviceState(device);
     },
 
-    isTurnedOn: function() {
-        console.log('isTurnedOn called.');
-        return logPromise(wh.getValueOfDesiredState('powered', true));
-    },
-
-    turnOn: function() {
-        console.log('turnOn called.');
-        return logPromise(wh.sendDesiredStateCommand('powered', true));
-    },
-
-    turnOff: function() {
-        console.log('turnOff called.');
-        return logPromise(wh.sendDesiredStateCommand('powered',false));
-    },
-
-    getCurrentTemperature: function() {
-        console.log('getting current temp');
-        return logPromise(wh.getLastReading('temperature')); 
+    isButtonPressed: function() {
+        console.log('getting if doorbell Pressed');
+        return logPromise(wh.getLastReading('button_pressed')); 
     },   
 
-    getCoolingSetpoint: function() {
-        console.log('getting cooling point');
-        return logPromise(wh.getValueOfDesiredState('max_set_point'));
+    getBatteryLevel: function() {
+        console.log('getting batteryLevel');
+        return logPromise(wh.getLastReading('battery'));
     },   
 
-    getHeatingSetpoint:function() {
-        console.log('getting heating point');
-        return logPromise(wh.getValueOfDesiredState('min_set_point'));
-    },  
-
-    getMode:function() {
-        console.log('getting mode.');
-        return logPromise(wh.getValueOfDesiredState('mode'));
-    },   
-
-    setMode:function(value) {
-       console.log("Trying to set Mode"); 
-       return logPromise(wh.sendDesiredStateCommand('mode',value)); 
-    },
-
-    setHeatingSetpoint:function(temp) {
-        console.log("Changing Heating Setpoint");
-        return logPromise(wh.sendDesiredStateCommand('min_set_point',temp));
-    },
-    setCoolingSetpoint:function(temp) {
-        console.log("Changing Cooling Setpoint");
-        return logPromise(wh.sendDesiredStateCommand('max_set_point',temp)); 
-    },
-    
     disconnect: function() {
         console.log('disconnect called.');
         logDeviceState(device);
@@ -125,4 +86,3 @@ global.setCoolingSetpoint = module.exports.setCoolingSetpoint;
 global.setHeatingSetpoint = module.exports.setHeatingSetpoint;
 global.getCurrentTemperature = module.exports.getCurrentTemperature;
 global.getMode = module.exports.getMode;
-global.setMode = module.exports.setMode;
