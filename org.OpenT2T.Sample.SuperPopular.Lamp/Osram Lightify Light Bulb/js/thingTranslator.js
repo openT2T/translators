@@ -3,11 +3,8 @@
 var https = require('https');
 var q = require('q');
 
-var switchPowerService = 'urn:upnp-org:serviceId:SwitchPower1';
-var switchAction = 'SetTarget';
-var switchVariable = 'newTargetValue';
-
-var dimmingService = 'urn:upnp-org:serviceId:Dimming1';
+var lightifyBaseUrl = "us.lightify-api.org";
+var lightifySetDeviceUrl = "/lightify/services/device/set?";
 
 // logs device state
 function logDeviceState(device) {
@@ -20,30 +17,19 @@ function logDeviceState(device) {
 };
 
 // Helper method to send power state commands to Vera
-function sendPowerStateCommandToDevice(veraService, veraAction, veraVariable, 
-                                       loadTarget, deviceId, 
-                                       relayServer, relaySessionToken, 
-                                       pkDevice) {
+function sendCommandToDevice(method, securityToken, command, deviceId) {
     var deferred = q.defer();
 
-    // set up the url which needs:
-    //   the serial number of the hub (pkDevice)
-    //   deviceid of the light bulb
-    //   service that is being targetted 
-    var path = '/relay/relay/relay/device/' + pkDevice + '/port_3480/data_request?id=action&output_format=json';
-    path = path + '&DeviceNum=' + deviceId;
-    path = path + '&serviceId=' + veraService;
-    path = path + '&action=' + veraAction;
-    path = path + '&' + veraVariable + '=' + loadTarget;
+    var path = lightifySetDeviceUrl + "idx=" + deviceId + "&" + command;
 
     var options = {
         protocol: 'https:',
-        host: relayServer,
+        host: lightifyBaseUrl,
         path: path,
         headers: {
-            'MMSSession': relaySessionToken
+            'Authorization': securityToken
         },
-        method: 'GET'
+        method: method
     };
 
     var req = https.request(options);
@@ -98,14 +84,8 @@ module.exports = {
     // numeric int device id
     deviceId : null,
 
-    // server used to connect to the vera hub
-    relayServer : null,
-
     // session token for the relay server
-    relaySessionToken : null,
-
-    // serial number of the vera hub
-    pkDevice : null,
+    securityToken : null,
 
     // data structure which represents the device targetted by this translator
     device: null,
@@ -117,13 +97,9 @@ module.exports = {
         validateArgumentType(this.device.props, 'device.props', 'string');
 
         var props = JSON.parse(this.device.props);
-        validateArgumentType(props.relay_session_token, 'device.props.relay_session_token', 'string');
-        validateArgumentType(props.relay_server, 'device.props.relay_server', 'string');
-        validateArgumentType(props.pk_device, 'device.props.pk_device', 'string');
+        validateArgumentType(props.security_token, 'device.props.security_token', 'string');
         validateArgumentType(props.id, 'device.props.id', 'string');
-        this.relaySessionToken = props.relay_session_token;
-        this.relayServer = props.relay_server;
-        this.pkDevice = props.pk_device;
+        this.securityToken = props.security_token;
         this.deviceId = props.id;
 
         console.log('Javascript initialized.');
@@ -132,29 +108,26 @@ module.exports = {
 
     turnOn: function() {
         console.log('[' + this.deviceId + '] turnOn called.');
-        return sendPowerStateCommandToDevice(switchPowerService, switchAction, switchVariable, 
-                                             1, this.deviceId, 
-                                             this.relayServer, this.relaySessionToken, 
-                                             this.pkDevice);
+
+        var command = "onoff=1";
+        return sendCommandToDevice('GET', this.securityToken, command, this.deviceId);
     },
 
     turnOff: function() {
         console.log('[' + this.deviceId + '] turnOff called.');
-        return sendPowerStateCommandToDevice(switchPowerService, switchAction, switchVariable, 
-                                             0, this.deviceId, 
-                                             this.relayServer, this.relaySessionToken, 
-                                             this.pkDevice);
+
+        var command = "onoff=0";
+        return sendCommandToDevice('GET', this.securityToken, command, this.deviceId);
     },
 
     // sets the dimmable bulb to the desired brightness, valid values: integer 0-100
     setBrightness: function(brightness) {
         console.log('[' + this.deviceId + '] setBrightness called with value: ' + brightness);
-        var action = 'SetLoadLevelTarget';
-        var variable = 'newLoadlevelTarget';
-        return sendPowerStateCommandToDevice(dimmingService, action, variable, 
-                                             brightness, this.deviceId, 
-                                             this.relayServer, this.relaySessionToken, 
-                                             this.pkDevice);
+
+        // Lightify accepts values between 0.000-1.000
+        var doubleBrightness = brightness / 100.0; 
+        var command = "level=" + doubleBrightness;
+        return sendCommandToDevice('GET', this.securityToken, command, this.deviceId);
     },
 
     disconnect: function() {
