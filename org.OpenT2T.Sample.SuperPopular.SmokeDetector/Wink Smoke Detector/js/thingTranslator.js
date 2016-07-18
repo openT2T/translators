@@ -65,6 +65,7 @@ module.exports = {
         console.log('checking for smoke:');
     
     wh.getSubscription().then(result => {
+        //get details
         var PubNubkey =  result.pubnub.subscribe_key;
         var PubNubchannel =  result.pubnub.channel;
 
@@ -73,11 +74,11 @@ module.exports = {
             ssl           : true,  // <- enable TLS Tunneling over TCP
             subscribe_key : PubNubkey
         });
-
+        //call this whenever a change happens
         pubnub.subscribe({
         channel  : PubNubchannel,
    	    message : function(message) {
-        console.log( " > Caution!");
+        console.log( " > Smoke State Changed!");
         console.log( " > ", message);
         }
     });

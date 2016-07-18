@@ -227,7 +227,7 @@ module.exports =
         {
             try
             {    
-            //parse the JSON response and look for the apiField we want in the JSON body
+            //parse the JSON response and give back the pubnub details
              var results = JSON.parse(body.toString());
             deferred.resolve(results.data.subscription);
             
