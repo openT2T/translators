@@ -3,6 +3,9 @@
 var https = require('https');
 var q = require('q');
 
+
+
+
 //this is our base, we refactor these options in each method
 
 var protocolVal = 'https:';
@@ -191,7 +194,69 @@ module.exports =
     //make our Promise and give it back to the caller
     return deferred.promise;
     
-   }   
+   } ,
+
+   getSubscription:function()
+   {
+      
+     var deferred = q.defer();   // q will help us with returning a promise
+   
+    var options = 
+    {
+        protocol: protocolVal,
+        host: hostVal,
+        path: apiPath     
+    };
+    
+    //the headers to make our call
+    options.headers = 
+    {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json', 
+    }
+     
+    //our HTTPS call 
+    var req = https.get(options, (res) => {
+       var body = ' '; //holds the chunks of data
+        res.on('data', (chunk) => 
+        {
+          body += chunk; 
+        });
+        res.on('end', () => 
+        {
+            try
+            {    
+            //parse the JSON response and give back the pubnub details
+             var results = JSON.parse(body.toString());
+            deferred.resolve(results.data.subscription);
+            
+            } catch(err)
+            {
+             deferred.reject(err);
+            }
+
+        });
+        res.on('error', (e) => {
+            deferred.reject(e);
+        }); });
+
+    req.on('error', (e) => {
+        console.log('problem with request:');
+        deferred.reject(e);
+    });
+    
+    req.end();   
+
+    //make our Promise and give it back to the caller
+    return deferred.promise;   
+
+
+
+
+
+
+   }
    
        
 }
