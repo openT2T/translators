@@ -63,6 +63,28 @@ module.exports = {
 
     getSmokeDetected: function() {
         console.log('checking for smoke:');
+    
+    wh.getSubscription().then(result => {
+        var PubNubkey =  result.pubnub.subscribe_key;
+        var PubNubchannel =  result.pubnub.channel;
+
+        console.log("key is " + PubNubkey);
+        var pubnub = require("pubnub")({
+            ssl           : true,  // <- enable TLS Tunneling over TCP
+            subscribe_key : PubNubkey
+        });
+
+        pubnub.subscribe({
+        channel  : PubNubchannel,
+   	    message : function(message) {
+        console.log( " > Caution!");
+        console.log( " > ", message);
+        }
+    });
+    }).catch(error => {
+        console.log(error.message);
+        throw error;
+    });;
 
         return logPromise(wh.getLastReading('smoke_detected')); 
     },
