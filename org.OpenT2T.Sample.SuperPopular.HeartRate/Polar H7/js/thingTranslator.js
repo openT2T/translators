@@ -19,7 +19,7 @@ var sensor;
 module.exports = {
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
 
         this.device = dev;
 
@@ -27,10 +27,10 @@ module.exports = {
             if (typeof (this.device.props) !== 'undefined') {
                 var props = JSON.parse(this.device.props);
                 if (typeof (props.id) !== 'undefined') {
-                    PolarH7.getSensor(props.id, function(s) {
+                    PolarH7.getSensor(props.id, function (s) {
                         sensor = s;
-                        console.log('discovered, now connecting...');                                                    
-                        sensor.connect(function() {                                                
+                        console.log('discovered, now connecting...');
+                        sensor.connect(function () {
                             console.log('Javascript initialized.');
                             logDeviceState(dev);
                         });
@@ -46,12 +46,12 @@ module.exports = {
         }
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
 
         if (typeof sensor != 'undefined') {
-            sensor.disconnect(function() {
+            sensor.disconnect(function () {
                 console.log('device disconnected');
             });
         } else {
@@ -59,29 +59,29 @@ module.exports = {
         }
     },
 
-    getBeatsPerMinute: function(callback) {
+    getBeatsPerMinute: function (callback) {
         console.log('getBeatsPerMinute called.');
 
         if (typeof sensor != 'undefined') {
             sensor.getBeatsPerMinute((bpm) => {
-                    callback(bpm);
-                });
+                callback(bpm);
+            });
         } else {
             console.log('getBeatsPerMinute failed: no sensor defined');
         }
     },
 
-    getRRInterval: function() {
+    getRRInterval: function () {
         console.log('getRRInterval called.');
 
-        if (typeof sensor != 'undefined') {            
+        if (typeof sensor != 'undefined') {
             console.log('*** Not yet implemented.');
         } else {
             console.log('getRRInterval failed: no sensor defined.');
         }
     },
 
-    getEnergyExpended: function() {
+    getEnergyExpended: function () {
         console.log('getEnergyExpended called.');
 
         if (typeof sensor != 'undefined') {
@@ -90,11 +90,11 @@ module.exports = {
             console.log('getEnergyExpended failed: no sensor defined.');
         }
     },
-    
-    getContactStatus: function() {
+
+    getContactStatus: function () {
         console.log('getContactStatus called.');
 
-        if (typeof sensor != 'undefined') {            
+        if (typeof sensor != 'undefined') {
             console.log('*** Not yet implemented.');
         } else {
             console.log('getContactStatus failed: no sensor defined.');

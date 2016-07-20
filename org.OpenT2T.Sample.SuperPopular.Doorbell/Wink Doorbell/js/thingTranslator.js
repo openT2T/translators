@@ -40,7 +40,7 @@ var props;
 // module exports, implementing the schema
 module.exports = {
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         console.log('Initializing device.');
 
         device = dev;
@@ -50,28 +50,28 @@ module.exports = {
         props = JSON.parse(device.props);
         validateArgumentType(props.access_token, 'device.props.access_token', 'string');
         validateArgumentType(props.id, 'device.props.id', 'string');
-       
-        deviceId = props.id; 
+
+        deviceId = props.id;
         accessToken = props.access_token;
 
         //use the winkHub device and initialize
-        wh.initWinkApi("door_bells",deviceId,accessToken);
+        wh.initWinkApi("door_bells", deviceId, accessToken);
         console.log('Javascript and Wink Helper initialized');
         logDeviceState(device);
     },
 
-    isButtonPressed: function() {
+    isButtonPressed: function () {
         console.log('getting if doorbell Pressed');
-        return logPromise(wh.getLastReading('button_pressed')); 
-    },   
+        return logPromise(wh.getLastReading('button_pressed'));
+    },
 
-    getBatteryLevel: function() {
+    getBatteryLevel: function () {
         console.log('getting batteryLevel');
         return logPromise(wh.getLastReading('battery'));
-    },   
+    },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(device);
-    }  
+    }
 };

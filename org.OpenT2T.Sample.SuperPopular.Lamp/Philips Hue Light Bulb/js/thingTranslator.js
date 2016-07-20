@@ -18,7 +18,7 @@ function logDeviceState(device) {
 
 // gets a light index, given a unique id for a light
 function getLightIndexFromId(uniqueid, callback) {
-    api.lights(function(err, result) {
+    api.lights(function (err, result) {
         if (err)
             console.log(err);
         else {
@@ -35,7 +35,7 @@ function getLightIndexFromId(uniqueid, callback) {
     });
 }
 
-var displayResult = function(result) {
+var displayResult = function (result) {
     console.log(result);
     console.log(JSON.stringify(result, null, 2));
 };
@@ -48,7 +48,7 @@ var api;
 // module exports, implementing the schema
 module.exports = {
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         device = dev;
 
         if (typeof (dev) == 'undefined') {
@@ -73,34 +73,34 @@ module.exports = {
         }
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('turnOn called.');
-        getLightIndexFromId(deviceProps.uniqueId, function(index) {
+        getLightIndexFromId(deviceProps.uniqueId, function (index) {
             var state = lightState.create().on();
             api.setLightState(index, state)
                 .done();
         });
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('turnOff called.');
-        getLightIndexFromId(deviceProps.uniqueId, function(index) {
+        getLightIndexFromId(deviceProps.uniqueId, function (index) {
             var state = lightState.create().off();
             api.setLightState(index, state)
                 .done();
         });
     },
 
-    setBrightness: function(brightness) {
+    setBrightness: function (brightness) {
         console.log('setBrightness called.');
-        getLightIndexFromId(deviceProps.uniqueId, function(index) {
+        getLightIndexFromId(deviceProps.uniqueId, function (index) {
             var state = lightState.create().brightness(brightness);
             api.setLightState(index, state)
                 .done();
         });
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(device);
     }

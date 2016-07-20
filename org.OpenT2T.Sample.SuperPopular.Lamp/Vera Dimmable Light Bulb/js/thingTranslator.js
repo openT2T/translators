@@ -20,10 +20,10 @@ function logDeviceState(device) {
 };
 
 // Helper method to send power state commands to Vera
-function sendPowerStateCommandToDevice(veraService, veraAction, veraVariable, 
-                                       loadTarget, deviceId, 
-                                       relayServer, relaySessionToken, 
-                                       pkDevice) {
+function sendPowerStateCommandToDevice(veraService, veraAction, veraVariable,
+    loadTarget, deviceId,
+    relayServer, relaySessionToken,
+    pkDevice) {
     var deferred = q.defer();
 
     // set up the url which needs:
@@ -60,12 +60,10 @@ function sendPowerStateCommandToDevice(veraService, veraAction, veraVariable,
         });
 
         res.on('end', () => {
-            if (res.statusCode != 200)
-            {
+            if (res.statusCode != 200) {
                 deferred.reject(new Error("Invalid HTTP response: " + res.statusCode + " - " + res.statusMessage));
             }
-            else
-            {
+            else {
                 deferred.resolve(res);
             }
         });
@@ -96,21 +94,21 @@ function validateArgumentType(arg, argName, expectedType) {
 module.exports = {
 
     // numeric int device id
-    deviceId : null,
+    deviceId: null,
 
     // server used to connect to the vera hub
-    relayServer : null,
+    relayServer: null,
 
     // session token for the relay server
-    relaySessionToken : null,
+    relaySessionToken: null,
 
     // serial number of the vera hub
-    pkDevice : null,
+    pkDevice: null,
 
     // data structure which represents the device targetted by this translator
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         validateArgumentType(this.device, 'device', 'object');
@@ -130,34 +128,34 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('[' + this.deviceId + '] turnOn called.');
-        return sendPowerStateCommandToDevice(switchPowerService, switchAction, switchVariable, 
-                                             1, this.deviceId, 
-                                             this.relayServer, this.relaySessionToken, 
-                                             this.pkDevice);
+        return sendPowerStateCommandToDevice(switchPowerService, switchAction, switchVariable,
+            1, this.deviceId,
+            this.relayServer, this.relaySessionToken,
+            this.pkDevice);
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('[' + this.deviceId + '] turnOff called.');
-        return sendPowerStateCommandToDevice(switchPowerService, switchAction, switchVariable, 
-                                             0, this.deviceId, 
-                                             this.relayServer, this.relaySessionToken, 
-                                             this.pkDevice);
+        return sendPowerStateCommandToDevice(switchPowerService, switchAction, switchVariable,
+            0, this.deviceId,
+            this.relayServer, this.relaySessionToken,
+            this.pkDevice);
     },
 
     // sets the dimmable bulb to the desired brightness, valid values: integer 0-100
-    setBrightness: function(brightness) {
+    setBrightness: function (brightness) {
         console.log('[' + this.deviceId + '] setBrightness called with value: ' + brightness);
         var action = 'SetLoadLevelTarget';
         var variable = 'newLoadlevelTarget';
-        return sendPowerStateCommandToDevice(dimmingService, action, variable, 
-                                             brightness, this.deviceId, 
-                                             this.relayServer, this.relaySessionToken, 
-                                             this.pkDevice);
+        return sendPowerStateCommandToDevice(dimmingService, action, variable,
+            brightness, this.deviceId,
+            this.relayServer, this.relaySessionToken,
+            this.pkDevice);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     }

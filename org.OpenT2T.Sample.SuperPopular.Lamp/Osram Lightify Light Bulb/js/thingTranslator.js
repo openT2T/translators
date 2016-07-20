@@ -46,12 +46,10 @@ function sendCommandToDevice(method, securityToken, command, deviceId) {
         });
 
         res.on('end', () => {
-            if (res.statusCode != 200)
-            {
+            if (res.statusCode != 200) {
                 deferred.reject(new Error("Invalid HTTP response: " + res.statusCode + " - " + res.statusMessage));
             }
-            else
-            {
+            else {
                 deferred.resolve(res);
             }
         });
@@ -82,15 +80,15 @@ function validateArgumentType(arg, argName, expectedType) {
 module.exports = {
 
     // numeric int device id
-    deviceId : null,
+    deviceId: null,
 
     // session token for the relay server
-    securityToken : null,
+    securityToken: null,
 
     // data structure which represents the device targetted by this translator
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         validateArgumentType(this.device, 'device', 'object');
@@ -106,14 +104,14 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('[' + this.deviceId + '] turnOn called.');
 
         var command = "onoff=1";
         return sendCommandToDevice('GET', this.securityToken, command, this.deviceId);
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('[' + this.deviceId + '] turnOff called.');
 
         var command = "onoff=0";
@@ -121,16 +119,16 @@ module.exports = {
     },
 
     // sets the dimmable bulb to the desired brightness, valid values: integer 0-100
-    setBrightness: function(brightness) {
+    setBrightness: function (brightness) {
         console.log('[' + this.deviceId + '] setBrightness called with value: ' + brightness);
 
         // Lightify accepts values between 0.000-1.000
-        var doubleBrightness = brightness / 100.0; 
+        var doubleBrightness = brightness / 100.0;
         var command = "level=" + doubleBrightness;
         return sendCommandToDevice('GET', this.securityToken, command, this.deviceId);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     }

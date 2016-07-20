@@ -61,7 +61,7 @@ module.exports = {
 
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         if (typeof this.device != 'undefined') {
@@ -90,17 +90,17 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    open: function() {
+    open: function () {
         console.log('open called.');
         sendPositionCommandToDevice(1.0);
     },
 
-    close: function() {
+    close: function () {
         console.log('close called.');
         sendPositionCommandToDevice(0.0);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     }

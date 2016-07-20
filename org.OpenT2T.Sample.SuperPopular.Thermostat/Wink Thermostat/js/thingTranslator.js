@@ -37,10 +37,11 @@ function validateArgumentType(arg, argName, expectedType) {
 
 var device;
 var props;
+
 // module exports, implementing the schema
 module.exports = {
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         console.log('Initializing device.');
 
         device = dev;
@@ -50,67 +51,67 @@ module.exports = {
         props = JSON.parse(device.props);
         validateArgumentType(props.access_token, 'device.props.access_token', 'string');
         validateArgumentType(props.id, 'device.props.id', 'string');
-       
-        deviceId = props.id; 
+
+        deviceId = props.id;
         accessToken = props.access_token;
 
         //use the winkHub device and initialize
-        wh.initWinkApi("thermostats",deviceId,accessToken);
+        wh.initWinkApi("thermostats", deviceId, accessToken);
         console.log('Javascript and Wink Helper initialized');
         logDeviceState(device);
     },
 
-    isTurnedOn: function() {
+    isTurnedOn: function () {
         console.log('isTurnedOn called.');
         return logPromise(wh.getValueOfDesiredState('powered', true));
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('turnOn called.');
         return logPromise(wh.sendDesiredStateCommand('powered', true));
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('turnOff called.');
-        return logPromise(wh.sendDesiredStateCommand('powered',false));
+        return logPromise(wh.sendDesiredStateCommand('powered', false));
     },
 
-    getCurrentTemperature: function() {
+    getCurrentTemperature: function () {
         console.log('getting current temp');
-        return logPromise(wh.getLastReading('temperature')); 
-    },   
+        return logPromise(wh.getLastReading('temperature'));
+    },
 
-    getCoolingSetpoint: function() {
+    getCoolingSetpoint: function () {
         console.log('getting cooling point');
         return logPromise(wh.getValueOfDesiredState('max_set_point'));
-    },   
+    },
 
-    getHeatingSetpoint:function() {
+    getHeatingSetpoint: function () {
         console.log('getting heating point');
         return logPromise(wh.getValueOfDesiredState('min_set_point'));
-    },  
+    },
 
-    getMode:function() {
+    getMode: function () {
         console.log('getting mode.');
         return logPromise(wh.getValueOfDesiredState('mode'));
-    },   
-
-    setMode:function(value) {
-       console.log("Trying to set Mode"); 
-       return logPromise(wh.sendDesiredStateCommand('mode',value)); 
     },
 
-    setHeatingSetpoint:function(temp) {
+    setMode: function (value) {
+        console.log("Trying to set Mode");
+        return logPromise(wh.sendDesiredStateCommand('mode', value));
+    },
+
+    setHeatingSetpoint: function (temp) {
         console.log("Changing Heating Setpoint");
-        return logPromise(wh.sendDesiredStateCommand('min_set_point',temp));
+        return logPromise(wh.sendDesiredStateCommand('min_set_point', temp));
     },
-    setCoolingSetpoint:function(temp) {
+    setCoolingSetpoint: function (temp) {
         console.log("Changing Cooling Setpoint");
-        return logPromise(wh.sendDesiredStateCommand('max_set_point',temp)); 
+        return logPromise(wh.sendDesiredStateCommand('max_set_point', temp));
     },
-    
-    disconnect: function() {
+
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(device);
-    }  
+    }
 };
