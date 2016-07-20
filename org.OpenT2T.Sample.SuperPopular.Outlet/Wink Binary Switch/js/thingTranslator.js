@@ -104,9 +104,3 @@ module.exports = {
         logDeviceState(this.device);
     }
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.turnOn = module.exports.turnOn;
-global.turnOff = module.exports.turnOff;
-global.disconnect = module.exports.disconnect;

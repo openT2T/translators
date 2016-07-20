@@ -75,14 +75,3 @@ module.exports = {
         logDeviceState(device);
     }  
 };
-
-// globals for JxCore host
-global.getCoolingSetpoint = module.exports.getCoolingSetpoint;
-global.getHeatingSetpoint= module.exports.getHeatingSetpoint;
-global.turnOff = module.exports.turnOff;
-global.turnOn = module.exports.turnOn;
-global.disconnect = module.exports.disconnect;
-global.setCoolingSetpoint = module.exports.setCoolingSetpoint;
-global.setHeatingSetpoint = module.exports.setHeatingSetpoint;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
-global.getMode = module.exports.getMode;

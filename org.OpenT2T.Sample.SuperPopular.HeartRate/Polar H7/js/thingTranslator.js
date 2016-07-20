@@ -101,11 +101,3 @@ module.exports = {
         }
     },
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.getBeatsPerMinute = module.exports.getBeatsPerMinute;
-global.getRRInterval = module.exports.getRRInterval;
-global.getEnergyExpended = module.exports.getEnergyExpended;
-global.getContactStatus = module.exports.getContactStatus;
-global.disconnect = module.exports.disconnect;

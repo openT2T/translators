@@ -98,9 +98,3 @@ module.exports = {
         console.log('getTemperatureTrend called.');
     }
 }
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
-global.getTemperatureTrend = module.exports.getTemperatureTrend;
-global.disconnect = module.exports.disconnect;

@@ -96,9 +96,3 @@ module.exports = {
         });
     },
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
-global.disconnect = module.exports.disconnect;
-

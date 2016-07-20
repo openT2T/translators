@@ -7,7 +7,7 @@ Translator for the Texas Instruments SensorTag Temperature Sensor: http://www.ti
 This translator depends on the noble node package. Follow the instructions for your platform from this site:
 [https://www.npmjs.com/package/noble](https://www.npmjs.com/package/noble)
 
-You can use a bluetooth dongle, or the built-in bluetooth on your device. Noble currently works for Node in the Windows and OSX command line but not for Windows UWP and Android apps in JxCore.
+You can use a bluetooth dongle, or the built-in bluetooth on your device. Noble currently works for Node in the Windows and OSX command line but not for Windows UWP and Android apps in the bridge.
 
 > <b>Note</b>: If running on Windows, when you run the Zadig program the drop down may be empty. In this case use Options - List all devices to populate it.
 > Select the device that matches your Bluetooth dongle.

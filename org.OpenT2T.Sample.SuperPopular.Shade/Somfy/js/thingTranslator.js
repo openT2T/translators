@@ -103,10 +103,3 @@ module.exports = {
         }
     },
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.disconnect = module.exports.disconnect;
-global.open       = module.exports.open;
-global.close      = module.exports.close;
-
