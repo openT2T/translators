@@ -49,7 +49,7 @@ function sendPowerStateCommandToDevice(powerState) {
     });
 
     req.write(postData);
-    
+
     req.end();
 }
 
@@ -60,7 +60,7 @@ module.exports = {
 
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         if (typeof this.device != 'undefined') {
@@ -89,24 +89,18 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('turnOn called.');
         sendPowerStateCommandToDevice(true);
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('turnOff called.');
         sendPowerStateCommandToDevice(false);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     }
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.turnOn = module.exports.turnOn;
-global.turnOff = module.exports.turnOff;
-global.disconnect = module.exports.disconnect;

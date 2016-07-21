@@ -20,7 +20,7 @@ var bulb = null;
 module.exports = {
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
 
         this.device = dev;
 
@@ -28,11 +28,11 @@ module.exports = {
             if (typeof (this.device.props) !== 'undefined') {
                 var props = JSON.parse(this.device.props);
                 if (typeof (props.id) !== 'undefined') {
-                    LEDBlue.getBulb(props.id, function(b) {
+                    LEDBlue.getBulb(props.id, function (b) {
                         bulb = b;
-                        bulb.connect(function() {
+                        bulb.connect(function () {
                             console.log('connected');
-                            bulb.pair(pairKey, function() {
+                            bulb.pair(pairKey, function () {
                                 console.log('paired');
                             });
                         });
@@ -51,12 +51,12 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
-        
+
         if (typeof bulb != 'undefined') {
-            bulb.disconnect(function() {
+            bulb.disconnect(function () {
                 console.log('device disconnected');
             });
         } else {
@@ -64,11 +64,11 @@ module.exports = {
         }
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('turnOn called.');
 
         if (typeof bulb != 'undefined') {
-            bulb.turnOn(function() {
+            bulb.turnOn(function () {
                 console.log('turnOn done');
             });
         } else {
@@ -76,11 +76,11 @@ module.exports = {
         }
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('turnOff called.');
 
         if (typeof bulb != 'undefined') {
-            bulb.turnOff(function() {
+            bulb.turnOff(function () {
                 console.log('turnOff done');
             });
         } else {
@@ -88,13 +88,13 @@ module.exports = {
         }
     },
 
-    setBrightness: function(brightness) {
+    setBrightness: function (brightness) {
         console.log('setBrightness called with value: ' + brightness);
 
         if (typeof bulb != 'undefined') {
             // convert 0-100 range to 1-255
             var b = ((brightness * 254) / 100) + 1;
-            bulb.setColor(brightness, brightness, brightness, function() {
+            bulb.setColor(brightness, brightness, brightness, function () {
                 console.log('brightness changed');
             });
         } else {
@@ -102,10 +102,3 @@ module.exports = {
         }
     }
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.turnOn = module.exports.turnOn;
-global.turnOff = module.exports.turnOff;
-global.setBrightness = module.exports.setBrightness;
-global.disconnect = module.exports.disconnect;

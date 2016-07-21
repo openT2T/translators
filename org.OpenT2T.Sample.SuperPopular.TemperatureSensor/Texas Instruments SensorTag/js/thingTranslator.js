@@ -17,28 +17,28 @@ var tag = null;
 module.exports = {
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         if (typeof this.device != 'undefined') {
             if (typeof (this.device.props) !== 'undefined') {
                 var props = JSON.parse(this.device.props);
                 if (typeof (props.id) !== 'undefined') {
-                    SensorTag.discoverById(props.id, function(sensorTag) {
+                    SensorTag.discoverById(props.id, function (sensorTag) {
 
                         console.log('discovered');
 
                         tag = sensorTag;
-                        tag.connectAndSetup(function(conn_error) {
+                        tag.connectAndSetup(function (conn_error) {
                             console.log('connected');
 
                             if (conn_error != null) {
                                 console.log(conn_error);
                                 return;
                             } else {
-                                tag.enableIrTemperature(function(enable_error) {
+                                tag.enableIrTemperature(function (enable_error) {
 
-                                    setTimeout(function() {
+                                    setTimeout(function () {
                                         if (enable_error != null) {
                                             console.log(enable_error);
                                             return;
@@ -64,19 +64,19 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    disconnect: function() {
+    disconnect: function () {
 
         console.log('disconnect called.');
         logDeviceState(this.device);
 
         if (tag != null) {
-            tag.disconnect(function(err) {
+            tag.disconnect(function (err) {
                 console.log('disconnected');
             });
         }
     },
 
-    getCurrentTemperature: function(callback) {
+    getCurrentTemperature: function (callback) {
 
         console.log('getCurrentTemperature called.');
 
@@ -86,7 +86,7 @@ module.exports = {
             return;
         }
 
-        tag.readIrTemperature(function(temp_error, objectTemperature, ambient_temp) {
+        tag.readIrTemperature(function (temp_error, objectTemperature, ambient_temp) {
             if (temp_error != null) {
                 console.log(temp_error);
             } else {
@@ -96,9 +96,3 @@ module.exports = {
         });
     },
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
-global.disconnect = module.exports.disconnect;
-

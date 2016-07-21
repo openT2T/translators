@@ -73,7 +73,3 @@ module.exports = {
 
     }
 }
-
-global.getBatteryLevel = module.exports.getBatteryLevel;
-global.getSmokeDetected = module.exports.getSmokeDetected;
-global.disconnect = module.exports.disconnect;

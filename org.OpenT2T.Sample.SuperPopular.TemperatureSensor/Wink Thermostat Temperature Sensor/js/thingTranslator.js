@@ -19,7 +19,7 @@ module.exports = {
 
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         if (typeof this.device != 'undefined') {
@@ -48,12 +48,12 @@ module.exports = {
         logDeviceState(this.device);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     },
 
-    getCurrentTemperature: function(callback) {
+    getCurrentTemperature: function (callback) {
         console.log('getCurrentTemperature called.');
 
         var options = {
@@ -67,14 +67,14 @@ module.exports = {
             'method': 'GET'
         };
 
-        var req = https.get(options, function(res) {
+        var req = https.get(options, function (res) {
             var body = '';
             res.setEncoding('utf8');
-            res.on('data', function(data) {
+            res.on('data', function (data) {
                 body += data;
             });
 
-            res.on('end', function() {
+            res.on('end', function () {
                 if (res.statusCode != 200) {
                     callback('error: ' + res.statusCode);
                 } else {
@@ -86,7 +86,7 @@ module.exports = {
                 }
             });
 
-            res.on('error', function(e) {
+            res.on('error', function (e) {
                 callback('error');
             });
         });
@@ -94,13 +94,7 @@ module.exports = {
         req.end();
     },
 
-    getTemperatureTrend: function(callback) {
+    getTemperatureTrend: function (callback) {
         console.log('getTemperatureTrend called.');
     }
 }
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
-global.getTemperatureTrend = module.exports.getTemperatureTrend;
-global.disconnect = module.exports.disconnect;

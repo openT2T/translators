@@ -14,7 +14,7 @@ function logDeviceState(device) {
 };
 
 var zwave = new ZWave({
-	ConsoleOutput: false
+    ConsoleOutput: false
 });
 
 zwave.on('driver failed', function () {
@@ -30,19 +30,19 @@ var homeId = null;
 // module exports, implementing the schema
 module.exports = {
 
-   initDevice:function (dev) {
+    initDevice: function (dev) {
 
-       device = dev;
+        device = dev;
 
-       if (typeof device != 'undefined') {
-           if (typeof (device.props) !== 'undefined') {
-               var props;
-               try {
-                   props = JSON.parse(device.props);
-               } catch (ex) {
-                   console.log("invalid address string: %s", props.id);
-                   return;
-               }
+        if (typeof device != 'undefined') {
+            if (typeof (device.props) !== 'undefined') {
+                var props;
+                try {
+                    props = JSON.parse(device.props);
+                } catch (ex) {
+                    console.log("invalid address string: %s", props.id);
+                    return;
+                }
 
 
                 homeId = props.id.homeId;
@@ -56,28 +56,27 @@ module.exports = {
                 var deviceAddress = zwavedriverroot[os.platform()] + props.serialPort;
                 console.log("connecting to " + deviceAddress);
                 zwave.connect(zwavedriverroot[os.platform()] + deviceAddress);
-           } else {
-               console.log('props is undefined');
-               return;
-           }
-       } else {
-           console.log('device is undefined');
-           return;
-       }
-   },
+            } else {
+                console.log('props is undefined');
+                return;
+            }
+        } else {
+            console.log('device is undefined');
+            return;
+        }
+    },
 
-   disconnect: function () {
-       console.log('disconnect called.');
+    disconnect: function () {
+        console.log('disconnect called.');
 
-       logDeviceState(device);
+        logDeviceState(device);
 
         zwave.disconnect(function () {
             console.log('device disconnected');
         });
-   },
+    },
 
-
-    open: function() {
+    open: function () {
         console.log("open called.");
 
         // {node_id:device.nodeId,	class_id: 37,	instance:1,	index:0}, true (=shade up)
@@ -89,7 +88,7 @@ module.exports = {
         }
     },
 
-    close: function() {
+    close: function () {
         console.log("close called.");
 
         console.log(nodeId);
@@ -103,10 +102,3 @@ module.exports = {
         }
     },
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.disconnect = module.exports.disconnect;
-global.open       = module.exports.open;
-global.close      = module.exports.close;
-

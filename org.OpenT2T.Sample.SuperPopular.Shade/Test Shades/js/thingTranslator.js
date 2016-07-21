@@ -15,29 +15,23 @@ module.exports = {
 
     device: null,
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         this.device = dev;
 
         console.log('Javascript initialized.');
         logDeviceState(this.device);
     },
 
-    open: function() {
+    open: function () {
         console.log('open called.');
     },
 
-    close: function() {
+    close: function () {
         console.log('close called.');
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     }
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.open = module.exports.open;
-global.close = module.exports.close;
-global.disconnect = module.exports.disconnect;

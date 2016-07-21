@@ -12,37 +12,30 @@ function logDeviceState(device) {
 
 // module exports, implementing the schema
 module.exports = {
-    
+
     device: null,
-    
-    initDevice: function(dev) {
+
+    initDevice: function (dev) {
         this.device = dev;
 
         console.log('Javascript initialized.');
         logDeviceState(this.device);
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('turnOn called.');
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('turnOff called.');
     },
 
-    setBrightness: function(brightness) {
+    setBrightness: function (brightness) {
         console.log('setBrightness called with value: ' + brightness);
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(this.device);
     }
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.turnOn = module.exports.turnOn;
-global.turnOff = module.exports.turnOff;
-global.setBrightness = module.exports.setBrightness;
-global.disconnect = module.exports.disconnect;

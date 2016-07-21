@@ -120,18 +120,3 @@ module.exports = {
        return deferred.promise; // return the promise
     },
 }
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.isTurnedOn = module.exports.isTurnedOn;
-global.turnOn = module.exports.turnOn;
-global.turnOff = module.exports.turnOff;
-global.getCurrentTemperature = module.exports.getCurrentTemperature;
-global.getHeatingSetpoint = module.exports.getHeatingSetpoint;
-global.setHeatingSetpoint = module.exports.setHeatingSetpoint;
-global.getCoolingSetpoint = module.exports.getCoolingSetpoint;
-global.setCoolingSetpoint = module.exports.setCoolingSetpoint;
-global.getMode = module.exports.getMode;
-global.setMode = module.exports.setMode;
-global.getAvailableModes = module.exports.getAvailableModes;
-global.disconnect = module.exports.disconnect;

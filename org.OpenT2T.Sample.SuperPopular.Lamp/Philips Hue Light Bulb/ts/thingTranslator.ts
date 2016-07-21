@@ -98,11 +98,3 @@ export function disconnect(): void {
     console.log('disconnect called.');
     logDeviceState(device);
 }
-
-// globals for JxCore host
-declare var global: any;
-global.initDevice = initDevice;
-global.turnOn = turnOn;
-global.turnOff = turnOff;
-global.setBrightness = setBrightness;
-global.disconnect = disconnect;

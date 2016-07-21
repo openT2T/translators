@@ -48,7 +48,7 @@ var api;
 // module exports, implementing the schema
 module.exports = {
 
-    initDevice: function(dev) {
+    initDevice: function (dev) {
         console.log('Initializing device.');
 
         device = dev;
@@ -63,7 +63,7 @@ module.exports = {
         api = new HueApi(deviceProps.ipAddress, deviceProps.userId);
     },
 
-    turnOn: function() {
+    turnOn: function () {
         console.log('turnOn called.');
         return getLightIndexFromId(deviceProps.uniqueId).then(index => {
             var state = lightState.create().on();
@@ -71,7 +71,7 @@ module.exports = {
         });
     },
 
-    turnOff: function() {
+    turnOff: function () {
         console.log('turnOff called.');
         return getLightIndexFromId(deviceProps.uniqueId).then(index => {
             var state = lightState.create().off();
@@ -79,7 +79,7 @@ module.exports = {
         });
     },
 
-    setBrightness: function(brightness) {
+    setBrightness: function (brightness) {
         console.log('setBrightness(' + brightness + ') called.');
         validateArgumentType(brightness, 'brightness', 'number');
         return getLightIndexFromId(deviceProps.uniqueId).then(index => {
@@ -88,15 +88,8 @@ module.exports = {
         });
     },
 
-    disconnect: function() {
+    disconnect: function () {
         console.log('disconnect called.');
         logDeviceState(device);
     }
 };
-
-// globals for JxCore host
-global.initDevice = module.exports.initDevice;
-global.turnOn = module.exports.turnOn;
-global.turnOff = module.exports.turnOff;
-global.setBrightness = module.exports.setBrightness;
-global.disconnect = module.exports.disconnect;
