@@ -12,8 +12,13 @@
     <!-- Gets current status: true(On) / false(Off) -->
     <method name="isTurnedOn"/>
 
+    <!-- sets fahrenheit units instead of celcius -->
+    <method name="useFahrenheit">
+      <arg name="flag" type="b" direction="in" />
+    </method>
+    
     <!-- Get the current ambient temperature -->
-    <method name="getCurrentTemperature">
+    <method name="getAmbientTemperature">
       <arg name="temp" type="d" direction="out" />
     </method>
 
@@ -27,7 +32,7 @@
       <arg name="temp" type="d" direction="out" />
     </method>
   
-   <!-- set the desired cooling temperature (a.k.a. max setpoint) -->
+    <!-- set the desired cooling temperature (a.k.a. max setpoint) -->
     <method name="setCoolingSetpoint">
       <arg name="temp" type="d" direction="in" />
     </method>
