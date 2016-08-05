@@ -1,7 +1,5 @@
 # WINK Thermostat translator
-
-## Creating and running the wink thermostat transaltor with new design
-(https://github.com/openT2T/opent2t/pull/2)
+### This translator adopts the new design (https://github.com/openT2T/opent2t/pull/2)
 
 ### How to run all the tests
 Create  test javascript file(s) under 'tests' sub directory.
