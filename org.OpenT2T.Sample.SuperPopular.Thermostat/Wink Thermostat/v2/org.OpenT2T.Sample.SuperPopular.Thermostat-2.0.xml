@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
+<node>
+  <interface name="org.OpenT2T.Sample.SuperPopular.Thermostat">
+    <description>OpenT2T SuperPopular Thermostat interface</description>
+
+    <property name="PowerStatus" type="s" access="readwrite">
+      <description>Get/Set power status. (On, Off)</description>
+    </property>
+
+    <property name="CurrentTemperature" type="d" access="read">
+     <description>Get the current ambient temperature in Celsius</description>
+    </method>
+
+    <property name="HeatingSetpoint" type="d" access="readwrite">
+      <description>Get\Set the heating temperature in Celsius (a.k.a. min setpoint)</description>
+    </method>
+
+    <property name="CoolingSetpoint" type="d" access="readwrite">
+      <description>Get\Set the current cooling temperature in Celsius (a.k.a. max setpoint) </description>
+    </method>
+    
+    <property name="Mode" type="s" access="readwrite">
+      <description>Get\Set the mode (Heat-cool, Heating, Cooling, Auto etc.. depending on the make/model)</description>
+    </method>
+    
+    <property name="AvailableModes" type="as" access="read">
+      <description>Gets the mode (Heat-cool, Heating, Cooling, Auto etc.. depending on the make/model)</description>
+    </method>
+
+  </interface>
+</node>
