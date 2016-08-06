@@ -6,8 +6,6 @@ var wh = require("opent2t-translator-helper-wink");
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
-const EventEmitter = require("events");
-
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
         throw new Error('Missing argument: ' + argName + '. ' +
@@ -20,13 +18,10 @@ function validateArgumentType(arg, argName, expectedType) {
 
 /**
  * This translator class implements the "InterfaceA" interface.
- * Since the interface includes a signal (notifiable property), this class
- * extends from the node's built-in event-emitter class.
- */
-class WinkThermostat extends EventEmitter {
+ * Since the interface includes a signal (notifiable property) */
+class WinkThermostat {
 
     constructor(deviceInfo) {
-        super(); // Construct EventEmitter base
         this.initDevice(deviceInfo);
     }
 

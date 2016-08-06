@@ -24,15 +24,15 @@
   },
   "opent2t": {
     "interfaces": {
-      "Thermostat": {
+      "thermostat": {
         "description": "OpenT2T SuperPopular Thermostat interface"
       }
     },
     "translators": {
-      "TranslatorA": {
+      "thingTranslator": {
         "description": "OpenT2T Wink Thermostat translator",
         "interfaces": [
-          "./ThermostatInterface"
+          "thermostat"
         ],
         "onboarding": "@opent2t/Onboarding/WinkThermostat-NotImplemented",
         "onboardingProperties": {}
