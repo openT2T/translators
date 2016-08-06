@@ -4,7 +4,7 @@
 ### How to run all the tests
 Create  test javascript file(s) under 'tests' sub directory.
 
-* Modify deviceconfig.js to populate <device-id> and <device-id>.
+* Modify testconfig.json to populate <device-id> and <access-token>. It is added to .gitignore.
 * global install typescript 2.0 
     npm install -g typescript@beta
 * global install ava test runner.
