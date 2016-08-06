@@ -10,23 +10,23 @@
 
     <property name="CurrentTemperature" type="d" access="read">
      <description>Get the current ambient temperature in Celsius</description>
-    </method>
+    </property>
 
     <property name="HeatingSetpoint" type="d" access="readwrite">
       <description>Get\Set the heating temperature in Celsius (a.k.a. min setpoint)</description>
-    </method>
+    </property>
 
     <property name="CoolingSetpoint" type="d" access="readwrite">
       <description>Get\Set the current cooling temperature in Celsius (a.k.a. max setpoint) </description>
-    </method>
+    </property>
     
     <property name="Mode" type="s" access="readwrite">
       <description>Get\Set the mode (Heat-cool, Heating, Cooling, Auto etc.. depending on the make/model)</description>
-    </method>
+    </property>
     
     <property name="AvailableModes" type="as" access="read">
       <description>Gets the mode (Heat-cool, Heating, Cooling, Auto etc.. depending on the make/model)</description>
-    </method>
+    </property>
 
   </interface>
 </node>

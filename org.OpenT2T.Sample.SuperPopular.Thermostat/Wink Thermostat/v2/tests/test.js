@@ -1,3 +1,4 @@
+/*jshint esversion: 6 */
 var opent2t = require('opent2t');
 var ava = require('ava');
 var config = require('./testconfig');
@@ -30,32 +31,24 @@ function logAndValidate(p, name, expected) {
     });
 };
 
-
 console.log("Device Under Test -  Name: " + config.Device.name + "  Props: " + config.Device.props);
 
 ///
 /// Run a series of tests to validate the translator
 ///
 
-// Powers off/on. Get current temperature. Leaves it on.
-ava.test.serial("PowerStatus", (t) => __awaiter(this, void 0, void 0, function* () {
+// Set/Get Mode. Get Available modes
+ava.test.serial("Mode", (t) => __awaiter(this, void 0, void 0, function* () {
     let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "thingTranslator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
-
-    // Power off and validate 
-    yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "PowerStatus", "off");
-    let powerStatus = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "PowerStatus");
-    t.is(powerStatus, 'off');
-
-    yield delay(6000);
-
-    // Power on and validate
-    yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "PowerStatus", "on");
-    powerStatus = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "PowerStatus");
-    t.is(powerStatus, 'on');
+    yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "Mode", "heat_only");
+    let mode = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "Mode");
+    t.is(mode, "heat_only");
 
     let currentTemp = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "CurrentTemperature");
-    t.is(powerStatus, 'on');
+
+    let availbleModes = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "AvailableModes");
+    t.is(availbleModes.toString(), "cool_only,heat_only,auto,aux");
 }));
 
 // Set/Get HeatingSetpoint
@@ -76,15 +69,4 @@ ava.test.serial("CoolingSetpoint", (t) => __awaiter(this, void 0, void 0, functi
     t.is(coolingSetpoint, 12);
 }));
 
-// Set/Get Mode. Get Available modes
-ava.test.serial("Mode", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "thingTranslator", config.Device);
-    t.is(typeof device, "object") && t.truthy(device);
-    yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "Mode", "heat_only");
-    let mode = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "Mode");
-    t.is(mode, "heat_only");
-
-    let availbleModes = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "AvailableModes");
-    t.is(availbleModes.toString(), "cool_only,heat_only,auto,aux");
-}));
 

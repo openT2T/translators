@@ -1,6 +1,6 @@
+/*jshint esversion: 6 */
+/* jshint node: true */
 "use strict";
-
-var q = require('q');
 var wh = require("opent2t-translator-helper-wink");
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -16,9 +16,7 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
-/**
- * This translator class implements the "InterfaceA" interface.
- * Since the interface includes a signal (notifiable property) */
+// This translator class implements the "org.OpenT2T.Sample.SuperPopular.Thermostat" interface.
 class WinkThermostat {
 
     constructor(deviceInfo) {
@@ -44,67 +42,45 @@ class WinkThermostat {
         console.log('Javascript and Wink Helper initialized : ' + deviceId + accessToken);
     }
 
-    getPowerStatus() {
-        console.log('Get PowerStatus.');
-        return wh.getValueOfDesiredState('powered').then(isPowered => {
-            return new Promise((resolve, reject) => {
-                validateArgumentType(isPowered, "powered property", 'boolean');
-                resolve(isPowered ? "on" : "off");
-            });
-        });
-    }
-    
-    setPowerStatus(status) {
-        console.log('Set PowerStatus.');
-        validateArgumentType(status, 'Power status', 'string');
-
-        if(status.toUpperCase() === 'ON')
-            return wh.sendDesiredStateCommand('powered', true);
-        else
-            return wh.sendDesiredStateCommand('powered', false);
-    }
-
-    getCurrentTemperature() {
+    get CurrentTemperature() {
         console.log('Get current temperature.');
         return wh.getLastReading('temperature'); 
     }
 
-    getHeatingSetpoint() {
+    get HeatingSetpoint() {
         console.log('Get heating point.');
         return wh.getValueOfDesiredState('min_set_point');
     }
 
-    setHeatingSetpoint(targetValue) {
+    set HeatingSetpoint(targetValue) {
          console.log("Set Heating Setpoint");
         return wh.sendDesiredStateCommand('min_set_point',targetValue);
     }
 
-    getCoolingSetpoint() {
+    get CoolingSetpoint() {
         console.log('Get cooling point');
         return wh.getValueOfDesiredState('max_set_point');
     }
 
-    setCoolingSetpoint(targetValue) {
+    set CoolingSetpoint(targetValue) {
         console.log("Set Cooling Setpoint");
         return wh.sendDesiredStateCommand('max_set_point',targetValue);
     }
 
-    getMode() {
+    get Mode() {
         console.log('Get current mode.');
         return wh.getValueOfDesiredState('mode');
     }
 
     // Allowed value depends in mode.choices in capabilities
-    setMode(mode) {
+    set Mode(mode) {
         console.log('Set mode.');
         return wh.sendDesiredStateCommand('mode',mode); 
     }
 
-    getAvailableModes() {
-        console.log('Get supported modes. But Allowed value depends on mode.choices in capabilities.');
-        var deferred = q.defer();   // Take a deferral
-       deferred.resolve(["cool_only", "heat_only", "auto", "aux"]);
-       return deferred.promise; // return the promise
+    get AvailableModes() {
+       console.log('Get supported modes. But Allowed value depends on mode.choices in capabilities.');
+       return ["cool_only", "heat_only", "auto", "aux"];
     }
 }
 

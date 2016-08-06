@@ -6,5 +6,5 @@ node_modules
 *.DS_Store
 logs
 *.log
-deviceconfig.js
+testconfig.json
 *.vscode

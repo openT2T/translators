@@ -7,19 +7,19 @@
   "scripts": {
     "test": "ava"
   },
-    "ava": {
+  "ava": {
     "files": [
-              "tests/*.js"
-            ]
-    },
+      "tests/*.js"
+    ]
+  },
   "dependencies": {
     "delay": "^1.3.1",
     "opent2t-onboarding-winkhub": "*",
-    "opent2t-translator-helper-wink": "1.0.0",
-    "q": "1.4.1"
+    "opent2t-translator-helper-wink": "1.0.0"
   },
   "devDependencies": {
     "opent2t": "*",
+    "jshint": "^2.9.2",
     "ava": "^0.15.2"
   },
   "opent2t": {
@@ -32,7 +32,7 @@
       "thingTranslator": {
         "description": "OpenT2T Wink Thermostat translator",
         "interfaces": [
-          "thermostat"
+          "./thermostat"
         ],
         "onboarding": "@opent2t/Onboarding/WinkThermostat-NotImplemented",
         "onboardingProperties": {}
