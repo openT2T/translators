@@ -1,6 +1,6 @@
 var opent2t = require('opent2t');
 var ava = require('ava');
-var config = require('./deviceconfig');
+var config = require('./testconfig');
 var delay = require('delay')
 
 // This boilerplate code is copied from transpiled typescript AVA test code, which enables usage of 'yield' keyword. 
@@ -30,8 +30,8 @@ function logAndValidate(p, name, expected) {
     });
 };
 
-var deviceInfo = new config.Device();
-console.log("Device Under Test -  ID: "+ deviceInfo.props + "  Name: " + deviceInfo.name);
+
+console.log("Device Under Test -  Name: " + config.Device.name + "  Props: " + config.Device.props);
 
 ///
 /// Run a series of tests to validate the translator
@@ -39,7 +39,7 @@ console.log("Device Under Test -  ID: "+ deviceInfo.props + "  Name: " + deviceI
 
 // Powers off/on. Get current temperature. Leaves it on.
 ava.test.serial("PowerStatus", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "thingTranslator", new config.Device());
+    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "translator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
 
     // Power off and validate 
@@ -60,7 +60,7 @@ ava.test.serial("PowerStatus", (t) => __awaiter(this, void 0, void 0, function* 
 
 // Set/Get HeatingSetpoint
 ava.test.serial("HeatingSetpoint", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "thingTranslator", new config.Device());
+    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "translator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
     yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "HeatingSetpoint", 22);
     let heatingSetpoint = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "HeatingSetpoint");
@@ -69,7 +69,7 @@ ava.test.serial("HeatingSetpoint", (t) => __awaiter(this, void 0, void 0, functi
 
 // Set/Get CoolingSetpoint
 ava.test.serial("CoolingSetpoint", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "thingTranslator", new config.Device());
+    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "translator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
     yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "CoolingSetpoint", 12);
     let coolingSetpoint = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "CoolingSetpoint");
@@ -78,7 +78,7 @@ ava.test.serial("CoolingSetpoint", (t) => __awaiter(this, void 0, void 0, functi
 
 // Set/Get Mode. Get Available modes
 ava.test.serial("Mode", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "thingTranslator", new config.Device());
+    let device = yield opent2t.DeviceAccessor.createTranslatorAsync("../..", "translator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
     yield opent2t.DeviceAccessor.setPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "Mode", "heat_only");
     let mode = yield opent2t.DeviceAccessor.getPropertyAsync(device, "org.OpenT2T.Sample.SuperPopular.Thermostat", "Mode");
