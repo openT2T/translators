@@ -4,10 +4,6 @@
   <interface name="org.OpenT2T.Sample.SuperPopular.Thermostat">
     <description>OpenT2T SuperPopular Thermostat interface</description>
 
-    <property name="PowerStatus" type="s" access="readwrite">
-      <description>Get/Set power status. (On, Off)</description>
-    </property>
-
     <property name="CurrentTemperature" type="d" access="read">
      <description>Get the current ambient temperature in Celsius</description>
     </property>

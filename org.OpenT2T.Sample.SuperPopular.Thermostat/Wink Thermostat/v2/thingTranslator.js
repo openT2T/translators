@@ -20,12 +20,8 @@ function validateArgumentType(arg, argName, expectedType) {
 class WinkThermostat {
 
     constructor(deviceInfo) {
-        this.initDevice(deviceInfo);
-    }
-
-    initDevice(deviceProps) {
         console.log('Initializing device.');
-        var device = deviceProps;
+        var device = deviceInfo;
 
         validateArgumentType(device, 'device', 'object');
         validateArgumentType(device.props, 'device.props', 'string');
@@ -42,43 +38,43 @@ class WinkThermostat {
         console.log('Javascript and Wink Helper initialized : ' + deviceId + accessToken);
     }
 
-    get CurrentTemperature() {
+    getCurrentTemperature() {
         console.log('Get current temperature.');
         return wh.getLastReading('temperature'); 
     }
 
-    get HeatingSetpoint() {
+    getHeatingSetpoint() {
         console.log('Get heating point.');
         return wh.getValueOfDesiredState('min_set_point');
     }
 
-    set HeatingSetpoint(targetValue) {
+    setHeatingSetpoint(targetValue) {
          console.log("Set Heating Setpoint");
         return wh.sendDesiredStateCommand('min_set_point',targetValue);
     }
 
-    get CoolingSetpoint() {
+    getCoolingSetpoint() {
         console.log('Get cooling point');
         return wh.getValueOfDesiredState('max_set_point');
     }
 
-    set CoolingSetpoint(targetValue) {
+    setCoolingSetpoint(targetValue) {
         console.log("Set Cooling Setpoint");
         return wh.sendDesiredStateCommand('max_set_point',targetValue);
     }
 
-    get Mode() {
+    getMode() {
         console.log('Get current mode.');
         return wh.getValueOfDesiredState('mode');
     }
 
     // Allowed value depends in mode.choices in capabilities
-    set Mode(mode) {
+    setMode(mode) {
         console.log('Set mode.');
         return wh.sendDesiredStateCommand('mode',mode); 
     }
 
-    get AvailableModes() {
+    getAvailableModes() {
        console.log('Get supported modes. But Allowed value depends on mode.choices in capabilities.');
        return ["cool_only", "heat_only", "auto", "aux"];
     }
