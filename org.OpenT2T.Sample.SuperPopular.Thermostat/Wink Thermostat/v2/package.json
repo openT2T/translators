@@ -24,7 +24,7 @@
   },
   "opent2t": {
     "interfaces": {
-      "org.OpenT2T.Sample.SuperPopular.Thermostat": {
+      "thermostat": {
         "description": "OpenT2T SuperPopular Thermostat interface"
       }
     },
@@ -32,7 +32,7 @@
       "thingTranslator": {
         "description": "OpenT2T Wink Thermostat translator",
         "interfaces": [
-          "./org.OpenT2T.Sample.SuperPopular.Thermostat"
+          "./thermostat"
         ],
         "onboarding": "@opent2t/Onboarding/WinkThermostat-NotImplemented",
         "onboardingProperties": {}
