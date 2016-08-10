@@ -24,14 +24,13 @@ class WinkThermostat {
         var device = deviceInfo;
 
         validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'string');
+        validateArgumentType(device.props, 'device.props', 'object');
 
-        var props = JSON.parse(device.props);
-        validateArgumentType(props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(props.id, 'device.props.id', 'string');
+        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
+        validateArgumentType(device.props.id, 'device.props.id', 'string');
        
-        var deviceId = props.id; 
-        var accessToken = props.access_token;
+        var deviceId = device.props.id; 
+        var accessToken = device.props.access_token;
 
         //use the winkHub device and initialize
         wh.initWinkApi("thermostats",deviceId,accessToken);
