@@ -1,0 +1,14 @@
+{
+    "name": "opent2t-translator-wink-window-shades",
+    "version": "1.0.0",
+    "description": "Wink Window Shade",
+    "homepage": "http://opentranslatorstothings.org",
+    "dependencies": {},
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-winkhub": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}

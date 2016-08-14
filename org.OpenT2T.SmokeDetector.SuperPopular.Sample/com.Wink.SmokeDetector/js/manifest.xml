@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.LightControl" />
+  <!-- associated schema -->
+  <schema id="org.OpenT2T.SmokeDetector..SuperPopular.Sample"" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.OpenT2T.Onboarding.WinkHub">
+    <arg name="name" value="Wink Smoke Alarm" />
+    <!-- when WINK devices are enumerated, the id Key contains information about the type of device. -->
+    <arg name="idKeyFilter" value="smoke_detector_id" />
+  </onboarding>
+</manifest>

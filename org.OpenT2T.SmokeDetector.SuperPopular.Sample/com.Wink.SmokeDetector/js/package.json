@@ -1,0 +1,17 @@
+{
+    "name": "opent2t-translator-wink-smokedetector",
+    "version": "1.0.0",
+    "description": "Wink Smoke Detector",
+    "homepage": "http://opentranslatorstothings.org",
+    "dependencies": {
+        "opent2t-translator-helper-wink": "1.0.0"
+    },
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-winkhub": "*",
+        "q": "1.4.1"
+    },
+    "author": "",
+    "license": "MIT"
+}

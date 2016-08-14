@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.CheckTemperature" />
+  <!-- associated schema -->
+  <schema id="org.OpenT2T.TemperatureSensor.SuperPopular.Sample" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.OpenT2T.Onboarding.BluetoothLE">
+    <arg name="name" value="Texas Instruments Sensor Tags" />
+    <arg name="advertisementLocalNameFilter" value="SensorTag" />
+  </onboarding>
+</manifest>
