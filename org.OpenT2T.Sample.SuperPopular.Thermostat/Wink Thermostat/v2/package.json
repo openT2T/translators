@@ -1,5 +1,5 @@
 {
-  "name": "opent2t-translator-wink-thermostat",
+  "name": "opent2t-translator-wink-thermostat-v2",
   "version": "1.0.0",
   "description": "Wink Thermostat translator",
   "author": "OpenT2T",
@@ -12,6 +12,13 @@
       "tests/*.js"
     ]
   },
+  "main": "thingTranslator.js",
+  "files": [
+    "thermostat.js",
+    "thingTranslator.js",
+    "package.json",
+    "org.OpenT2T.Sample.SuperPopular.Thermostat.xml"
+  ],
   "dependencies": {
     "opent2t": "*",
     "opent2t-onboarding-winkhub": "*",

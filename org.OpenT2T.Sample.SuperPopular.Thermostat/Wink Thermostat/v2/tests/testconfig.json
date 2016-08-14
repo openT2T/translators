@@ -1,9 +1,0 @@
-{
-    "Device" : {
-        "name": "WINK Thermostat.",
-        "props": { 
-            "id": "<device-id>", 
-            "access_token": "<access-token>" 
-        }
-    }
-}
