@@ -1,0 +1,16 @@
+{
+    "name": "opent2t-translator-ge-smart-dimmer",
+    "version": "1.0.0",
+    "description": "Aeotec Smart Switch 6",
+    "homepage": "http://opentranslatorstothings.org",
+    "dependencies": {
+        "openzwave-shared": "git+https://github.com/HenryRawas/node-openzwave-shared.git#fixinstall"
+    },
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-zwave": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}

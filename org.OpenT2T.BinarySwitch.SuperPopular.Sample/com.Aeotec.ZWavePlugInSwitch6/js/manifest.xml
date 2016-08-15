@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.LightControl" />
+  <!-- associated schema -->
+  <schema id="org.OpenT2T.BinarySwitch.SuperPopular.Sample" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.OpenT2T.Onboarding.ZWave">
+    <arg name="name" value="Aeotec Smart Switch 6" />
+    <arg name="manufacturerNameFilter" value="Aeotec" />
+  </onboarding>
+</manifest>

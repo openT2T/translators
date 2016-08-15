@@ -1,0 +1,14 @@
+{
+    "name": "opent2t-translator-rachio-iro",
+    "version": "1.0.0",
+    "description": "Rachio Iro",
+    "homepage": "http://opentranslatorstothings.org",
+    "dependencies": {},
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-manual": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}
