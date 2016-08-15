@@ -3,7 +3,7 @@
   <!-- associated voice handler -->
   <voice id="" />
   <!-- associated schema -->
-  <schema id="org.OpenT2T.Thermostat.SuperPopular.Sample" />
+  <schema id="org.opent2t.sample.thermostat.superpopular" />
   <!-- associated onboarding module -->
   <onboarding id="org.OpenT2T.Onboarding.Nest">
     <arg name="name" value="Nest Thermostat" />
