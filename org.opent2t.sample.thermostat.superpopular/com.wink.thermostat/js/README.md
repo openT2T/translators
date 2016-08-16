@@ -13,45 +13,89 @@ npm install
 ```
 
 > **Note:** At the time of writing some packages are not published to npm. If you get errors, 
-  Here's how you can install them from local paths. We assume that you have already cloned the
-  https://github.com/opent2t/opent2t repo locally, and have a local path to it.
+  Here's how you can install them from local paths via `npm link`. We assume that you have already 
+  cloned the https://github.com/opent2t/opent2t repo locally, and have a local path to it. Run
+  `npm install` again after installing to local paths and confirm there are no errors before proceeding.
 
 ```bash
-npm install ../../../Helpers/opent2t-translator-helper-wink/js/
-npm install 'LOCAL-PATH-TO-OPENT2T-REPO/node/*'
+pushd '../../../Helpers/opent2t-translator-helper-wink/js/'
+npm link
+popd
+npm link opent2t-translator-helper-wink
+pushd 'LOCAL-PATH-TO-OPENT2T-REPO/node/'
+npm link
+popd
+npm link opent2t
 ```
 
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:
 
-### 1. Create the `tests/testConfig.json` file
+### 1. Run onboarding to get credentials
+
+After dependencies are installed, cd to the translator root directory (i.e. the directory where
+this `README.md` and the `thingTranslator.js` exists).
+
+```bash
+node node_modules/opent2t-onboarding-winkhub/test.js -n "Wink Thermostat" -f "thermostat_id"
+```
+
+The -f parameter is a regular expression to identify this device type by matching its ID field name. In this case, we are looking
+for thermostats.
+
+The user will be asked for their Wink credentials (plus API key information) and then the onboarding module will enumerate devices
+connected to the Wink hub. If there is a Wink hub correctly set up and the user chooses a device, you should see output similar to:
+
+```bash
+Onboarding device  : Wink Thermostat
+idKeyFilter        : thermostat_id
+
+Please enter credentials for the Wink API:
+
+? Wink API Client ID:  --MASKED (get this from Wink)--
+? Wink API Client Secret:  --MASKED (get this from Wink)--
+? Wink User Name (create this in the Wink app):  --MASKED--
+? Wink Password (create this in the Wink app):  --MASKED--
+
+Thanks! Signing you in to Wink.
+Signed in to WINK.
+? Which device do you want to onboard? Jaffri Home Entryway Thermostat (137418)
+  access_token : abcc2f4ds55asd531ec78cc08_l4Qwj
+  id           : 3559678
+  message      : All done. Happy coding!
+```
+
+Notes the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
+
+
+### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
 to prevent inadvertent check-in). Use the following contents to start this file:
 
    ```json
     {
         "Device" : {
-            "name": "WINK Thermostat.",
+            "name": "Wink Thermostat.",
             "props": { 
-                "id": "<device-id>", 
+                "id": "<id>", 
                 "access_token": "<access-token>" 
             }
         }
     }
    ```
 
-### 2. Modify `tests/testconfig.json` with Test Configuration
-Populate <device-id> and <access-token> in `testConfig.json`. You can get these values by running
+### 3. Modify `tests/testconfig.json` with Test Configuration
+Populate <id> and <access_token> in `testConfig.json`. You can get these values by running
 the onboarding script (see above).
 
-### 3. Install Test Dependencies:
+### 4. Install Test Dependencies:
 
 ```bash
 npm install -g typescript@beta
-npm install --global ava
+npm install -g ava
 ```
 
-### 4. Run the tests
+### 5. Run the tests
 
 To run all the tests, run:
 

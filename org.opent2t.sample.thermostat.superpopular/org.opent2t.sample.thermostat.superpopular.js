@@ -1,6 +1,5 @@
-var OcfConverter = require("openT2T/converters/OcfConverter");
+var OcfSchemaReader = require("openT2T/schema/OcfSchemaReader");
 
-module.exports = OcfConverter.readDeviceInterfacesFromFiles(
-    require("path").join(__dirname, "org.opent2t.sample.thermostat.superpopular.raml"),
-    require("path").join(__dirname, "org.opent2t.sample.thermostat.superpopular.json")
-)[0];
+module.exports = OcfSchemaReader.readThingSchemaFromFilesAsync(
+        require("path").join(__dirname, "org.opent2t.sample.thermostat.superpopular.raml")
+    )[0];
