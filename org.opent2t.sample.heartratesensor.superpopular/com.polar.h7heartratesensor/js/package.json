@@ -1,8 +1,9 @@
 {
-  "name": "opent2t-translator-polar-h7",
+  "name": "opent2t-translator-com-polar-h7heartratesensor",
   "version": "1.0.0",
   "description": "Polar H7 Heart Rate Sensor",
   "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
   "dependencies": {
     "noble": "~1.3.0"
   },

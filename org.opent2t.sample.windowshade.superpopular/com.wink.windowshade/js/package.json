@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-wink-window-shades",
+    "name": "opent2t-translator-com-wink-windowshade",
     "version": "1.0.0",
     "description": "Wink Window Shade",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {},
     "devDependencies": {
         "async": "~1.5.2",

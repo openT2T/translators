@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-test-light",
+    "name": "opent2t-translator-org-opent2t-test-light",
     "version": "1.0.0",
     "description": "Test Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {},
     "devDependencies": {
         "async": "~1.5.2",

@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-aeotec-siren",
+    "name": "opent2t-translator-com-aeotec-siren",
     "version": "1.0.0",
     "description": "Aeotec Siren",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {
         "openzwave-shared": "git+https://github.com/HenryRawas/node-openzwave-shared.git#fixinstall"
     },

@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-linear-bulbz",
+    "name": "opent2t-translator-com-nortek-linearlinc-zwave-bulb",
     "version": "1.0.0",
     "description": "Nortek LinearLinc ZWave Bulb",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {
         "openzwave-shared": "~1.1.7"
     },

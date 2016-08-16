@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-wink-smokedetector",
+    "name": "opent2t-translator-com-wink-smokedetector",
     "version": "1.0.0",
     "description": "Wink Smoke Detector",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {
         "opent2t-translator-helper-wink": "1.0.0"
     },

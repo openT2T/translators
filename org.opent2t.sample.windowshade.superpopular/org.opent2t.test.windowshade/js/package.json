@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-test-shades",
+    "name": "opent2t-translator-org-opent2t-test-windowshade",
     "version": "1.0.0",
     "description": "Test Window Shade",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {},
     "devDependencies": {
         "async": "~1.5.2",

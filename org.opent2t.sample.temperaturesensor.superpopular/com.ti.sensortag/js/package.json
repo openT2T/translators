@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-ti-sensortag",
+    "name": "opent2t-translator-com-ti-sensortag",
     "version": "1.0.0",
     "description": "Texas Instruments SensorTag",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {
         "noble": "~1.3.0",
         "sensortag": "1.2.2"

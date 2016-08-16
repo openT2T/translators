@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-lightify-light-bulb",
+    "name": "opent2t-translator-com-osram-lightify",
     "version": "1.0.0",
     "description": "Osram Lightify Bulb",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {        
         "q": ""
     },

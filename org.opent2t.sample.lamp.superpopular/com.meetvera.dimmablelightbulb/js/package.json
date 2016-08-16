@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-vera-light-bulb",
+    "name": "opent2t-translator-com-meetvera-dimmablelightbulb",
     "version": "1.0.0",
     "description": "Vera Dimmable Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {
         "q": ""
     },

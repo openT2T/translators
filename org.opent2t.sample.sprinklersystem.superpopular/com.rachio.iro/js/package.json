@@ -1,8 +1,9 @@
 {
-    "name": "opent2t-translator-rachio-iro",
+    "name": "opent2t-translator-com-rachio-iro",
     "version": "1.0.0",
     "description": "Rachio Iro",
     "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
     "dependencies": {},
     "devDependencies": {
         "async": "~1.5.2",
