@@ -5,7 +5,7 @@
   <!-- associated schema -->
   <schema id="org.opent2t.sample.windowshade.superpopular" />
     <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.wink">
+  <onboarding id="org.opent2t.onboarding.winkhub">
     <arg name="name" value="Wink Window Shade" />
     <!-- when WINK devices are enumerated, the id Key contains information about the type of device. -->
     <arg name="idKeyFilter" value="shade_id" />

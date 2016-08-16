@@ -59,6 +59,6 @@ turnOff called.
 ```
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
-for this translator is org.opent2t.onboarding.hue. This basically just describes what sort of setup, pairing or
+for this translator is org.opent2t.onboarding.huehub. This basically just describes what sort of setup, pairing or
 auth information is required to interact with the device. In the case of this onboarding type, success means you get
 a userid parameter and a uniqueid of the light. These parameters needs to be provided to the translator for it to work.

@@ -5,7 +5,7 @@
     <!-- associated schema -->
     <schema id="org.opent2t.sample.binaryswitch.superpopular" />
     <!-- associated onboarding module -->
-    <onboarding id="org.opent2t.onboarding.wink">
+    <onboarding id="org.opent2t.onboarding.winkhub">
         <arg name="name" value="Wink Binary Switch" />
         <!-- when WINK devices are enumerated, the id Key contains information about the type of device. -->
         <arg name="idKeyFilter" value="binary_switch_id" />

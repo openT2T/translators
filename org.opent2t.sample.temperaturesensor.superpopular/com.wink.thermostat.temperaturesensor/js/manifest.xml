@@ -5,7 +5,7 @@
   <!-- associated schema -->
   <schema id="org.opent2t.sample.temperaturesensor.superpopular" />
   <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.wink">
+  <onboarding id="org.opent2t.onboarding.winkhub">
     <arg name="name" value="" />
     <arg name="idKeyFilter" value="thermostat_id" />
   </onboarding>
