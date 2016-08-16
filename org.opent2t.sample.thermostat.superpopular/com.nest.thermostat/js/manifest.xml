@@ -5,7 +5,7 @@
   <!-- associated schema -->
   <schema id="org.opent2t.sample.thermostat.superpopular" />
   <!-- associated onboarding module -->
-  <onboarding id="org.OpenT2T.Onboarding.Nest">
+  <onboarding id="org.opent2t.onboarding.nest">
     <arg name="name" value="Nest Thermostat" />
     <arg name="idKeyFilter" value="thermostats" />
   </onboarding>

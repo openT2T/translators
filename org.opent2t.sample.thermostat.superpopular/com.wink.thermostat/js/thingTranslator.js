@@ -50,6 +50,7 @@ class WinkThermostat {
         // We need to essentially update the current state of the thermostat with the contents of value
         // value is a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
         // (we may need to modify the wink helper to do this update operation)
+        // In addition, this should return the updated state (see sample in RAML)
     }
 
     // exports for the AllJoyn schema
@@ -64,24 +65,24 @@ class WinkThermostat {
         return null;
     }
 
-    targetTemperatureHigh_readwrite(value) {
-        console.log("targetTemperature_readwrite called with value: " + value);
-
-        if (!!value) {
-            return wh.sendDesiredStateCommand('max_set_point', value);
-        } else {
-            return wh.getValueOfDesiredState('max_set_point');
-        }
+    targetTemperatureHigh_read() {
+        console.log('targetTemperature_read called');
+        return wh.getValueOfDesiredState('max_set_point');
     }
 
-    targetTemperatureLow_readwrite(value) {
-        console.log("targetTemperatureLow_readwrite called with value: " + value);
+    targetTemperatureHigh_write(value) {
+        console.log("targetTemperature_write called");
+        return wh.sendDesiredStateCommand('max_set_point', value);
+    }
 
-        if (!!value) {
-            return wh.sendDesiredStateCommand('min_set_point', value);
-        } else {
-            return wh.getValueOfDesiredState('min_set_point');
-        }
+    targetTemperatureLow_read() {
+        console.log('targetTemperatureLow_read called');
+        return wh.getValueOfDesiredState('min_set_point');
+    }
+
+    targetTemperatureLow_write(value) {
+        console.log("targetTemperatureLow_write called");
+        return wh.sendDesiredStateCommand('min_set_point', value);
     }
 }
 

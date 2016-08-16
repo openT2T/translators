@@ -1,0 +1,61 @@
+{
+    "id": "http://openinterconnect.org/iotdatamodels/schemas/oic.r.temperature.json#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Copyright (c) 2016 Open Connectivity Foundation, Inc. All rights reserved.",
+    "title": "Temperature",
+    "definitions": {
+        "oic.r.temperature": {
+            "type": "object",
+            "properties": {
+                "temperature": {
+                    "type": "number",
+                    "description": "Current temperature setting or measurement"
+                },
+                "units": {
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "C",
+                                "F",
+                                "K"
+                            ],
+                            "description": "ReadOnly, Units for the temperature value"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "C",
+                                    "F",
+                                    "K"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "range": {
+                    "type": "array",
+                    "description": "ReadOnly, Array defining min,max values for this temperature on this device",
+                    "items": {
+                        "type": "number"
+                    }
+                }
+            }
+        }
+    },
+    "type": "object",
+    "allOf": [
+        {
+            "$ref": "oic.core.json#/definitions/oic.core"
+        },
+        {
+            "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+        },
+        {
+            "$ref": "#/definitions/oic.r.temperature"
+        }
+    ],
+    "required": [
+        "temperature"
+    ]
+}

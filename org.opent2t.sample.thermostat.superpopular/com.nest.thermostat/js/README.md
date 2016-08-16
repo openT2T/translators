@@ -75,6 +75,6 @@ disconnect called.
 ```
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
-for this translator is org.OpenT2T.Onboarding.Nest. This basically just describes what sort of setup, pairing or
+for this translator is org.opent2t.onboarding.nest. This basically just describes what sort of setup, pairing or
 auth information is required to interact with the device. In the case of this onboarding type, success means you get
 an ID parameter and an access token. These parameters needs to be provided to the translator for it to work.
