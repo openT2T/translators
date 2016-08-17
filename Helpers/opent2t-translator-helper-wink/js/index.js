@@ -1,6 +1,6 @@
 'use strict';
 
-var https = require('https');
+var https = require('follow-redirects').https;
 var q = require('q');
 
 //this is our base, we refactor these options in each method
@@ -103,6 +103,9 @@ module.exports =
                 res.on('end', () => {
                     //parse the JSON response and look for the apiField we want in the JSON body
                     try {
+                        // console.log("***** START RESPONSE FROM WINK *****\n");
+                        // console.log(body.toString());
+                        // console.log("***** END RESPONSE FROM WINK *****\n");
                         var results = JSON.parse(body.toString());
                         var valueToGet = results.data.last_reading[apiField];
                         deferred.resolve(valueToGet);

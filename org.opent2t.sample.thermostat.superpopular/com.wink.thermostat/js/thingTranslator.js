@@ -54,33 +54,33 @@ class WinkThermostat {
     }
 
     // exports for the AllJoyn schema
-    ambientTemperature_read() {
+    getAmbientTemperature() {
         console.log('ambientTemperature_read called');
         return wh.getLastReading('temperature');
     }
 
-    targetTemperature_read() {
+    getTargetTemperature() {
         // TODO: Not sure what this maps to for Wink.
         // See: http://docs.wink.apiary.io/#reference/device/thermostats
         return null;
     }
 
-    targetTemperatureHigh_read() {
+    getTargetTemperatureHigh() {
         console.log('targetTemperature_read called');
         return wh.getValueOfDesiredState('max_set_point');
     }
 
-    targetTemperatureHigh_write(value) {
+    setTargetTemperatureHigh(value) {
         console.log("targetTemperature_write called");
         return wh.sendDesiredStateCommand('max_set_point', value);
     }
 
-    targetTemperatureLow_read() {
+    getTargetTemperatureLow() {
         console.log('targetTemperatureLow_read called');
         return wh.getValueOfDesiredState('min_set_point');
     }
 
-    targetTemperatureLow_write(value) {
+    setTargetTemperatureLow(value) {
         console.log("targetTemperatureLow_write called");
         return wh.sendDesiredStateCommand('min_set_point', value);
     }

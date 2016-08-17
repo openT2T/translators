@@ -39,26 +39,26 @@ console.log("Device Under Test -  Name: " + config.Device.name + "  Props: " + c
 
 // Get AmbientTemperature
 ava.test.serial("AmbientTemperature", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.ThingAccessor.createTranslatorAsync("../..", "thingTranslator", config.Device);
+    let device = yield opent2t.ThingAccessor.createTranslatorAsync(require("path").join(__dirname, ".."), "thingTranslator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
-    let ambientTemperature = yield opent2t.ThingAccessor.getPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "ambientTemperature_read");
+    let ambientTemperature = yield opent2t.ThingAccessor.getPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "ambientTemperature");
     t.truthy(ambientTemperature);
 }));
 
 // Set/Get TargetTemperatureHigh
 ava.test.serial("TargetTemperatureHigh", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.ThingAccessor.createTranslatorAsync("../..", "thingTranslator", config.Device);
+    let device = yield opent2t.ThingAccessor.createTranslatorAsync(require("path").join(__dirname, ".."), "thingTranslator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
-    yield opent2t.ThingAccessor.setPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureHigh_read", 22);
-    let targetTemperatureHigh = yield opent2t.ThingAccessor.getPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureHigh_readwrite");
+    yield opent2t.ThingAccessor.setPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureHigh", 22);
+    let targetTemperatureHigh = yield opent2t.ThingAccessor.getPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureHigh");
     t.is(targetTemperatureHigh, 22);
 }));
 
 // Set/Get TargetTemperatureLow
 ava.test.serial("TargetTemperatureLow", (t) => __awaiter(this, void 0, void 0, function* () {
-    let device = yield opent2t.ThingAccessor.createTranslatorAsync("../..", "thingTranslator", config.Device);
+    let device = yield opent2t.ThingAccessor.createTranslatorAsync(require("path").join(__dirname, ".."), "thingTranslator", config.Device);
     t.is(typeof device, "object") && t.truthy(device);
-    yield opent2t.ThingAccessor.setPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureLow_readwrite", 22);
-    let targetTemperatureLow = yield opent2t.ThingAccessor.getPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureLow_readwrite");
+    yield opent2t.ThingAccessor.setPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureLow", 22);
+    let targetTemperatureLow = yield opent2t.ThingAccessor.getPropertyAsync(device, "org.opent2t.sample.thermostat.superpopular", "targetTemperatureLow");
     t.is(targetTemperatureLow, 22);
 }));
