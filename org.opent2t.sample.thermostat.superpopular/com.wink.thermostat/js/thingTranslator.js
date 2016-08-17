@@ -38,14 +38,14 @@ class WinkThermostat {
     }
 
     // exports for the OCF schema
-    openT2TThermostatResURI_get() {
+    getThermostatResURI() {
         // TODO.
         // We need to essentially query the entire state of the thermostat
         // and return a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
         // (we may need to modify the wink helper to return this)
     }
 
-    openT2TThermostatResURI_post(value) {
+    postThermostatResURI(value) {
         // TODO.
         // We need to essentially update the current state of the thermostat with the contents of value
         // value is a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
