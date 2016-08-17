@@ -85,8 +85,8 @@ to prevent inadvertent check-in). Use the following contents to start this file:
     }
    ```
 
-### 3. Modify `tests/testconfig.json` with Test Configuration
-Populate <id> and <access_token> in `testConfig.json`. You can get these values by running
+### 3. Modify testConfig.json with Test Configuration
+Populate `<id>` and `<access_token>` in `tests/testconfig.json`. You can get these values by running
 the onboarding script (see above).
 
 ### 4. Install Test Dependencies:
