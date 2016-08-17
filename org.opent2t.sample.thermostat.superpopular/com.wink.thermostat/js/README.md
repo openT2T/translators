@@ -14,19 +14,20 @@ npm install
 
 > **Note:** At the time of writing some packages are not published to npm. If you get errors, 
   Here's how you can install them from local paths via `npm link`. We assume that you have already 
-  cloned the https://github.com/opent2t/opent2t repo locally, and have a local path to it. Run
-  `npm install` again after installing to local paths and confirm there are no errors before proceeding.
+  cloned the https://github.com/opent2t/opent2t repo locally, and have a local path to it.
 
 ```bash
 pushd '../../../Helpers/opent2t-translator-helper-wink/js/'
 npm link
 popd
 npm link opent2t-translator-helper-wink
-pushd 'LOCAL-PATH-TO-OPENT2T-REPO/node/'
+pushd LOCAL-PATH-TO-OPENT2T-REPO/node/
 npm link
 popd
 npm link opent2t
 ```
+
+Run `npm install` again after installing form local paths and confirm there are no errors before proceeding.
 
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:
