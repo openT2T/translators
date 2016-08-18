@@ -4,9 +4,9 @@ var q = require('q');
 var WinkHelper = require('./index');
 
 var testConfig = {
-    accessToken: 'qbKJyjJrutPV5Vu4AuU6yGdw9T_l4Qwj',
+    accessToken: 'ACCESS_TOKEN',
     deviceType: 'thermostats',
-    deviceId: '137418'
+    deviceId: 'DEVICE_ID'
 };
 
 var helper = new WinkHelper(testConfig.accessToken);

@@ -44,7 +44,16 @@ class NestThermostat {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId);
+        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
+            .then((response) => {
+
+                // map to opent2t schema to return
+                return {
+                    targetTemperature: response['target_temperature_c'],
+                    targetTemperatureHigh: response['target_temperature_high_c'],
+                    targetTemperatureLow: response['target_temperature_low_c']
+                }
+            });
     }
 
     // Updates the current state of the thermostat with the contents of value
@@ -58,7 +67,16 @@ class NestThermostat {
         putPayload['target_temperature_high_c'] = value.targetTemperatureHigh;
         putPayload['target_temperature_low_c'] = value.targetTemperatureLow;
 
-        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload);
+        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+            .then((response) => {
+
+                // map to opent2t schema to return
+                return {
+                    targetTemperature: response['target_temperature_c'],
+                    targetTemperatureHigh: response['target_temperature_high_c'],
+                    targetTemperatureLow: response['target_temperature_low_c']
+                }
+            });
     }
 
     // exports for the AllJoyn schema

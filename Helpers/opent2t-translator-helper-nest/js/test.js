@@ -4,9 +4,9 @@ var q = require('q');
 var NestHelper = require('./index');
 
 var testConfig = {
-    accessToken: 'c.qptzX0zoVN4ISpGvjL9rloyR6VnycNHRZp0Iftm0seBv5EScN1iEcH6D3M0qqqEfierIMNixmXWDVB0RmpICVS3blgY3PlvlTVbVzBjkEKQTRjxCnMlqiWlKtScbwMycTrY6RsUsV6GWv7tR',
+    accessToken: 'ACCESS_TOKEN',
     deviceType: 'thermostats',
-    deviceId: 'unZG6J9hRgJLuaxpiaPtiI8FK55hfM7g'
+    deviceId: 'DEVICE_ID'
 };
 
 var helper = new NestHelper(testConfig.accessToken);
