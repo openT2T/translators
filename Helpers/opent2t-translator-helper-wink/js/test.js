@@ -1,6 +1,5 @@
 'user strict';
 
-var q = require('q');
 var WinkHelper = require('./index');
 
 var testConfig = {
