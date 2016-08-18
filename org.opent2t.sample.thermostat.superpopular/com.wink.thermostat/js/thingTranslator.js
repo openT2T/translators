@@ -40,19 +40,30 @@ class WinkThermostat {
     }
 
     // exports for the OCF schema
+
+    // Queries the entire state of the thermostat
+    // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        // TODO.
-        // We need to essentially query the entire state of the thermostat
-        // and return a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-        // (we may need to modify the wink helper to return this)
+        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId);
     }
 
+    // Updates the current state of the thermostat with the contents of value
+    // value is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    //
+    // In addition, returns the updated state (see sample in RAML)
     postThermostatResURI(value) {
-        // TODO.
-        // We need to essentially update the current state of the thermostat with the contents of value
-        // value is a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-        // (we may need to modify the wink helper to do this update operation)
-        // In addition, this should return the updated state (see sample in RAML)
+
+        // build the object with desired state
+        var putPayload = { 'data': { 'desired_state': {} } };
+
+        // Wink does not have a target temperature field, so ignoring that field in value.
+        // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+        // putPayload['target_temperature_c'] = value.targetTemperature;
+
+        putPayload['max_set_point'] = value.targetTemperatureHigh;
+        putPayload['min_set_point'] = value.targetTemperatureLow;
+
+        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload);
     }
 
     // exports for the AllJoyn schema
@@ -61,10 +72,10 @@ class WinkThermostat {
         return winkHelper.getLastReadingAsync(deviceType, deviceId, 'temperature');
     }
 
+    // Wink does not have a target temperature field, so returning null.
+    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     getTargetTemperature() {
         console.log('getTargetTemperature called');
-        // TODO: Not sure what this maps to for Wink.
-        // See: http://docs.wink.apiary.io/#reference/device/thermostats
         return null;
     }
 

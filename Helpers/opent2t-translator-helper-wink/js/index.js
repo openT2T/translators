@@ -100,10 +100,10 @@ class WinkHelper {
         var deferred = q.defer();
 
         // build the object with desired state
-        var putBody = { 'data': { 'desired_state': {} } };
-        putBody.data.desired_state[field] = value;
+        var putPayload = { 'data': { 'desired_state': {} } };
+        putPayload.data.desired_state[field] = value;
 
-        this.putDeviceDetailsAsync(deviceType, deviceId, putBody).then((response) => {
+        this.putDeviceDetailsAsync(deviceType, deviceId, putPayload).then((response) => {
 
             // successfully put device details, parse out the desired state
             // of the requested field in the response

@@ -47,16 +47,15 @@ test.serial('TargetTemperatureHigh', t => {
         .then(translator => {
             // TEST: translator is valid
             t.is(typeof translator, 'object') && t.truthy(translator);
-            OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 22.8)
+            OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 22)
                 .then(() => {
 
                     OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh')
                         .then((targetTemperatureHigh) => {
 
-                            // TEST: approximately the same value was returned that was set
-                            //       (due to rounding the value returned is sometimes a little different)
+                            // TEST: the same value was returned that was set
                             console.log('*** targetTemperatureHigh: ' + targetTemperatureHigh);
-                            t.truthy(Math.abs(targetTemperatureHigh - 22.8) < 0.5);
+                            t.is(targetTemperatureHigh, 22);
 
                             // all done, complete the test
                             deferred.resolve();
@@ -90,7 +89,7 @@ test.serial('TargetTemperatureLow', t => {
                             // TEST: approximately the same value was returned that was set
                             //       (due to rounding the value returned is sometimes a little different)
                             console.log('*** targetTemperatureLow: ' + targetTemperatureLow);
-                            t.truthy(Math.abs(targetTemperatureLow - 18.5) < 0.5);
+                            t.truthy(targetTemperatureLow, 19);
 
                             // all done, complete the test
                             deferred.resolve();

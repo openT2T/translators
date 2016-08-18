@@ -56,7 +56,7 @@ test.serial('TargetTemperatureHigh', t => {
                             // TEST: approximately the same value was returned that was set
                             //       (due to rounding the value returned is sometimes a little different)
                             console.log('*** targetTemperatureHigh: ' + targetTemperatureHigh);
-                            t.truthy(Math.abs(targetTemperatureHigh - 22.8) < 0.5);
+                            t.truthy(Math.abs(targetTemperatureHigh - 22.8) < 0.75);
 
                             // all done, complete the test
                             deferred.resolve();
@@ -90,7 +90,7 @@ test.serial('TargetTemperatureLow', t => {
                             // TEST: approximately the same value was returned that was set
                             //       (due to rounding the value returned is sometimes a little different)
                             console.log('*** targetTemperatureLow: ' + targetTemperatureLow);
-                            t.truthy(Math.abs(targetTemperatureLow - 18.5) < 0.5);
+                            t.truthy(Math.abs(targetTemperatureLow - 19) < 0.75);
 
                             // all done, complete the test
                             deferred.resolve();
