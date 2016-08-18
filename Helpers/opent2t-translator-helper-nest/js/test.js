@@ -17,7 +17,7 @@ helper.setFieldAsync(testConfig.deviceType, testConfig.deviceId, 'target_tempera
         console.log('set single result: ' + JSON.stringify(result1));
 
         // get a single field
-        helper.getFieldAsync(testConfig.deviceType, testConfig.deviceId, 'target_temperature_high_c')
+        return helper.getFieldAsync(testConfig.deviceType, testConfig.deviceId, 'target_temperature_high_c')
             .then(result2 => {
                 console.log('get single result: ' + JSON.stringify(result2));
 
@@ -26,12 +26,12 @@ helper.setFieldAsync(testConfig.deviceType, testConfig.deviceId, 'target_tempera
                 putPayload['target_temperature_high_c'] = 22;
                 putPayload['target_temperature_low_c'] = 20;
 
-                helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
+                return helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
                     .then(result3 => {
                         console.log('set multiple result: ' + JSON.stringify(result3));
 
                         // get all fields at the same time
-                        helper.getDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId)
+                        return helper.getDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId)
                             .then(result4 => {
                                 console.log('get all result: ' + JSON.stringify(result4));
                             });

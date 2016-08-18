@@ -21,7 +21,6 @@
     "opent2t": "*",
     "opent2t-onboarding-winkhub": "*",
     "jshint": "^2.9.2",
-    "ava": "^0.15.2",
-    "q": "1.4.1"
+    "ava": "^0.15.2"
   }
 }
