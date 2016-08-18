@@ -1,0 +1,75 @@
+#%RAML 0.8
+title: org.opent2t.sample.thermostat.superpopular
+version: v1.0
+
+schemas:
+  - Thermostat: !include org.opent2t.sample.thermostat.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/thermostatResURI:
+  description: |
+   This resource describes the properties associated with Thermostat.
+   The resource is a composite resource.
+  displayName: Thermostat
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Thermostat
+            example: |
+              {
+                "rt": "org.opent2t.sample.thermostat.superpopular",
+                "id": "unique_example_id",
+                "ambientTemperature": {
+                  "temperature": 66,
+                  "units": "F"
+                },
+                "targetTemperature": {
+                  "temperature": 66,
+                  "units": "F"
+                },
+                "targetTemperatureHigh": {
+                  "temperature": 68,
+                  "units": "F"
+                },
+                "targetTemperatureLow": {
+                  "temperature": 64,
+                  "units": "F"
+                }
+            }
+    
+  post:
+    body:
+      application/json:
+        schema: Thermostat
+        example: |
+          {
+            "id": "unique_example_id",
+            "target_temperature": {
+              "temperature": 74,
+              "units": "F"
+            }
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Thermostat
+            example: |
+                {
+                    "id": "unique_example_id",
+                    "target_temperature": {
+                        "temperature": 74,
+                        "units": "F"
+                    }
+                }

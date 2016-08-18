@@ -1,24 +1,31 @@
+'user strict';
 
+var q = require('q');
+var helper = require('./index');
 
-var wh = require('./index');
+var testConfig = {
+    accessToken: 'ACCESS_TOKEN',
+    deviceType: 'thermostats',
+    deviceId: 127415
+};
 
-wh.initWinkApi("endpointHere","deviceID","accesstoken");
+helper.init(testConfig.accessToken);
 
-wh.sendDesiredStateCommand('apiField', value).then(result => {
-   console.log(result);
-}).catch (error => {
-    console.log(error.message);
-}); //for logging
+helper.setDesiredState(testConfig.deviceType, testConfig.deviceId, 'min_set_point', 21)
+    .then(result => {
+        console.log('setDesiredState result: ' + result);
 
-wh.getLastReading('apiFieldtoRead').then(result => {
-   console.log(result);
-}).catch (error => {
-    console.log(error.message);
-}); //for logging
+        helper.getDesiredState(testConfig.deviceType, testConfig.deviceId, 'min_set_point')
+            .then(result => {
+                console.log('getDesiredState result: ' + result);
 
-wh.getValueOfDesiredState('apiFieldtoRead').then(result => {
-   console.log(result);
-}).catch (error => {
-    console.log(error.message);
-}); //for logging
+                helper.getLastReading(testConfig.deviceType, testConfig.deviceId, 'temperature')
+                    .then(result => {
+                        console.log('getLastReading result: ' + result);
+                    })
+            });
+    })
+    .catch(error => {
+        console.log('Error: ' + error);
+    });
 

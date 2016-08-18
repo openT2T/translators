@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.ShadeControl" />
+  <!-- associated schema -->
+  <schema id="org.opent2t.sample.windowshade.superpopular" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.manual">
+    <arg name="name" value="Test Shade" />
+    <arg name="instructionsUrl" value="http://example.com" />
+  </onboarding>
+</manifest>

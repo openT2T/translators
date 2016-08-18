@@ -3,11 +3,10 @@
     "version": "1.0.0",
     "description": "",
     "dependencies": {
-        "request":"2.72.0",
-        "q":"1.4.1"
+        "request": "2.74.0",
+        "q": "1.4.1"
     },
-    "devDependencies": { 
-    },
+    "devDependencies": {},
     "author": "",
     "license": "MIT"
 }

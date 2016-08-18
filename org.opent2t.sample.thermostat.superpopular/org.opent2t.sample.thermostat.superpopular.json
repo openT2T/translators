@@ -1,0 +1,35 @@
+{
+  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.thermostat.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "OpenT2T Thermostat",
+  "definitions": {
+    "org.opent2t.sample.thermostat.superpopular": {
+      "type": "object",
+      "properties": {
+        "ambientTemperature": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "ReadOnly, Current temperature measured by the thermostat."
+        },
+        "targetTemperature": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "Target temperature."
+        },
+        "targetTemperatureHigh": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "Maximum target temperature."
+        },
+        "targetTemperatureLow": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "Minimum target temperature."
+        }
+      }
+    }
+  },
+  "type": "object",
+  "allOf": [
+    { "$ref": "oic.core.json#/definitions/oic.core" },
+    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseResource" },
+    { "$ref": "#/definitions/org.opent2t.sample.thermostat.superpopular" }
+  ]
+}

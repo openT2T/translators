@@ -1,0 +1,17 @@
+{
+  "name": "opent2t-translator-com-nest-thermostat",
+  "version": "1.0.0",
+  "description": "Nest Thermostat",
+  "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
+  "dependencies": {
+    "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "async": "~1.5.2",
+    "opent2t-onboarding-nest": "^1.0.0",
+    "optimist": "0.6.1"
+  },
+  "author": "",
+  "license": "MIT"
+}

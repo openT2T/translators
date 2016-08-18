@@ -1,0 +1,17 @@
+{
+    "name": "opent2t-translator-com-wink-doorbell",
+    "version": "1.0.0",
+    "description": "Wink Doorbell",
+    "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
+    "dependencies": {
+        "opent2t-translator-helper-wink": "1.0.0"
+    },
+    "devDependencies": {
+        "optimist": "0.6.1",
+        "opent2t-onboarding-winkhub": "*",
+        "q": "1.4.1"
+    },
+    "author": "",
+    "license": "MIT"
+}

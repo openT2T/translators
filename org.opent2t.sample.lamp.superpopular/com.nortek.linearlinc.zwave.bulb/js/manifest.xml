@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.LightControl" />
+  <!-- associated schema -->
+  <schema id="org.opent2t.sample.lamp.superpopular" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.zwave">
+    <arg name="name" value="LinearLinc Bulbz" />
+    <arg name="manufacturerNameFilter" value="Linear" />
+  </onboarding>
+</manifest>

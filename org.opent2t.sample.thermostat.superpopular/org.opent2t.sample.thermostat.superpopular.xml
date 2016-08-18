@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
+<node>
+  <interface name="org.opent2t.sample.thermostat.superpopular">
+    <description>OpenT2T SuperPopular Thermostat interface</description>
+
+    <property name="ambientTemperature" type="d" access="read">
+     <description>ReadOnly, Current temperature measured by the thermostat.</description>
+    </property>
+
+    <property name="targetTemperature" type="d" access="read">
+     <description>Target temperature.</description>
+    </property>
+
+    <property name="targetTemperatureHigh" type="d" access="readwrite">
+      <description>Maximum target temperature (in Celsius).</description>
+    </property>
+
+    <property name="targetTemperatureLow" type="d" access="readwrite">
+      <description>Minimum target temperature (in Celsius).</description>
+    </property>
+    
+  </interface>
+</node>

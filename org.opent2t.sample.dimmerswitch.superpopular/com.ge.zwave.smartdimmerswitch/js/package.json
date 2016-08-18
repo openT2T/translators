@@ -1,0 +1,17 @@
+{
+    "name": "opent2t-translator-com-ge-zwave-smartdimmerswitch",
+    "version": "1.0.0",
+    "description": "GE Smart Dimmer Switch",
+    "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
+    "dependencies": {
+        "openzwave-shared": "git+https://github.com/HenryRawas/node-openzwave-shared.git#fixinstall",
+        "q": "~1.0.0"
+    },
+    "devDependencies": {
+        "optimist": "0.6.1",
+        "opent2t-onboarding-zwave": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}

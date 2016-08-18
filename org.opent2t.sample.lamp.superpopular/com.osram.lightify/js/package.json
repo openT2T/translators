@@ -1,0 +1,17 @@
+{
+    "name": "opent2t-translator-com-osram-lightify",
+    "version": "1.0.0",
+    "description": "Osram Lightify Bulb",
+    "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
+    "dependencies": {        
+        "q": ""
+    },
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-lightifyhub": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}

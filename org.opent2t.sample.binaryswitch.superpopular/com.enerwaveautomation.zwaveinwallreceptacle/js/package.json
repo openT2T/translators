@@ -1,0 +1,17 @@
+{
+    "name": "opent2t-translator-com-enerwaveautomation-zwaveinwallreceptacle",
+    "version": "1.0.0",
+    "description": "Enerwave Smart Meter Receptacle",
+    "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
+    "dependencies": {
+        "openzwave-shared": "git+https://github.com/HenryRawas/node-openzwave-shared.git#fixinstall"
+    },
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-zwave": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}

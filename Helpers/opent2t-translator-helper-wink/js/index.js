@@ -1,201 +1,187 @@
 'use strict';
 
-var https = require('https');
+var request = require('request');
 var q = require('q');
 
-//this is our base, we refactor these options in each method
+// wink v2 api endpoint as documented here: http://docs.winkapiv2.apiary.io/
+var apiEndpoint = 'https://api.wink.com';
 
-var protocolVal = 'https:';
-var hostVal = "api.wink.com";
+// Internal state used to make subsequent API calls
+var bearerToken;
 
-var  accessToken,apiPath;  //we will need this when creating the headers
-      
-module.exports = 
-{
-    //get the initial parameters to build our target endpoint
-   initWinkApi: function(apiEndpoint, deviceID, token)
-   {
-       apiPath = '/' + apiEndpoint + '/' + deviceID;
-       console.log("Api path is " + apiPath)
-       accessToken = token; //the specific token
-        
-   },
- 
-   sendDesiredStateCommand: function(apiField,value) 
-   {
-       
-    var options = 
-    {
-        protocol: protocolVal,
-        host: hostVal,
-        path: apiPath     
-     };
+// Gets device details, per http://docs.winkapiv2.apiary.io/
+function getDeviceDetails(deviceType, deviceId) {
 
-    //build our desired state object where the apiField is the target value
-    options.postData = {'desired_state':{}}; //we will add the field in this object
-    options.postData.desired_state[apiField] = value;
-    
-    var deferred = q.defer();   // q will help us with returning a promise
-    
-    //the headers to make our call
-    options.headers = 
-    {
-        'Authorization': 'Bearer ' + accessToken,
+    // q will help us with returning a promise
+    var deferred = q.defer();
+
+    // build request URI
+    var requestUri = apiEndpoint + '/' + deviceType + '/' + deviceId;
+
+    // Set the headers
+    var headers = {
+        'Authorization': 'Bearer ' + bearerToken
+    }
+
+    // Configure the request
+    var options = {
+        url: requestUri,
+        method: 'GET',
+        headers: headers
+    }
+
+    // Start the request
+    request(options, function (error, response, body) {
+
+        // console.log('***** RESPONSE: ' + JSON.stringify(response));
+
+        if (!error && response.statusCode == 200) {
+            deferred.resolve(JSON.parse(body));
+        } else {
+            deferred.reject('Woops, there was an error getting device details: ' + error + ' (' + response.statusCode + ')');
+        }
+    });
+
+    return deferred.promise;
+}
+
+// Puts device details, per http://docs.winkapiv2.apiary.io/
+function putDeviceDetails(deviceType, deviceId, value) {
+
+    // q will help us with returning a promise
+    var deferred = q.defer();
+
+    // build request URI
+    var requestUri = apiEndpoint + '/' + deviceType + '/' + deviceId;
+
+    // Set the headers
+    var headers = {
+        'Authorization': 'Bearer ' + bearerToken,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Content-length':  JSON.stringify(options.postData).length
+        'Content-length': JSON.stringify(value).length
     }
-    
-    options.method = 'PUT'; //the type of request to make
-   
-    //our HTTPS call 
-    var req = https.request(options, (res) => {
-        res.setEncoding('utf8');
-        res.on('data', (chunk) => 
-        {
 
-        });
-        res.on('end', () => 
-        {
-            deferred.resolve('The ' + apiField + ' changed to ' + value);
-        });
-        res.on('error', (e) => {
-            deferred.reject(e);
-        }); 
-    });
-
-
-    req.on('error', (e) => {
-        console.log('problem with request:');
-        deferred.reject(e);
-    });
-
-    req.write(JSON.stringify(options.postData));
-    req.end();   
-
-    //make our Promise and give it back to the caller
-    return deferred.promise;
-    
-   },
-   
-   getLastReading: function(apiField)
-   {
-    
-    var options = 
-    {
-        protocol: protocolVal,
-        host: hostVal,
-        path: apiPath     
-    };
-
-    var deferred = q.defer();   // q will help us with returning a promise
-    
-    //the headers to make our call
-    options.headers = 
-    {
-        'Authorization': 'Bearer ' + accessToken,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json', 
+    // Configure the request
+    var options = {
+        url: requestUri,
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify(value)
     }
-     
-    //our HTTPS call 
-    var req = https.get(options, (res) => {
-     
-       var body = ' '; //holds the chunks of data
-        res.on('data', (chunk) => 
-        {
-          body += chunk; 
-        });
-        res.on('end', () => 
-        {
-            //parse the JSON response and look for the apiField we want in the JSON body
-            try
-            {
-             var results = JSON.parse(body.toString());
-             var valueToGet = results.data.last_reading[apiField];
-             deferred.resolve(valueToGet);
-            } catch(err) 
-            {
-                deferred.reject(err);
-            }
 
-        });
-        res.on('error', (e) => {
-            deferred.reject(e);
-        }); });
-
-    req.on('error', (e) => {
-        console.log('problem with request:');
-        deferred.reject(e);
+    // Start the request
+    request(options, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            deferred.resolve(JSON.parse(body));
+        } else {
+            deferred.reject('Woops, there was an error putting device details: ' + error + ' (' + response.statusCode + ')');
+        }
     });
-    
-    
-    req.end();   
-    //make our Promise and give it back to the caller
+
     return deferred.promise;
-    
-   },
-   
-   getValueOfDesiredState: function(apiField)  
-   {
-       
-    var deferred = q.defer();   // q will help us with returning a promise
-   
-    var options = 
-    {
-        protocol: protocolVal,
-        host: hostVal,
-        path: apiPath     
-    };
-    
-    //the headers to make our call
-    options.headers = 
-    {
-        'Authorization': 'Bearer ' + accessToken,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json', 
-    }
-     
-    //our HTTPS call 
-    var req = https.get(options, (res) => {
-       var body = ' '; //holds the chunks of data
-        res.on('data', (chunk) => 
-        {
-          body += chunk; 
-        });
-        res.on('end', () => 
-        {
-            try
-            {    
-            //parse the JSON response and look for the apiField we want in the JSON body
-             var results = JSON.parse(body.toString());
-             var valueToGet = results.data.desired_state[apiField];
-             deferred.resolve(valueToGet);
-            } catch(err)
-            {
-             deferred.reject(err);
-            }
-
-        });
-        res.on('error', (e) => {
-            deferred.reject(e);
-        }); });
-
-    req.on('error', (e) => {
-        console.log('problem with request:');
-        deferred.reject(e);
-    });
-    
-    req.end();   
-
-    //make our Promise and give it back to the caller
-    return deferred.promise;
-    
-   }   
-   
-       
 }
-    
 
- 
+module.exports =
+    {
+        // set the initial parameters to build our target endpoint
+        init: function (accessToken) {
+            bearerToken = accessToken;
+
+            console.log('Initialized Wink Helper.');
+        },
+
+        setDesiredState: function (deviceType, deviceId, field, value) {
+
+            // q will help us with returning a promise
+            var deferred = q.defer();
+
+            // build the object with desired state
+            var putBody = { 'data': { 'desired_state': {} } };
+            putBody.data.desired_state[field] = value;
+
+            putDeviceDetails(deviceType, deviceId, putBody).then((response) => {
+
+                // successfully put device details, parse out the desired state
+                // of the requested field in the response
+                var data = response.data;
+                if (!!data) {
+                    var desiredStateCollection = data['desired_state'];
+
+                    if (!!desiredStateCollection) {
+                        deferred.resolve(desiredStateCollection[field]);
+                    } else {
+                        deferred.reject('Invalid response from server: no desired state collection.');
+                    }
+                } else {
+                    deferred.reject('Invalid response from server: no data element.');
+                }
+            }).catch((error) => {
+                // there was an error
+                deferred.reject(error);
+            });
+
+            return deferred.promise;
+        },
+
+        getDesiredState: function (deviceType, deviceId, field) {
+
+            // q will help us with returning a promise
+            var deferred = q.defer();
+
+            getDeviceDetails(deviceType, deviceId).then((details) => {
+
+                // successfully got device details, parse out the desired state
+                // of the requested field
+                var data = details.data;
+                if (!!data) {
+                    var desiredStateCollection = data['desired_state'];
+
+                    if (!!desiredStateCollection) {
+                        deferred.resolve(desiredStateCollection[field]);
+                    } else {
+                        deferred.reject('Invalid response from server: no desired state collection.');
+                    }
+                } else {
+                    deferred.reject('Invalid response from server: no data element.');
+                }
+            }).catch((error) => {
+                // there was an error
+                deferred.reject(error);
+            });
+
+            return deferred.promise;
+        },
+
+        getLastReading: function (deviceType, deviceId, field) {
+
+            // q will help us with returning a promise
+            var deferred = q.defer();
+
+            getDeviceDetails(deviceType, deviceId).then((details) => {
+
+                // successfully got device details, parse out the last reading
+                // of the requested field
+                var data = details.data;
+                if (!!data) {
+                    var lastReadingsCollection = data['last_reading'];
+
+                    if (!!lastReadingsCollection) {
+                        deferred.resolve(lastReadingsCollection[field]);
+                    } else {
+                        deferred.reject('Invalid response from server: no last reading collection.');
+                    }
+                } else {
+                    deferred.reject('Invalid response from server: no data element.');
+                }
+            }).catch((error) => {
+                // there was an error
+                deferred.reject(error);
+            });
+
+            return deferred.promise;
+        }
+    }
+
+
 

@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.OpenT2T.Voice.Cortana.Vcd.Sample.SuperPopular.LightControl" />
+  <!-- associated schema -->
+  <schema id="org.opent2t.sample.binaryswitch.superpopular" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.zwave">
+    <arg name="name" value="Enerwave Smart Meter Receptacle" />
+    <arg name="manufacturerNameFilter" value="Enerwave" />
+  </onboarding>
+</manifest>

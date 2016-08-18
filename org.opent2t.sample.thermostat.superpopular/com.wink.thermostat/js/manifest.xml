@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
+  <!-- associated schemas -->
+  <schemas>
+      <schema id="org.opent2t.sample.thermostat.superpopular" main="true" type="OCF" />
+      <schema id="oic.r.temperature" type="OCF" />
+      <schema id="oic.core" type="OCF" />
+      <schema id="oic.baseResource" type="OCF" />
+  </schemas>
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.winkhub">
+    <arg name="name" value="Wink Thermostat" />
+    <!-- when WINK devices are enumerated, the id Key contains information about the type of device. -->
+    <arg name="idKeyFilter" value="thermostat_id" />
+  </onboarding>
+</manifest>

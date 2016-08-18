@@ -1,0 +1,15 @@
+{
+    "name": "opent2t-translator-org-opent2t-test-light",
+    "version": "1.0.0",
+    "description": "Test Light Bulb",
+    "homepage": "http://opentranslatorstothings.org",
+    "main": "thingTranslator.js",
+    "dependencies": {},
+    "devDependencies": {
+        "async": "~1.5.2",
+        "optimist": "0.6.1",
+        "opent2t-onboarding-manual": "*"
+    },
+    "author": "",
+    "license": "MIT"
+}

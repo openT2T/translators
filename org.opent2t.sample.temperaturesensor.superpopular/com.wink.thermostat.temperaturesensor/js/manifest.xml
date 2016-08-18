@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="" />
+  <!-- associated schema -->
+  <schema id="org.opent2t.sample.temperaturesensor.superpopular" />
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.winkhub">
+    <arg name="name" value="" />
+    <arg name="idKeyFilter" value="thermostat_id" />
+  </onboarding>
+</manifest>
