@@ -1,31 +1,30 @@
 'user strict';
 
 var q = require('q');
-var helper = require('./index');
+var WinkHelper = require('./index');
 
 var testConfig = {
     accessToken: 'ACCESS_TOKEN',
     deviceType: 'thermostats',
-    deviceId: 127415
+    deviceId: 'DEVICE_ID'
 };
 
-helper.init(testConfig.accessToken);
+var helper = new WinkHelper(testConfig.accessToken);
 
-helper.setDesiredState(testConfig.deviceType, testConfig.deviceId, 'min_set_point', 21)
-    .then(result => {
-        console.log('setDesiredState result: ' + result);
+helper.setDesiredStateAsync(testConfig.deviceType, testConfig.deviceId, 'min_set_point', 21)
+    .then(result1 => {
+        console.log('set desired state result: ' + JSON.stringify(result1));
 
-        helper.getDesiredState(testConfig.deviceType, testConfig.deviceId, 'min_set_point')
-            .then(result => {
-                console.log('getDesiredState result: ' + result);
+        helper.getDesiredStateAsync(testConfig.deviceType, testConfig.deviceId, 'min_set_point')
+            .then(result2 => {
+                console.log('get desired state result: ' + JSON.stringify(result2));
 
-                helper.getLastReading(testConfig.deviceType, testConfig.deviceId, 'temperature')
-                    .then(result => {
-                        console.log('getLastReading result: ' + result);
+                helper.getLastReadingAsync(testConfig.deviceType, testConfig.deviceId, 'temperature')
+                    .then(result3 => {
+                        console.log('get last reading result: ' + result3);
                     })
             });
     })
     .catch(error => {
         console.log('Error: ' + error);
     });
-

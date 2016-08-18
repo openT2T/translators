@@ -1,16 +1,10 @@
+/* jshint esversion: 6 */
+/* jshint node: true */
 'use strict';
-var helper = require('opent2t-translator-helper-nest');
-var q = require('q');
+const NestHelper = require('opent2t-translator-helper-nest');
 
-// logs device state
-function logDeviceState(device) {
-    if (typeof (device) !== 'undefined') {
-        console.log('  device.name          : ' + device.name);
-        console.log('  device.props         : ' + device.props);
-    } else {
-        console.log('device is undefined');
-    }
-};
+// This code uses ES2015 syntax that requires at least Node.js v4.
+// For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
@@ -22,101 +16,76 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
-var device, props;
+var deviceId;
+var deviceType = 'thermostats';
+var nestHelper;
 
-// module exports, implementing the schema
-module.exports = {
+// This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
+class NestThermostat {
 
-    initDevice : function(dev) {
-        device = dev;
+    constructor(device) {
         console.log('Initializing device.');
 
-        device = dev;
         validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'string');
+        validateArgumentType(device.props, 'device.props', 'object');
 
-        props = JSON.parse(device.props);
-        validateArgumentType(props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(props.id, 'device.props.id', 'string');
-       
-        helper.init('thermostats',  props.id, props.access_token)
-        logDeviceState(device);
-	    console.log('Initialized.');
-    },
+        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
+        validateArgumentType(device.props.id, 'device.props.id', 'string');
 
-    disconnect : function() {
-        console.log('disconnect called.');
-        logDeviceState(this.device);
-    },
-    
-    isTurnedOn : function() {
-        console.log('isTurnedOn called.');
-        return helper.getProperty('hvac_mode').then(state => {
-            console.log("state: "+ state);
-            return state != 'off';
-        });
-    },
-    
-    // Default to Heating. THe call must be followed by setMode(heating/cooling), as desired.
-    turnOn : function() {
-        console.log('turnOn called.');
-        return getMode().then( mode => {
-            if(mode == 'off')
-            {
-                return helper.setProperty({'hvac_mode' : 'heat-cool'});
-            }
-            else
-            {
-                var deferred = q.defer();   // Take a deferral
-                deferred.resolve();
-                return deferred.promise; // return the promise
-            }
-        });
-    },
+        deviceId = device.props.id;
 
-    turnOff : function() {
-        console.log('turnOff called.');
-        return helper.setProperty({'hvac_mode' : 'off'});
-    },
+        // Initialize Nest Helper
+        nestHelper = new NestHelper(device.props.access_token);
+        console.log('Javascript and Nest Helper initialized : ');
+    }
 
-    getCurrentTemperature : function() {
-        console.log('getCurrentTemperature called.');
-        return helper.getProperty('ambient_temperature_c');
-    },
+    // exports for the OCF schema
+    getThermostatResURI() {
+        // TODO.
+        // We need to essentially query the entire state of the thermostat
+        // and return a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+        // (we may need to modify the nest helper to return this)
+    }
 
-    getHeatingSetpoint : function() {
-        console.log('getHeatingSetpoint called.');
-        return helper.getProperty('target_temperature_high_c');
-    },
+    postThermostatResURI(value) {
+        // TODO.
+        // We need to essentially update the current state of the thermostat with the contents of value
+        // value is a json object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+        // (we may need to modify the nest helper to do this update operation)
+        // In addition, this should return the updated state (see sample in RAML)
+    }
 
-    setHeatingSetpoint : function(value) {
-        console.log("setHeatingSetpoint called");
-         return helper.setProperty({'target_temperature_high_c' : value});
-    },
+    // exports for the AllJoyn schema
+    getAmbientTemperature() {
+        console.log('getAmbientTemperature called');
+        return nestHelper.getFieldAsync(deviceType, deviceId, 'ambient_temperature_c');
+    }
 
-     getCoolingSetpoint : function() {
-        console.log('getCoolingSetpoint called.');
-        return helper.getProperty('target_temperature_low_c');
-    },
+    getTargetTemperature() {
+        console.log('getTargetTemperature called');
+        return nestHelper.getFieldAsync(deviceType, deviceId, 'target_temperature_c');
+    }
 
-    setCoolingSetpoint : function(value) {
-        console.log("setCoolingSetpoint called.");
-        return helper.setProperty({'target_temperature_low_c' : value});
-    },
+    getTargetTemperatureHigh() {
+        console.log('getTargetTemperatureHigh called');
+        return nestHelper.getFieldAsync(deviceType, deviceId, 'target_temperature_high_c');
+    }
 
-    getMode : function() {
-        console.log('getMode called.');
-        return helper.getProperty('hvac_mode', 'off');
-    },   
+    setTargetTemperatureHigh(value) {
+        console.log('setTargetTemperatureHigh called');
+        return nestHelper.setFieldAsync(deviceType, deviceId, 'target_temperature_high_c', value);
+    }
 
-    setMode : function(value) {
-       console.log("setMode called."); 
-       return helper.setProperty({'hvac_mode' : value});
-    },
-    
-    getAvailableModes: function(value) {
-       var deferred = q.defer();   // Take a deferral
-       deferred.resolve(['heat', 'cool', 'heat-cool','off']);
-       return deferred.promise; // return the promise
-    },
+    getTargetTemperatureLow() {
+        console.log('getTargetTemperatureLow called');
+        return nestHelper.getFieldAsync(deviceType, deviceId, 'target_temperature_low_c');
+    }
+
+    setTargetTemperatureLow(value) {
+        console.log('setTargetTemperatureLow called');
+        return nestHelper.setFieldAsync(deviceType, deviceId, 'target_temperature_low_c', value);
+    }
 }
+
+// Export the translator from the module.
+module.exports = NestThermostat;

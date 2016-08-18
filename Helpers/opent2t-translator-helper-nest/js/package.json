@@ -1,14 +1,12 @@
 {
-  "name": "opent2t-translator-helper-nest",
-  "version": "1.0.1",
-  "description": "",
-  "dependencies": {
-    "follow-redirects": "0.2.0",
-    "q": "^1.4.1"
-  },
-  "devDependencies": {
-    "async": "~1.5.2"
-  },
-  "author": "",
-  "license": "MIT"
+    "name": "opent2t-translator-helper-nest",
+    "version": "1.0.2",
+    "description": "",
+    "dependencies": {
+        "request": "2.74.0",
+        "q": "1.4.1"
+    },
+    "devDependencies": {},
+    "author": "",
+    "license": "MIT"
 }

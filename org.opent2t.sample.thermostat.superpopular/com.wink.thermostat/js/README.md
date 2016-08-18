@@ -38,7 +38,7 @@ After dependencies are installed, cd to the translator root directory (i.e. the 
 this `README.md` and the `thingTranslator.js` exists).
 
 ```bash
-node node_modules/opent2t-onboarding-winkhub/test.js -n "Wink Thermostat" -f "thermostat_id"
+node node_modules/opent2t-onboarding-winkhub/test.js -n 'Wink Thermostat' -f 'thermostat_id'
 ```
 
 The -f parameter is a regular expression to identify this device type by matching its ID field name. In this case, we are looking
@@ -68,6 +68,10 @@ Signed in to WINK.
 
 Notes the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
 
+Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
+for this translator is org.opent2t.onboarding.winkhub. This basically just describes what sort of setup, pairing or
+auth information is required to interact with the device. In the case of this onboarding type, success means you get
+an ID parameter and an access token. These parameters are provided to the translator for it to work.
 
 ### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
@@ -92,7 +96,6 @@ the onboarding script (see above).
 ### 4. Install Test Dependencies:
 
 ```bash
-npm install -g typescript@beta
 npm install -g ava
 ```
 

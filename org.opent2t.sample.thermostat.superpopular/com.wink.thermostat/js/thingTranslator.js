@@ -1,7 +1,7 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-var wh = require('opent2t-translator-helper-wink');
+const WinkHelper = require('opent2t-translator-helper-wink');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -18,6 +18,7 @@ function validateArgumentType(arg, argName, expectedType) {
 
 var deviceId;
 var deviceType = 'thermostats';
+var winkHelper;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class WinkThermostat {
@@ -34,7 +35,7 @@ class WinkThermostat {
         deviceId = device.props.id;
 
         // Initialize Wink Helper
-        wh.init(device.props.access_token);
+        winkHelper = new WinkHelper(device.props.access_token);
         console.log('Javascript and Wink Helper initialized : ');
     }
 
@@ -56,35 +57,36 @@ class WinkThermostat {
 
     // exports for the AllJoyn schema
     getAmbientTemperature() {
-        console.log('ambientTemperature_read called');
-        return wh.getLastReading(deviceType, deviceId, 'temperature');
+        console.log('getAmbientTemperature called');
+        return winkHelper.getLastReadingAsync(deviceType, deviceId, 'temperature');
     }
 
     getTargetTemperature() {
+        console.log('getTargetTemperature called');
         // TODO: Not sure what this maps to for Wink.
         // See: http://docs.wink.apiary.io/#reference/device/thermostats
         return null;
     }
 
     getTargetTemperatureHigh() {
-        console.log('targetTemperature_read called');
+        console.log('getTargetTemperatureHigh called');
 
-        return wh.getLastReading(deviceType, deviceId, 'max_set_point');
+        return winkHelper.getLastReadingAsync(deviceType, deviceId, 'max_set_point');
     }
 
     setTargetTemperatureHigh(value) {
-        console.log('targetTemperature_write called');
-        return wh.setDesiredState(deviceType, deviceId, 'max_set_point', value);
+        console.log('setTargetTemperatureHigh called');
+        return winkHelper.setDesiredStateAsync(deviceType, deviceId, 'max_set_point', value);
     }
 
     getTargetTemperatureLow() {
-        console.log('targetTemperatureLow_read called');
-        return wh.getLastReading(deviceType, deviceId, 'min_set_point');
+        console.log('getTargetTemperatureLow called');
+        return winkHelper.getLastReadingAsync(deviceType, deviceId, 'min_set_point');
     }
 
     setTargetTemperatureLow(value) {
-        console.log('targetTemperatureLow_write called');
-        return wh.setDesiredState(deviceType, deviceId, 'min_set_point', value);
+        console.log('setTargetTemperatureLow called');
+        return winkHelper.setDesiredStateAsync(deviceType, deviceId, 'min_set_point', value);
     }
 }
 

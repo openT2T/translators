@@ -1,100 +1,152 @@
 'use strict';
-var https = require('follow-redirects').https;
+
+var request = require('request');
 var q = require('q');
 
-var  accessToken, deviceId, deviceCategory;
-// module exports, implementing the schema
-module.exports = {
+// wink v2 api endpoint as documented here: http://docs.winkapiv2.apiary.io/
+var apiEndpoint = 'https://developer-api.nest.com';
 
-   init: function(category, id, token)
-   {
-       deviceCategory = category;
-       deviceId = id;
-       accessToken = token; //the specific token
-   },
+// Internal state used to make subsequent API calls
+var bearerToken;
 
-    getProperty : function(name) {
-        var deferred = q.defer();   // Take a deferral
+class NestHelper {
 
+    // Init Helper: Sets the initial parameters to build our target endpoint
+    constructor(accessToken) {
+        bearerToken = accessToken;
+
+        console.log('Initialized Nest Helper.');
+    }
+
+    // Gets device details (all fields), response formatted per http:/developer.nest.com/
+    getDeviceDetailsAsync(deviceType, deviceId) {
+
+        // q will help us with returning a promise
+        var deferred = q.defer();
+
+        // build request URI
+        var requestUri = apiEndpoint + '/devices/' + deviceType + '/' + deviceId;
+
+        // Set the headers
+        var headers = {
+            'Authorization': 'Bearer ' + bearerToken
+        }
+
+        // Configure the request
         var options = {
-            protocol: 'https:',
-            host: 'developer-api.nest.com',
-            path: '/devices/'+ deviceCategory + '/' + deviceId,
-            headers: {
-                'Authorization': 'Bearer ' + accessToken
-            },
-            method: 'GET'
-        };
+            url: requestUri,
+            method: 'GET',
+            headers: headers,
+            followAllRedirects: true
+        }
 
-        var httpsRequest = https.get(options, function(getRes) {
-            var body = '';
-            getRes.setEncoding('utf8');
-            getRes.on('data', function(data) {
-                body += data;
-            });
+        // Start the request
+        request(options, function (error, response, body) {
 
-            getRes.on('end', function() {
-                if (getRes.statusCode != 200) {
-                    deferred.reject(new Error("Error Code:" + getRes.statusCode));
-                }
-                else
-                {
-                    var data = JSON.parse(body);
-                    deferred.resolve(data[name]);
-                }
-            });
+            // console.log('***** RESPONSE: ' + JSON.stringify(response));
 
-            getRes.on('error', function(e) {
-                deferred.reject(e);
-            });
+            if (!error && response.statusCode == 200) {
+                deferred.resolve(JSON.parse(body));
+            } else {
+                deferred.reject('Woops, there was an error getting device details: ' + error + ' (' + response.statusCode + ')');
+            }
         });
-        httpsRequest.end();
 
-        return deferred.promise; // return the promise
-    },
-    
-    setProperty : function(command) {
-        var deferred = q.defer();   // Take a deferral
+        return deferred.promise;
+    }
 
-        var postData = JSON.stringify(command);
+    // Puts device details (all fields) payload formatted per http:/developer.nest.com/
+    putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
 
+        // q will help us with returning a promise
+        var deferred = q.defer();
+
+        // build request URI
+        var requestUri = apiEndpoint + '/devices/' + deviceType + '/' + deviceId;
+
+        // Set the headers
+        var headers = {
+            'Authorization': 'Bearer ' + bearerToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Content-length': JSON.stringify(putPayload).length
+        }
+
+        // Configure the request
         var options = {
-            protocol: 'https:',
-            host: 'developer-api.nest.com',
-            path: '/devices/thermostats/' + deviceId,
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Content-length': Buffer.byteLength(postData),
-            },
+            url: requestUri,
             method: 'PUT',
-        };
+            headers: headers,
+            followAllRedirects: true,
+            body: JSON.stringify(putPayload)
+        }
 
-        var httpsRequest = https.request(options, (getRes) => {
-            var body = '';
-            getRes.setEncoding('utf8');
-            getRes.on('data', (data) => {
-                body += data;
-            });
-
-            getRes.on('end', () => {
-                if (getRes.statusCode != 200) {
-                    deferred.reject(new Error("Error Code:" + getRes.statusCode));
-                }
-                else
-                {
-                    deferred.resolve();
-                }
-            });
-
-            getRes.on('error', (e) => {
-                deferred.reject(e);
-            });
+        // Start the request
+        request(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                deferred.resolve(JSON.parse(body));
+            } else {
+                deferred.reject('Woops, there was an error putting device details: ' + error + ' (' + response.statusCode + ')');
+            }
         });
-        httpsRequest.write(postData);
-        httpsRequest.end();
 
-        return deferred.promise; // return the promise
-    },
+        return deferred.promise;
+    }
+
+    // Sets the desired state (of a single field)
+    setFieldAsync(deviceType, deviceId, field, value) {
+
+        // q will help us with returning a promise
+        var deferred = q.defer();
+
+        // build the object with desired state
+        var putPayload = {};
+        putPayload[field] = value;
+
+        this.putDeviceDetailsAsync(deviceType, deviceId, putPayload).then((response) => {
+
+            console.log('***** RESPONSE: ' + JSON.stringify(response));
+
+            // successfully put device details, parse out the desired state
+            // of the requested field in the response
+            if (!!response) {
+                deferred.resolve(response[field]);
+            } else {
+                deferred.reject('Invalid response from server: empty or undefined');
+            }
+        }).catch((error) => {
+            // there was an error
+            deferred.reject(error);
+        });
+
+        return deferred.promise;
+    }
+
+    // Gets the desired state (of a single field)
+    getFieldAsync(deviceType, deviceId, field) {
+
+        // q will help us with returning a promise
+        var deferred = q.defer();
+
+        this.getDeviceDetailsAsync(deviceType, deviceId).then((response) => {
+
+            console.log('***** RESPONSE: ' + JSON.stringify(response));
+
+            // successfully got device details, parse out the desired state
+            // of the requested field
+            if (!!response) {
+                deferred.resolve(response[field]);
+            } else {
+                deferred.reject('Invalid response from server: empty or undefined');
+            }
+        }).catch((error) => {
+            // there was an error
+            deferred.reject(error);
+        });
+
+        return deferred.promise;
+    }
 }
+
+// Export the helper from the module.
+module.exports = NestHelper;

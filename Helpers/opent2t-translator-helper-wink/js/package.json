@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-helper-wink",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "",
     "dependencies": {
         "request": "2.74.0",
