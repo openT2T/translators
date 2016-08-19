@@ -20,10 +20,6 @@ pushd '../../../Helpers/opent2t-translator-helper-nest/js/'
 npm link
 popd
 npm link opent2t-translator-helper-nest
-pushd LOCAL-PATH-TO-OPENT2T-REPO/node/
-npm link
-popd
-npm link opent2t
 ```
 
 Run `npm install` again after installing form local paths and confirm there are no errors before proceeding.
