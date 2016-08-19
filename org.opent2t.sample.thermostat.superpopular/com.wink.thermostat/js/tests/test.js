@@ -97,6 +97,17 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
                             console.log('*** multi-get response: ' + JSON.stringify(response2));
                             t.truthy(Math.abs(response2.targetTemperatureLow - 19) < 0.75);
                             t.truthy(Math.abs(response2.targetTemperatureHigh - 22) < 0.75);
+
+                            // Test that the target temp is an average of the two setpoints, approximately
+                            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperature')
+                                .then((targetTemperature) => {
+
+                                    // TEST: approximately an average of max and min setpoints is returned
+                                    //       (due to rounding the value returned is sometimes a little different)
+                                    console.log('*** targetTemperature: ' + targetTemperature);
+
+                                    t.truthy(Math.abs(targetTemperature - 20.5) < 0.75);
+                                });
                         });
                 });
         });

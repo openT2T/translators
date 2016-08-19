@@ -47,13 +47,16 @@ class WinkThermostat {
         return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
 
+                // Wink does not have a target temperature field, so returning the average of min and max setpoint
+                var max = response.data.desired_state['max_set_point'];
+                var min = response.data.desired_state['min_set_point'];
+
                 // map to opent2t schema to return
                 return {
-                    // Wink does not have a target temperature field, so ignoring that field in value.
-                    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
-                    // targetTemperature: null,
-                    targetTemperatureHigh: response.data.desired_state['max_set_point'],
-                    targetTemperatureLow: response.data.desired_state['min_set_point']
+                    targetTemperature: (max + min) / 2,
+                    targetTemperatureHigh: max,
+                    targetTemperatureLow: min,
+                    ambientTemperature: response['temperature']
                 }
             });
     }
@@ -69,7 +72,7 @@ class WinkThermostat {
 
         // Wink does not have a target temperature field, so ignoring that field in value.
         // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
-        // putPayload['target_temperature_c'] = value.targetTemperature;
+        // Instead, we infer it from the max and min setpoint
 
         putPayload.data.desired_state['max_set_point'] = value.targetTemperatureHigh;
         putPayload.data.desired_state['min_set_point'] = value.targetTemperatureLow;
@@ -77,13 +80,16 @@ class WinkThermostat {
         return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
 
+                // Wink does not have a target temperature field, so returning the average of min and max setpoint
+                var max = response.data.desired_state['max_set_point'];
+                var min = response.data.desired_state['min_set_point'];
+
                 // map to opent2t schema to return
                 return {
-                    // Wink does not have a target temperature field, so ignoring that field in value.
-                    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
-                    // targetTemperature: null,
-                    targetTemperatureHigh: response['max_set_point'],
-                    targetTemperatureLow: response['min_set_point']
+                    targetTemperature: (max + min) / 2,
+                    targetTemperatureHigh: max,
+                    targetTemperatureLow: min,
+                    ambientTemperature: response['temperature']
                 }
             });;
     }
@@ -94,11 +100,17 @@ class WinkThermostat {
         return winkHelper.getLastReadingAsync(deviceType, deviceId, 'temperature');
     }
 
-    // Wink does not have a target temperature field, so returning null.
-    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     getTargetTemperature() {
         console.log('getTargetTemperature called');
-        return null;
+
+        // Wink does not have a target temperature field, so returning the average of min and max setpoint
+        return this.getTargetTemperatureHigh()
+            .then(high => {
+                return this.getTargetTemperatureLow()
+                    .then(low => {
+                        return (high + low) / 2;
+                    });
+            });
     }
 
     getTargetTemperatureHigh() {
