@@ -51,7 +51,8 @@ class NestThermostat {
                 return {
                     targetTemperature: response['target_temperature_c'],
                     targetTemperatureHigh: response['target_temperature_high_c'],
-                    targetTemperatureLow: response['target_temperature_low_c']
+                    targetTemperatureLow: response['target_temperature_low_c'],
+                    ambientTemperature: response['ambient_temperature_c']
                 }
             });
     }
@@ -66,6 +67,7 @@ class NestThermostat {
         putPayload['target_temperature_c'] = value.targetTemperature;
         putPayload['target_temperature_high_c'] = value.targetTemperatureHigh;
         putPayload['target_temperature_low_c'] = value.targetTemperatureLow;
+        putPayload['ambient_temperature_c'] = value.ambientTemperature;
 
         return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
@@ -74,7 +76,8 @@ class NestThermostat {
                 return {
                     targetTemperature: response['target_temperature_c'],
                     targetTemperatureHigh: response['target_temperature_high_c'],
-                    targetTemperatureLow: response['target_temperature_low_c']
+                    targetTemperatureLow: response['target_temperature_low_c'],
+                    ambientTemperature: response['ambient_temperature_c']
                 }
             });
     }
