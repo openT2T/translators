@@ -13,8 +13,7 @@ npm install
 ```
 
 > **Note:** At the time of writing some packages are not published to npm. If you get errors, 
-  Here's how you can install them from local paths via `npm link`. We assume that you have already 
-  cloned the https://github.com/opent2t/opent2t repo locally, and have a local path to it.
+  Here's how you can install them from local paths via `npm link`.
 
 ```bash
 pushd '../../../Helpers/opent2t-translator-helper-wink/js/'
