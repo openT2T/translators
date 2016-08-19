@@ -39,9 +39,10 @@ test.serial('TargetTemperatureHigh', t => {
                     return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh')
                         .then((targetTemperatureHigh) => {
 
-                            // TEST: the same value was returned that was set
+                            // TEST: approximately the same value was returned that was set
+                            //       (due to rounding the value returned is sometimes a little different)
                             console.log('*** targetTemperatureHigh: ' + targetTemperatureHigh);
-                            t.is(targetTemperatureHigh, 22);
+                            t.truthy(Math.abs(targetTemperatureHigh - 22) < 0.75);
                         });
                 });
         });
@@ -63,7 +64,39 @@ test.serial('TargetTemperatureLow', t => {
                             // TEST: approximately the same value was returned that was set
                             //       (due to rounding the value returned is sometimes a little different)
                             console.log('*** targetTemperatureLow: ' + targetTemperatureLow);
-                            t.truthy(targetTemperatureLow, 19);
+                            t.truthy(Math.abs(targetTemperatureLow - 19) < 0.75);
+                        });
+                });
+        });
+});
+
+// Set/Get TargetTemperatureHigh + TargetTemperatureLow Together
+test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            // build value payload with schema for this translator,
+            // setting both properties at the same time
+            var value = {};
+            value['targetTemperatureHigh'] = 22;
+            value['targetTemperatureLow'] = 19;
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
+                .then((response1) => {
+
+                    console.log('*** multi-set response: ' + JSON.stringify(response1));
+
+                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', [])
+                        .then((response2) => {
+
+                            // TEST: The same values were returned that were set
+                            //       (due to rounding the value returned is sometimes a little different)
+                            console.log('*** multi-get response: ' + JSON.stringify(response2));
+                            t.truthy(Math.abs(response2.targetTemperatureLow - 19) < 0.75);
+                            t.truthy(Math.abs(response2.targetTemperatureHigh - 22) < 0.75);
                         });
                 });
         });

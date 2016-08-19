@@ -44,7 +44,18 @@ class WinkThermostat {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId);
+        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+            .then((response) => {
+
+                // map to opent2t schema to return
+                return {
+                    // Wink does not have a target temperature field, so ignoring that field in value.
+                    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+                    // targetTemperature: null,
+                    targetTemperatureHigh: response.data.desired_state['max_set_point'],
+                    targetTemperatureLow: response.data.desired_state['min_set_point']
+                }
+            });
     }
 
     // Updates the current state of the thermostat with the contents of value
@@ -60,10 +71,21 @@ class WinkThermostat {
         // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
         // putPayload['target_temperature_c'] = value.targetTemperature;
 
-        putPayload['max_set_point'] = value.targetTemperatureHigh;
-        putPayload['min_set_point'] = value.targetTemperatureLow;
+        putPayload.data.desired_state['max_set_point'] = value.targetTemperatureHigh;
+        putPayload.data.desired_state['min_set_point'] = value.targetTemperatureLow;
 
-        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload);
+        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+            .then((response) => {
+
+                // map to opent2t schema to return
+                return {
+                    // Wink does not have a target temperature field, so ignoring that field in value.
+                    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+                    // targetTemperature: null,
+                    targetTemperatureHigh: response['max_set_point'],
+                    targetTemperatureLow: response['min_set_point']
+                }
+            });;
     }
 
     // exports for the AllJoyn schema
