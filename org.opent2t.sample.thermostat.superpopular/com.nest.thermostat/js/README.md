@@ -11,8 +11,30 @@ To install dependencies for this translator, run:
 npm install
 ```
 
-## Test Device
-After everything is installed, run:
+> **Note:** At the time of writing some packages are not published to npm. If you get errors, 
+  Here's how you can install them from local paths via `npm link`. We assume that you have already 
+  cloned the https://github.com/opent2t/opent2t repo locally, and have a local path to it.
+
+```bash
+pushd '../../../Helpers/opent2t-translator-helper-nest/js/'
+npm link
+popd
+npm link opent2t-translator-helper-nest
+pushd LOCAL-PATH-TO-OPENT2T-REPO/node/
+npm link
+popd
+npm link opent2t
+```
+
+Run `npm install` again after installing form local paths and confirm there are no errors before proceeding.
+
+## Running Test Automation
+This translator comes with some automated tests. Here's how you can run them:
+
+### 1. Run onboarding to get credentials
+
+After dependencies are installed, cd to the translator root directory (i.e. the directory where
+this `README.md` and the `thingTranslator.js` exists).
 
 ```bash
 node node_modules/opent2t-onboarding-nest/test.js -n  -n 'Nest Thermostat' -f 'thermostats'
@@ -36,45 +58,57 @@ Thanks! Initiating Nest sign-in.
 Server running on port 8080
 Signed in to Nest!
 ? Which device do you want to onboard? Basement (VHB1) (WIoTQV105WnaOA4-gcROVFQLiwepexno)
-  access_token : <token>
+  access_token : <access_token>
   expires_in   : 315360000
-  device_id    : WIoTQV105WnaOA4-gcROVFQLiwepexno
+  device_id    : <device_id>
   message      : All done. Happy coding!
 
 ```
 
-Copy the access token and id of the device that was discovered, and use that to run the translator test file:
-
-```bash
-$ node test -i WIoTQV105WnaOA4-gcROVFQLiwepexno -a <access_token>
-
-```
-
-If the device is on and connected to the Wink hub, you should see a temperature readout per
-the commands in the test file. You should also see output similar to:
-
-```bash
-Javascript initialized.
-javascript initialized.
-  device.name          : Nest Thermostat (Test)
-  device.props         :  { "id": "WIoTQV105WnaOA4-gcROVFQLiwepexno", "access_token": "..." }
-getAmbientTemperature called.
-disconnect called.
-  device.name          : Nest Thermostat (Test)
-  device.props         :  { "id": "WIoTQV105WnaOA4-gcROVFQLiwepexno", "access_token": "..." }
-38
-setTargetTemperature called.
-disconnect called.
-  device.name          : Nest Thermostat (Test)
-  device.props         :  { "id": "WIoTQV105WnaOA4-gcROVFQLiwepexno", "access_token": "..." }
-getTargetTemperature called.
-Desired target temperature is as expected: 75-F
-disconnect called.
-  device.name          : Nest Thermostat (Test)
-  device.props         :  { "id": "WIoTQV105WnaOA4-gcROVFQLiwepexno", "access_token": "..." }
-```
+Note the `access_token` and `device_id` of the device that was discovered. You will need it later to run the test automation.
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
 for this translator is org.opent2t.onboarding.nest. This basically just describes what sort of setup, pairing or
 auth information is required to interact with the device. In the case of this onboarding type, success means you get
-an ID parameter and an access token. These parameters needs to be provided to the translator for it to work.
+an ID parameter and an access token. These parameters are provided to the translator for it to work.
+
+### 2. Create the `tests/testConfig.json` file
+This is where you can put credentials/config to drive this test (this file is added to .gitignore
+to prevent inadvertent check-in). Use the following contents to start this file:
+
+   ```json
+    {
+        "Device" : {
+            "name": "Nest Thermostat.",
+            "props": { 
+                "id": "<device_id>", 
+                "access_token": "<access-token>" 
+            }
+        }
+    }
+   ```
+
+### 3. Modify testConfig.json with Test Configuration
+Populate `<device_id>` and `<access_token>` in `tests/testconfig.json`. You can get these values by running
+the onboarding script (see above).
+
+### 4. Install Test Dependencies:
+
+```bash
+npm install -g ava
+```
+
+### 5. Run the tests
+
+To run all the tests, run:
+
+```bash
+npm test
+```
+
+To run a specific test, run:
+
+```bash
+ava <test file path> <options>
+```
+

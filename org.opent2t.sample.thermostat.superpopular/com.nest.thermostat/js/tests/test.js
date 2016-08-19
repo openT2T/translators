@@ -39,10 +39,9 @@ test.serial('TargetTemperatureHigh', t => {
                     return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh')
                         .then((targetTemperatureHigh) => {
 
-                            // TEST: approximately the same value was returned that was set
-                            //       (due to rounding the value returned is sometimes a little different)
+                            // TEST: the same value was returned that was set
                             console.log('*** targetTemperatureHigh: ' + targetTemperatureHigh);
-                            t.truthy(Math.abs(targetTemperatureHigh - 22) < 0.75);
+                            t.is(targetTemperatureHigh, 22);
                         });
                 });
         });
@@ -61,10 +60,9 @@ test.serial('TargetTemperatureLow', t => {
                     return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureLow')
                         .then((targetTemperatureLow) => {
 
-                            // TEST: approximately the same value was returned that was set
-                            //       (due to rounding the value returned is sometimes a little different)
+                            // TEST: the same value was returned that was set
                             console.log('*** targetTemperatureLow: ' + targetTemperatureLow);
-                            t.truthy(Math.abs(targetTemperatureLow - 19) < 0.75);
+                            t.is(targetTemperatureLow, 19);
                         });
                 });
         });
@@ -84,7 +82,7 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
             value['targetTemperatureHigh'] = 22;
             value['targetTemperatureLow'] = 19;
 
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [ value ])
                 .then((response1) => {
 
                     console.log('*** multi-set response: ' + JSON.stringify(response1));
@@ -93,10 +91,9 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
                         .then((response2) => {
 
                             // TEST: The same values were returned that were set
-                            //       (due to rounding the value returned is sometimes a little different)
                             console.log('*** multi-get response: ' + JSON.stringify(response2));
-                            t.truthy(Math.abs(response2.targetTemperatureLow - 19) < 0.75);
-                            t.truthy(Math.abs(response2.targetTemperatureHigh - 22) < 0.75);
+                            t.is(response2.targetTemperatureLow, 19);
+                            t.is(response2.targetTemperatureHigh, 22);
                         });
                 });
         });
