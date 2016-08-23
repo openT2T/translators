@@ -1,5 +1,5 @@
 'use strict';
-var helper = require('opent2t-translator-helper-nest');
+var Firebase = require('firebase');
 var q = require('q');
 
 // logs device state
@@ -22,26 +22,46 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
-var device, props;
-
 // module exports, implementing the schema
 module.exports = {
 
     initDevice : function(dev) {
-        device = dev;
+        var myThis = this;
+        this.device = dev;
         console.log('Initializing device.');
 
-        device = dev;
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'string');
+        myThis.firebaseRef = new Firebase("https://developer-api.nest.com");
+        myThis.data = null;
+        myThis.fahrenheit = false;
 
-        props = JSON.parse(device.props);
+        validateArgumentType(myThis.device, 'device', 'object');
+        validateArgumentType(myThis.device.props, 'device.props', 'string');
+
+        var props = JSON.parse(myThis.device.props);
         validateArgumentType(props.access_token, 'device.props.access_token', 'string');
         validateArgumentType(props.id, 'device.props.id', 'string');
        
-        helper.init('thermostats',  props.id, props.access_token)
-        logDeviceState(device);
-	    console.log('Initialized.');
+        myThis.nestThermostat = myThis.firebaseRef.child("devices/thermostats/" + props.id);
+
+        logDeviceState(this.device);
+
+        var deferred = q.defer();   // Take a deferral
+        // Authenticate users with a custom authentication token
+        myThis.nestThermostat.authWithCustomToken(props.access_token, (error, authData) => {
+            if (error) {
+                console.log("Login Failed!", error);
+                deferred.reject(error);
+            } else {
+                console.log("Successfully authenticated with developer-api.nest.com: " + JSON.stringify(authData));
+                myThis.update().then((data) => {
+                    deferred.resolve(data);
+                }, error => {
+                    deferred.reject(error);
+                });
+                console.log('Initialized.');
+            }
+        });
+        return deferred.promise; // return the promise
     },
 
     disconnect : function() {
@@ -49,74 +69,125 @@ module.exports = {
         logDeviceState(this.device);
     },
     
-    isTurnedOn : function() {
-        console.log('isTurnedOn called.');
-        return helper.getProperty('hvac_mode').then(state => {
-            console.log("state: "+ state);
-            return state != 'off';
+    // update the local cache of device properties
+    update : function(){
+        var myThis = this;
+        var deferred = q.defer();   // Take a deferral
+        myThis.nestThermostat.once('value', result =>  {
+            var data = result.val();
+            myThis.data = data; // this is a map of property values
+            console.log("thermostat settings=" + data);
+            deferred.resolve(data);
+        }, error =>  {
+            console.log("Reading thermostat value failed: " + error.message);
+            deferred.reject(error);
         });
+        return deferred.promise; // return the promise
     },
     
-    // Default to Heating. THe call must be followed by setMode(heating/cooling), as desired.
-    turnOn : function() {
-        console.log('turnOn called.');
-        return getMode().then( mode => {
-            if(mode == 'off')
-            {
-                return helper.setProperty({'hvac_mode' : 'heat-cool'});
-            }
-            else
-            {
-                var deferred = q.defer();   // Take a deferral
-                deferred.resolve();
-                return deferred.promise; // return the promise
+    useFahrenheit : function(flag) {        
+        this.fahrenheit = flag;
+    },
+    
+    getProperties : function(){
+        return this.data;
+    },
+
+    setProperty : function(name, value) {
+        var myThis = this;
+        var deferred = q.defer();   // Take a deferral  
+        var propertyRef = myThis.nestThermostat.child(name);
+        if (typeof(value) == "number")
+        {
+            // for some reason Nest only takes integer values.
+            value = Math.round(value);
+        }
+
+        propertyRef.set(value, function (error) {
+            if (error) {
+                console.log("Setting " + name + " failed: " + error);
+                deferred.reject(error);
+            } else {
+                console.log("Set " + name + "=" + value + " succeeded");
+                deferred.resolve(name);
             }
         });
+        return deferred.promise; // return the promise
+    },
+
+    getProperty : function(name){
+        var myThis = this;
+        if (myThis.data == null) {
+            throw new Error("Please call update() before reading properties.");
+        }
+        return myThis.data[name];
+    },
+
+    isTurnedOn : function() {
+        return this.getMode() != 'off';
+    },
+
+    // This function sets the hvac_mode to 'heat-cool' so nest will heat or cool
+    // automatically depending on the settings and the current temperature and
+    // your "green" settings that determine how much it energy it can use...
+    turnOnAuto : function() {
+        return this.setMode('heat-cool');
     },
 
     turnOff : function() {
-        console.log('turnOff called.');
-        return helper.setProperty({'hvac_mode' : 'off'});
-    },
-
-    getCurrentTemperature : function() {
-        console.log('getCurrentTemperature called.');
-        return helper.getProperty('ambient_temperature_c');
-    },
-
-    getHeatingSetpoint : function() {
-        console.log('getHeatingSetpoint called.');
-        return helper.getProperty('target_temperature_high_c');
-    },
-
-    setHeatingSetpoint : function(value) {
-        console.log("setHeatingSetpoint called");
-         return helper.setProperty({'target_temperature_high_c' : value});
-    },
-
-     getCoolingSetpoint : function() {
-        console.log('getCoolingSetpoint called.');
-        return helper.getProperty('target_temperature_low_c');
-    },
-
-    setCoolingSetpoint : function(value) {
-        console.log("setCoolingSetpoint called.");
-        return helper.setProperty({'target_temperature_low_c' : value});
+        return this.setMode('off');
     },
 
     getMode : function() {
-        console.log('getMode called.');
-        return helper.getProperty('hvac_mode', 'off');
-    },   
+        return this.getProperty('hvac_mode');
+    },
 
     setMode : function(value) {
-       console.log("setMode called."); 
-       return helper.setProperty({'hvac_mode' : value});
+        if (this.getProperty['hvac_mode'] != value)
+        {
+            return this.setProperty('hvac_mode', value);
+        }
+        return emptyPromise();
+    },
+
+    getAmbientTemperature : function() {   
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.getProperty('ambient_temperature' + suffix);
     },
     
-    getAvailableModes: function(value) {
-       var deferred = q.defer();   // Take a deferral
-       deferred.resolve(['heat', 'cool', 'heat-cool','off']);
-       return deferred.promise; // return the promise
+    getHeatingSetpoint : function() {
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.getProperty('target_temperature_high' + suffix);
     },
+
+    setHeatingSetpoint : function(value) {
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.setProperty('target_temperature_high' + suffix, value);
+    },
+
+    getCoolingSetpoint : function() {
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.getProperty('target_temperature_low' + suffix);
+    },
+
+    setCoolingSetpoint : function(value) {
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.setProperty('target_temperature_low' + suffix, value);
+    },
+
+    getTargetTemperature : function(value) {
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.getProperty('target_temperature' + suffix);
+    },
+
+    setTargetTemperature : function(value) {
+        var suffix = (this.fahrenheit ? "_f" : "_c");
+        return this.setProperty('target_temperature' + suffix, value);
+    },
+
+    getAvailableModes : function(value) {
+        var deferred = q.defer();   // Take a deferral
+        deferred.resolve(['heat', 'cool', 'heat-cool','off']);
+        return deferred.promise; // return the promise
+    }
 }

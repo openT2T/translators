@@ -18,7 +18,6 @@ module.exports =
        apiPath = '/' + apiEndpoint + '/' + deviceID;
        console.log("Api path is " + apiPath)
        accessToken = token; //the specific token
-        
    },
  
    sendDesiredStateCommand: function(apiField,value) 
