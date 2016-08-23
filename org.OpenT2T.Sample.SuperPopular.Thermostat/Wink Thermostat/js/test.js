@@ -21,17 +21,19 @@ translator.initDevice(device);
 
 // Go through a sequence of test operations for the translator
 q.delay(1000)
- .then(() => translator.turnOff())
- .then(() => q.delay(2000))
- .then(() => translator.setMode("heat_only"))
- .then(() => q.delay(2000))
- .then(() => console.log(translator.getCurrentTemperature()))
- .then(() => q.delay(2000))
- .then(() => translator.setCoolingSetpoint(23))
- .then(() => q.delay(2000))
- .then(() => console.log(translator.getCoolingSetpoint()))
- .then(() => q.delay(2000))
- .then(() => translator.turnOn())
- .then(() => q.delay(2000))
- .done();
+    .then(() => translator.turnOn())
+    .then(() => q.delay(2000))
+    .then(() => translator.setMode("heat_only"))
+    .then(() => q.delay(5000))
+    .then(() => console.log(translator.getCurrentTemperature()))
+    .then(() => q.delay(5000))
+    .then(() => translator.setHeatingSetpoint(23))
+    .then(() => q.delay(5000))
+    .then(() => console.log(translator.getHeatingSetpoint()))
+    .then(() => q.delay(5000))
+    .then(() => translator.turnOff())
+    .then(() => q.delay(2000))
+    .then(() => translator.turnOn())
+    .then(() => q.delay(2000))
+    .done();
 
