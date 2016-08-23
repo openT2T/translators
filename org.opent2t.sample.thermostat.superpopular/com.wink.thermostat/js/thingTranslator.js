@@ -68,14 +68,14 @@ class WinkThermostat {
     postThermostatResURI(value) {
 
         // build the object with desired state
-        var putPayload = { 'data': { 'desired_state': {} } };
+        var putPayload = { 'desired_state': {} };
 
         // Wink does not have a target temperature field, so ignoring that field in value.
         // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
         // Instead, we infer it from the max and min setpoint
 
-        putPayload.data.desired_state['max_set_point'] = value.targetTemperatureHigh;
-        putPayload.data.desired_state['min_set_point'] = value.targetTemperatureLow;
+        putPayload.desired_state['max_set_point'] = value.targetTemperatureHigh;
+        putPayload.desired_state['min_set_point'] = value.targetTemperatureLow;
 
         return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
