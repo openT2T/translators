@@ -9,7 +9,7 @@ var translatorPath = require('path').join(__dirname, '..');
 /// Run a series of tests to validate the translator
 ///
 
-// Get AmbientTemperature
+// Set/Get AmbientTemperature via setters for individual properties
 test.serial('AmbientTemperature', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -26,7 +26,7 @@ test.serial('AmbientTemperature', t => {
         });
 });
 
-// Set/Get TargetTemperatureHigh
+// Set/Get TargetTemperatureHigh via setters for individual properties
 test.serial('TargetTemperatureHigh', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -47,7 +47,7 @@ test.serial('TargetTemperatureHigh', t => {
         });
 });
 
-// Set/Get TargetTemperatureLow
+// Set/Get TargetTemperatureLow via setters for individual properties
 test.serial('TargetTemperatureLow', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -68,8 +68,8 @@ test.serial('TargetTemperatureLow', t => {
         });
 });
 
-// Set/Get TargetTemperatureHigh + TargetTemperatureLow Together
-test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
+// Set/Get TargetTemperatureHigh + TargetTemperatureLow via POST/GET of the entire schema object
+test.serial('TargetTemperatureHigh_TargetTemperatureLow_Post_Get', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
         .then(translator => {

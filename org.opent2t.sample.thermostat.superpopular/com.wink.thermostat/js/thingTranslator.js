@@ -21,7 +21,7 @@ var deviceType = 'thermostats';
 var winkHelper;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
-class WinkThermostat {
+class Translator {
 
     constructor(device) {
         console.log('Initializing device.');
@@ -39,7 +39,7 @@ class WinkThermostat {
         console.log('Javascript and Wink Helper initialized : ');
     }
 
-    // exports for the OCF schema
+    // exports for the entire schema object
 
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
@@ -61,21 +61,22 @@ class WinkThermostat {
             });
     }
 
-    // Updates the current state of the thermostat with the contents of value
-    // value is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    // Updates the current state of the thermostat with the contents of postPayload
+    // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     //
     // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(value) {
+    postThermostatResURI(postPayload) {
 
-        // build the object with desired state
+        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload));
+
+        // build the object that Wink requires
         var putPayload = { 'desired_state': {} };
 
-        // Wink does not have a target temperature field, so ignoring that field in value.
+        // Wink does not have a target temperature field, so ignoring that field in postPayload.
         // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
         // Instead, we infer it from the max and min setpoint
-
-        putPayload.desired_state['max_set_point'] = value.targetTemperatureHigh;
-        putPayload.desired_state['min_set_point'] = value.targetTemperatureLow;
+        putPayload.desired_state['max_set_point'] = postPayload.targetTemperatureHigh;
+        putPayload.desired_state['min_set_point'] = postPayload.targetTemperatureLow;
 
         return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
@@ -91,10 +92,11 @@ class WinkThermostat {
                     targetTemperatureLow: min,
                     ambientTemperature: response['temperature']
                 }
-            });;
+            });
     }
 
-    // exports for the AllJoyn schema
+    // exports for individual properties
+
     getAmbientTemperature() {
         console.log('getAmbientTemperature called');
         return winkHelper.getLastReadingAsync(deviceType, deviceId, 'temperature');
@@ -136,4 +138,4 @@ class WinkThermostat {
 }
 
 // Export the translator from the module.
-module.exports = WinkThermostat;
+module.exports = Translator;

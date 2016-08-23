@@ -21,7 +21,7 @@ var deviceType = 'thermostats';
 var nestHelper;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
-class NestThermostat {
+class Translator {
 
     constructor(device) {
         console.log('Initializing device.');
@@ -39,7 +39,7 @@ class NestThermostat {
         console.log('Javascript and Nest Helper initialized : ');
     }
 
-    // exports for the OCF schema
+    // exports for the entire schema object
 
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
@@ -57,17 +57,20 @@ class NestThermostat {
             });
     }
 
-    // Updates the current state of the thermostat with the contents of value
-    // value is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    // Updates the current state of the thermostat with the contents of postPayload
+    // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     //
     // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(value) {
-        // build the post format Nest depends on
+    postThermostatResURI(postPayload) {
+
+        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload));
+
+        // build the object that Nest requires
         var putPayload = {};
-        putPayload['target_temperature_c'] = value.targetTemperature;
-        putPayload['target_temperature_high_c'] = value.targetTemperatureHigh;
-        putPayload['target_temperature_low_c'] = value.targetTemperatureLow;
-        putPayload['ambient_temperature_c'] = value.ambientTemperature;
+        putPayload['target_temperature_c'] = postPayload.targetTemperature;
+        putPayload['target_temperature_high_c'] = postPayload.targetTemperatureHigh;
+        putPayload['target_temperature_low_c'] = postPayload.targetTemperatureLow;
+        putPayload['ambient_temperature_c'] = postPayload.ambientTemperature;
 
         return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
@@ -82,7 +85,8 @@ class NestThermostat {
             });
     }
 
-    // exports for the AllJoyn schema
+    // exports for individual properties
+
     getAmbientTemperature() {
         console.log('getAmbientTemperature called');
         return nestHelper.getFieldAsync(deviceType, deviceId, 'ambient_temperature_c');
@@ -115,4 +119,4 @@ class NestThermostat {
 }
 
 // Export the translator from the module.
-module.exports = NestThermostat;
+module.exports = Translator;
