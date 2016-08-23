@@ -80,8 +80,8 @@ class WinkHelper {
     setDesiredStateAsync(deviceType, deviceId, field, value) {
 
         // build the object with desired state
-        var putPayload = { 'data': { 'desired_state': {} } };
-        putPayload.data.desired_state[field] = value;
+        var putPayload = { 'desired_state': {} };
+        putPayload.desired_state[field] = value;
 
         return this.putDeviceDetailsAsync(deviceType, deviceId, putPayload).then((response) => {
 

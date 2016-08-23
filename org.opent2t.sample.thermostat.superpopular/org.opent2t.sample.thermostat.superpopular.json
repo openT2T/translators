@@ -11,6 +11,14 @@
           "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
           "description": "ReadOnly, Current temperature measured by the thermostat."
         },
+        "externalTemperature": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "ReadOnly, External temperature."
+        },
+        "humidity": {
+          "$ref": "oic.r.humidity.json#/definitions/oic.r.humidity",
+          "description": "ReadOnly, Humidity measured at the device."
+        },
         "targetTemperature": {
           "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
           "description": "Target temperature."
@@ -22,6 +30,51 @@
         "targetTemperatureLow": {
           "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
           "description": "Minimum target temperature."
+        },
+        "awayMode": {
+          "type": "boolean",
+          "description": "Users away, use lower temperature settings."
+        },
+        "awayTemperatureHigh": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "Minimum target temperature."
+        },
+        "awayTemperatureLow": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "Maximum target temperature."
+        },
+        "ecoMode": {
+          "type": "boolean",
+          "description": "ReadOnly, Is the thermostat running in an energy efficient mode."
+        },
+        "hvacMode": {
+          "$ref": "oic.r.mode.json#/definitions/oic.r.mode",
+          "description": "Active & Supported heating/Cooling modes supported the device."
+        },
+        "heatingFuelSource": {
+          "type": "string",
+          "enum": [ "electric", "gas" ],
+          "description": "hvac fuel type."
+        },
+        "hasFan": {
+          "type": "boolean",
+          "description": "ReadOnly, Does the thermostat have a fan."
+        },
+        "fanActive": {
+          "type": "boolean",
+          "description": "ReadOnly, Is the fan running."
+        },
+        "fanTimerActive": {
+          "type": "boolean",
+          "description": "Is the fan timer running."
+        },
+        "fanTimerTimeout": {
+          "$ref": "oic.r.clock.json#/definitions/oic.r.clock",
+          "description": "Timestamp showing when fan will stop."
+        },
+        "fanMode": {
+          "$ref": "oic.r.mode.json#/definitions/oic.r.mode",
+          "description": "Active & Supported fan modes supported the device."
         }
       }
     }
