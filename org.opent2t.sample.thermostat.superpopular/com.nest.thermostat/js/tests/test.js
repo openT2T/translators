@@ -79,21 +79,21 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow_Post_Get', t => {
             // build value payload with schema for this translator,
             // setting both properties at the same time
             var value = {};
-            value['targetTemperatureHigh'] = 22;
-            value['targetTemperatureLow'] = 19;
+            value['targetTemperatureHigh'] = { temperature: 22, units: 'C' };
+            value['targetTemperatureLow'] = { temperature: 19, units: 'C' };
 
             return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [ value ])
                 .then((response1) => {
 
-                    console.log('*** multi-set response: ' + JSON.stringify(response1));
+                    console.log('*** multi-set response: ' + JSON.stringify(response1, null, 2));
 
                     return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', [])
                         .then((response2) => {
 
                             // TEST: The same values were returned that were set
-                            console.log('*** multi-get response: ' + JSON.stringify(response2));
-                            t.is(response2.targetTemperatureLow, 19);
-                            t.is(response2.targetTemperatureHigh, 22);
+                            console.log('*** multi-get response: ' + JSON.stringify(response2, null, 2));
+                            t.is(response2.targetTemperatureLow.temperature, 19);
+                            t.is(response2.targetTemperatureHigh.temperature, 22);
                         });
                 });
         });

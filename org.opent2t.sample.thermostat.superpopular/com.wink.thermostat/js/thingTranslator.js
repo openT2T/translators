@@ -36,20 +36,21 @@ class StateReader {
     }
 }
 
-function winkSchemaToOcfSchema(winkSchema) {
-    var last_reading = winkSchema.last_reading;
+// Helper method to convert the device schema to the translator schema.
+function deviceSchemaToTranslatorSchema(deviceSchema) {
 
-    var stateReader = new StateReader(winkSchema.desired_state, winkSchema.last_reading);
+    var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
 
-    // Wink does not have a target temperature field, so returning the average of min and max setpoint
+    // Quirks:
+    // - Wink does not have a target temperature field, so returning the average of min and max setpoint
+
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
     var temperatureUnits = stateReader.get('units').temperature;
 
-    // map to opent2t schema to return
     var result = {
-        id: winkSchema['object_type'] + '.' + winkSchema['object_id'],
-        n: winkSchema['name'],
+        id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
+        n: deviceSchema['name'],
         rt: 'org.opent2t.sample.thermostat.superpopular',
         targetTemperature: { temperature: (max + min) / 2, units: temperatureUnits },
         targetTemperatureHigh: { temperature: max, units: temperatureUnits },
@@ -69,29 +70,36 @@ function winkSchemaToOcfSchema(winkSchema) {
     return result;
 }
 
-function ocfSchemaToWinkSchema(ocfSchema) {
+// Helper method to convert the translator schema to the device schema.
+function translatorSchemaToDeviceSchema(translatorSchema) {
+    
     // build the object with desired state
     var result = { 'desired_state': {} };
     var desired_state = result.desired_state;
 
-    // Wink does not have a target temperature field, so ignoring that field in ocfSchema.
+    // Quirks:
+    // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
     // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     // Instead, we infer it from the max and min setpoint
 
-    if (ocfSchema.n !== undefined) {
-        result['name'] = ocfSchema.n;
+    if (translatorSchema.n !== undefined) {
+        result['name'] = translatorSchema.n;
     }
-    if (ocfSchema.targetTemperatureHigh !== undefined) {
-        desired_state['max_set_point'] = ocfSchema.targetTemperatureHigh.temperature;
+
+    if (translatorSchema.targetTemperatureHigh !== undefined) {
+        desired_state['max_set_point'] = translatorSchema.targetTemperatureHigh.temperature;
     }
-    if (ocfSchema.targetTemperatureLow !== undefined) {
-        desired_state['min_set_point'] = ocfSchema.targetTemperatureLow.temperature;
+
+    if (translatorSchema.targetTemperatureLow !== undefined) {
+        desired_state['min_set_point'] = translatorSchema.targetTemperatureLow.temperature;
     }
-    if (ocfSchema.awayMode !== undefined) {
-        desired_state['users_away'] = ocfSchema.awayMode;
+
+    if (translatorSchema.awayMode !== undefined) {
+        desired_state['users_away'] = translatorSchema.awayMode;
     }
-    if (ocfSchema.hvacMode !== undefined) {
-        desired_state['mode'] = ocfSchema.hvacMode.modes[0];
+
+    if (translatorSchema.hvacMode !== undefined) {
+        desired_state['mode'] = translatorSchema.hvacMode.modes[0];
     }
 
     return result;
@@ -101,7 +109,7 @@ var deviceId;
 var deviceType = 'thermostats';
 var winkHelper;
 
-// This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
+// This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
     constructor(device) {
@@ -127,7 +135,7 @@ class Translator {
     getThermostatResURI() {
         return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
-                return winkSchemaToOcfSchema(response.data);
+                return deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -135,13 +143,13 @@ class Translator {
     // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     //
     // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(value) {
+    postThermostatResURI(postPayload) {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload));
 
-        var putPayload = ocfSchemaToWinkSchema(value);
+        var putPayload = translatorSchemaToDeviceSchema(postPayload);
         return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
-                return winkSchemaToOcfSchema(response.data);
+                return deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -149,41 +157,64 @@ class Translator {
 
     getAmbientTemperature() {
         console.log('getAmbientTemperature called');
-        return winkHelper.getLastReadingAsync(deviceType, deviceId, 'temperature');
+
+        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+            .then((response) => {
+                return deviceSchemaToTranslatorSchema(response.data).ambientTemperature.temperature;
+            });
     }
 
     getTargetTemperature() {
         console.log('getTargetTemperature called');
 
-        // Wink does not have a target temperature field, so returning the average of min and max setpoint
-        return this.getTargetTemperatureHigh()
-            .then(high => {
-                return this.getTargetTemperatureLow()
-                    .then(low => {
-                        return (high + low) / 2;
-                    });
+        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+            .then((response) => {
+                return deviceSchemaToTranslatorSchema(response.data).targetTemperature.temperature;
             });
     }
 
     getTargetTemperatureHigh() {
         console.log('getTargetTemperatureHigh called');
 
-        return winkHelper.getLastReadingAsync(deviceType, deviceId, 'max_set_point');
+        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+            .then((response) => {
+                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureHigh.temperature;
+            });
     }
 
     setTargetTemperatureHigh(value) {
-        console.log('setTargetTemperatureHigh called');
-        return winkHelper.setDesiredStateAsync(deviceType, deviceId, 'max_set_point', value);
+        console.log('setTargetTemperatureHigh called with value: ' + value);
+
+        var postPayload = {};
+        postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
+
+        var putPayload = translatorSchemaToDeviceSchema(postPayload);
+        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+            .then((response) => {
+                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureHigh.temperature;
+            });
     }
 
     getTargetTemperatureLow() {
         console.log('getTargetTemperatureLow called');
-        return winkHelper.getLastReadingAsync(deviceType, deviceId, 'min_set_point');
+
+        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+            .then((response) => {
+                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureLow.temperature;
+            });
     }
 
     setTargetTemperatureLow(value) {
-        console.log('setTargetTemperatureLow called');
-        return winkHelper.setDesiredStateAsync(deviceType, deviceId, 'min_set_point', value);
+        console.log('setTargetTemperatureLow called with value: ' + value);
+
+        var postPayload = {};
+        postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
+
+        var putPayload = translatorSchemaToDeviceSchema(postPayload);
+        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+            .then((response) => {
+                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureLow.temperature;
+            });
     }
 }
 

@@ -33,15 +33,15 @@
         },
         "awayMode": {
           "type": "boolean",
-          "description": "Users away, use lower temperature settings."
+          "description": "User is away, use lower temperature settings."
         },
         "awayTemperatureHigh": {
           "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Minimum target temperature."
+          "description": "Minimum target temperature when user is away."
         },
         "awayTemperatureLow": {
           "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Maximum target temperature."
+          "description": "Maximum target temperature when user is away."
         },
         "ecoMode": {
           "type": "boolean",

@@ -1,0 +1,22 @@
+{
+  "id": "http://schemas.microsoft.com/org.opent2t.sample.binaryswitch.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "OpenT2T Switch",
+  "definitions": {
+    "org.opent2t.sample.binaryswitch.superpopular": {
+      "type": "object",
+      "properties": {
+        "power": {
+          "$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary"
+        }
+      }
+    }
+  },
+  "type": "object",
+  "allOf": [
+    { "$ref": "oic.core.json#/definitions/oic.core" },
+    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" },
+    { "$ref": "#/definitions/org.opent2t.sample.binaryswitch.superpopular" }
+  ]
+}

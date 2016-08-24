@@ -113,7 +113,7 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow_Post_Get', t => {
         });
 });
 
-// Get the entire Thermostat OCF object
+// Get the entire Thermostat schema object
 test.serial('GetThermostatResURI', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -141,7 +141,7 @@ test.serial('GetThermostatResURI', t => {
         });
 });
 
-test.serial('PostThermostatResURI_Set_awayMode', t => {
+test.serial('PostThermostatResURI_Set_AwayMode', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
         .then(translator => {
@@ -149,18 +149,18 @@ test.serial('PostThermostatResURI_Set_awayMode', t => {
             t.is(typeof translator, 'object') && t.truthy(translator);
 
             var value = {};
-            value['awayMode'] = false;
+            value['awayMode'] = true;
 
             return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
                 .then((response) => {
-                    t.falsy(response.awayMode);
+                    t.truthy(response.awayMode);
 
                     console.log('*** response: \n' + JSON.stringify(response, null, 2));
                 });
         });
 });
 
-test.serial('PostThermostatResURI_Set_hvacMode', t => {
+test.serial('PostThermostatResURI_Set_HvacMode', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
         .then(translator => {
