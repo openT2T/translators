@@ -1,0 +1,24 @@
+{
+  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.hub.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "OpenT2T Hub",
+  "definitions": {
+    "org.opent2t.sample.hub.superpopular": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "ReadOnly, Gets the name of the hub."
+        },
+        "devices": {
+          "description": "ReadOnly, Gets the current set of devices associated with the hub."
+        }
+      }
+    }
+  },
+  "type": "object",
+  "allOf": [
+    { "$ref": "oic.core.json#/definitions/oic.core" },
+    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" }
+  ]
+}
