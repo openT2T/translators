@@ -2,7 +2,7 @@
 
 var request = require('request-promise');
 
-// Nest developer endpoint as documented here: http:/developer.nest.com/
+// Nest developer endpoint as documented here: http:/developers.nest.com/
 var apiEndpoint = 'https://developer-api.nest.com';
 
 // Internal state used to make subsequent API calls
@@ -17,7 +17,7 @@ class NestHelper {
         console.log('Initialized Nest Helper.');
     }
 
-    // Gets device details (all fields), response formatted per http:/developer.nest.com/
+    // Gets device details (all fields), response formatted per http:/developers.nest.com/
     getDeviceDetailsAsync(deviceType, deviceId) {
 
         // build request URI
@@ -44,7 +44,7 @@ class NestHelper {
             });
     }
 
-    // Puts device details (all fields) payload formatted per http:/developer.nest.com/
+    // Puts device details (all fields) payload formatted per http:/developers.nest.com/
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
 
         // build request URI and body
@@ -74,44 +74,6 @@ class NestHelper {
                 // request succeeded.
                 return JSON.parse(body);
             });
-    }
-
-    // Sets the desired state (of a single field)
-    setFieldAsync(deviceType, deviceId, field, value) {
-
-        // build the object with desired state
-        var putPayload = {};
-        putPayload[field] = value;
-
-        return this.putDeviceDetailsAsync(deviceType, deviceId, putPayload).then((response) => {
-
-            console.log('***** RESPONSE: ' + JSON.stringify(response));
-
-            // successfully put device details, parse out the desired state
-            // of the requested field in the response
-            if (!!response) {
-                return response[field];
-            } else {
-                throw new Error('Invalid response from server: empty or undefined');
-            }
-        });
-    }
-
-    // Gets the desired state (of a single field)
-    getFieldAsync(deviceType, deviceId, field) {
-
-        return this.getDeviceDetailsAsync(deviceType, deviceId).then((response) => {
-
-            console.log('***** RESPONSE: ' + JSON.stringify(response));
-
-            // successfully got device details, parse out the desired state
-            // of the requested field
-            if (!!response) {
-                return response[field];
-            } else {
-                throw new Error('Invalid response from server: empty or undefined');
-            }
-        });
     }
 }
 

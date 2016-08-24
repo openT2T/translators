@@ -16,12 +16,66 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
+// Helper method to convert the device schema to the translator schema.
+function deviceSchemaToTranslatorSchema(deviceSchema) {
+
+    // Quirks:
+    // - Nest does not have an external temperature field, so that is left out.
+    // - HVAC Mode is not implemented at this time. Allowed modes may be inferred from the can_cool and can_heat properties per Nest documentation
+    // - Away Mode is not implemented at this time.
+
+    // return units in Celsius regardless of what the thermostat is set to
+    var tempScale = 'C';
+    var ts = tempScale.toLowerCase();
+
+    return {
+        id: deviceSchema['device_id'],
+        n: deviceSchema['name'],
+        rt: 'org.opent2t.sample.thermostat.superpopular',
+        targetTemperature: { temperature: deviceSchema['target_temperature_' + ts], units: tempScale },
+        targetTemperatureHigh: { temperature: deviceSchema['target_temperature_high_' + ts], units: tempScale },
+        targetTemperatureLow: { temperature: deviceSchema['target_temperature_low_' + ts], units: tempScale },
+        ambientTemperature: { temperature: deviceSchema['ambient_temperature_' + ts], units: tempScale },
+        hasFan: deviceSchema['has_fan'],
+        ecoMode: deviceSchema['has_leaf'],
+        fanTimerActive: deviceSchema['fan_timer_active']
+    };
+}
+
+// Helper method to convert the translator schema to the device schema.
+function translatorSchemaToDeviceSchema(translatorSchema) {
+
+    // Quirks:
+    // - HVAC Mode is not implemented at this time.
+    // - Away Mode is not implemented at this time.
+
+    var result = {};
+
+    if (!!translatorSchema.n) {
+        result['name'] = translatorSchema.n;
+    }
+
+    if (!!translatorSchema.targetTemperature) {
+        result['target_temperature_' + translatorSchema.targetTemperature.units.toLowerCase()] = translatorSchema.targetTemperature.temperature;
+    }
+
+    if (!!translatorSchema.targetTemperatureHigh) {
+        result['target_temperature_high_' + translatorSchema.targetTemperatureHigh.units.toLowerCase()] = translatorSchema.targetTemperatureHigh.temperature;
+    }
+
+    if (!!translatorSchema.targetTemperatureLow) {
+        result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = translatorSchema.targetTemperatureLow.temperature;
+    }
+
+    return result;
+}
+
 var deviceId;
 var deviceType = 'thermostats';
 var nestHelper;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
-class NestThermostat {
+class Translator {
 
     constructor(device) {
         console.log('Initializing device.');
@@ -39,80 +93,94 @@ class NestThermostat {
         console.log('Javascript and Nest Helper initialized : ');
     }
 
-    // exports for the OCF schema
+    // exports for the entire schema object
 
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
         return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
-
-                // map to opent2t schema to return
-                return {
-                    targetTemperature: response['target_temperature_c'],
-                    targetTemperatureHigh: response['target_temperature_high_c'],
-                    targetTemperatureLow: response['target_temperature_low_c'],
-                    ambientTemperature: response['ambient_temperature_c']
-                }
+                return deviceSchemaToTranslatorSchema(response);
             });
     }
 
-    // Updates the current state of the thermostat with the contents of value
-    // value is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    // Updates the current state of the thermostat with the contents of postPayload
+    // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     //
     // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(value) {
-        // build the post format Nest depends on
-        var putPayload = {};
-        putPayload['target_temperature_c'] = value.targetTemperature;
-        putPayload['target_temperature_high_c'] = value.targetTemperatureHigh;
-        putPayload['target_temperature_low_c'] = value.targetTemperatureLow;
-        putPayload['ambient_temperature_c'] = value.ambientTemperature;
+    postThermostatResURI(postPayload) {
 
+        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
+
+        var putPayload = translatorSchemaToDeviceSchema(postPayload);
         return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
-
-                // map to opent2t schema to return
-                return {
-                    targetTemperature: response['target_temperature_c'],
-                    targetTemperatureHigh: response['target_temperature_high_c'],
-                    targetTemperatureLow: response['target_temperature_low_c'],
-                    ambientTemperature: response['ambient_temperature_c']
-                }
+                return deviceSchemaToTranslatorSchema(response);
             });
     }
 
-    // exports for the AllJoyn schema
+    // exports for individual properties
+
     getAmbientTemperature() {
         console.log('getAmbientTemperature called');
-        return nestHelper.getFieldAsync(deviceType, deviceId, 'ambient_temperature_c');
+
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.ambientTemperature.temperature;
+            });
     }
 
     getTargetTemperature() {
         console.log('getTargetTemperature called');
-        return nestHelper.getFieldAsync(deviceType, deviceId, 'target_temperature_c');
+
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperature.temperature;
+            });
     }
 
     getTargetTemperatureHigh() {
         console.log('getTargetTemperatureHigh called');
-        return nestHelper.getFieldAsync(deviceType, deviceId, 'target_temperature_high_c');
+
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperatureHigh.temperature;
+            });
     }
 
     setTargetTemperatureHigh(value) {
-        console.log('setTargetTemperatureHigh called');
-        return nestHelper.setFieldAsync(deviceType, deviceId, 'target_temperature_high_c', value);
+        console.log('setTargetTemperatureHigh called with value: ' + value);
+
+        var postPayload = {};
+        postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
+
+        return this.postThermostatResURI(postPayload)
+            .then(response => {
+                return response.targetTemperatureHigh.temperature;
+            });
     }
 
     getTargetTemperatureLow() {
         console.log('getTargetTemperatureLow called');
-        return nestHelper.getFieldAsync(deviceType, deviceId, 'target_temperature_low_c');
+
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperatureLow.temperature;
+            });
     }
 
     setTargetTemperatureLow(value) {
-        console.log('setTargetTemperatureLow called');
-        return nestHelper.setFieldAsync(deviceType, deviceId, 'target_temperature_low_c', value);
+        console.log('setTargetTemperatureLow called with value: ' + value);
+
+        var postPayload = {};
+        postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
+
+        return this.postThermostatResURI(postPayload)
+            .then(response => {
+                return response.targetTemperatureLow.temperature;
+            });
     }
 }
 
 // Export the translator from the module.
-module.exports = NestThermostat;
+module.exports = Translator;

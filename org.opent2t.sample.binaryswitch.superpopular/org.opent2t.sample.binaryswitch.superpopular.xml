@@ -2,14 +2,8 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
 <node>
   <interface name="org.opent2t.sample.binaryswitch.superpopular">
-    <!-- Turn on the Switch -->
-    <method name="turnOn" />
-    <!-- Turn off the Switch -->
-    <method name="turnOff" />
-    <!-- Called when there is an error during usage of this translator -->
-    <signal name="error">
-        <arg name="type" type="s" direction="out"/>
-        <arg name="message" type="s" direction="out"/>
-    </signal>
+    <property name="power" type="b" access="readwrite">
+      <description>Status of the switch.</description>
+    </property>
   </interface>
 </node>

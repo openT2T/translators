@@ -1,0 +1,64 @@
+#%RAML 0.8
+title: org.opent2t.sample.binaryswitch.superpopular
+version: v1.0
+
+schemas:
+  - Switch: !include org.opent2t.sample.binaryswitch.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/BinarySwitchResURI:
+  description: |
+    This resource describes the attributes associated with control of a Switch.
+    The value is a boolean.
+    A value of 'true' means that the switch is on.
+    A value of 'false' means that the switch is off.
+
+
+  displayName: Switch
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Switch
+            example: |
+              {
+                "rt": "org.opent2t.sample.binaryswitch.superpopular",
+                "id": "unique_example_id",
+                "power": {
+                  "value": true
+                  }
+              }
+    
+  post:
+    body:
+      application/json:
+        schema: Switch
+        example: |
+          {
+            "power": {
+              "value": false
+            }
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Switch
+            example: |
+              {
+                "id": "unique_example_id",
+                "power": {
+                  "value": false
+                }
+              }
+                

@@ -1,16 +1,27 @@
 {
-    "name": "opent2t-translator-com-wink-binaryswitch",
-    "version": "1.0.0",
-    "description": "Wink Binary Switch",
-    "homepage": "http://opentranslatorstothings.org",
-    "main": "thingTranslator.js",
-    "dependencies": {        
-    },
-    "devDependencies": {
-        "async": "~1.5.2",
-        "optimist": "0.6.1",
-        "opent2t-onboarding-winkhub": "*"
-    },
-    "author": "",
-    "license": "MIT"
+  "name": "opent2t-translator-com-wink-binaryswitch",
+  "version": "1.0.0",
+  "description": "Wink Binary Switch",
+  "homepage": "http://opentranslatorstothings.org",
+  "main": "thingTranslator.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "ava"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
+  },
+  "dependencies": {
+    "opent2t-translator-helper-wink": "*"
+  },
+  "devDependencies": {
+    "optimist": "*",
+    "opent2t": "*",
+    "opent2t-onboarding-winkhub": "*",
+    "jshint": "^2.9.2",
+    "ava": "^0.15.2",
+    "es6-sleep": "*"
+  }
 }

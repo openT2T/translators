@@ -7,9 +7,9 @@
     <property name="ambientTemperature" type="d" access="read">
      <description>ReadOnly, Current temperature measured by the thermostat.</description>
     </property>
-
+    
     <property name="targetTemperature" type="d" access="read">
-     <description>Target temperature.</description>
+     <description>Target temperature (in Celsius).</description>
     </property>
 
     <property name="targetTemperatureHigh" type="d" access="readwrite">
@@ -19,6 +19,6 @@
     <property name="targetTemperatureLow" type="d" access="readwrite">
       <description>Minimum target temperature (in Celsius).</description>
     </property>
-    
+
   </interface>
 </node>
