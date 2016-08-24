@@ -16,6 +16,87 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
+// Wink does not always populate every desired_state property, but last_reading doesn't necessarily
+// update as soon as we send our PUT request. Instead of relying just on one state or the other,
+// we use this StateReader class to read from desired_state if it is there, and fall back to last_reading
+// if it is not.
+class StateReader {
+    constructor(desired_state, last_reading) {
+        this.desired_state = desired_state;
+        this.last_reading = last_reading;
+    }
+
+    get(state) {
+        if (this.desired_state[state] !== undefined) {
+            return this.desired_state[state];
+        }
+        else {
+            return this.last_reading[state];
+        }
+    }
+}
+
+function winkSchemaToOcfSchema(winkSchema) {
+    var last_reading = winkSchema.last_reading;
+
+    var stateReader = new StateReader(winkSchema.desired_state, winkSchema.last_reading);
+
+    // Wink does not have a target temperature field, so returning the average of min and max setpoint
+    var max = stateReader.get('max_set_point');
+    var min = stateReader.get('min_set_point');
+    var temperatureUnits = stateReader.get('units').temperature;
+
+    // map to opent2t schema to return
+    var result = {
+        id: winkSchema['object_type'] + '.' + winkSchema['object_id'],
+        n: winkSchema['name'],
+        rt: 'org.opent2t.sample.thermostat.superpopular',
+        targetTemperature: { temperature: (max + min) / 2, units: temperatureUnits },
+        targetTemperatureHigh: { temperature: max, units: temperatureUnits },
+        targetTemperatureLow: { temperature: min, units: temperatureUnits },
+        ambientTemperature: { temperature: stateReader.get('temperature'), units: temperatureUnits },
+        awayMode: stateReader.get('users_away'),
+        hasFan: stateReader.get('has_fan'),
+        ecoMode: stateReader.get('eco_target'),
+        hvacMode: { supportedModes: stateReader.get('modes_allowed'), modes: [stateReader.get('mode')] },
+        fanTimerActive: stateReader.get('fan_timer_active')
+    };
+
+    if (stateReader.get('external_temperature') !== null) {
+        result.externalTemperature = { temperature: stateReader.get('external_temperature'), units: temperatureUnits };
+    }
+
+    return result;
+}
+
+function ocfSchemaToWinkSchema(ocfSchema) {
+    // build the object with desired state
+    var result = { 'desired_state': {} };
+    var desired_state = result.desired_state;
+
+    // Wink does not have a target temperature field, so ignoring that field in ocfSchema.
+    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+    // Instead, we infer it from the max and min setpoint
+
+    if (ocfSchema.n !== undefined) {
+        result['name'] = ocfSchema.n;
+    }
+    if (ocfSchema.targetTemperatureHigh !== undefined) {
+        desired_state['max_set_point'] = ocfSchema.targetTemperatureHigh.temperature;
+    }
+    if (ocfSchema.targetTemperatureLow !== undefined) {
+        desired_state['min_set_point'] = ocfSchema.targetTemperatureLow.temperature;
+    }
+    if (ocfSchema.awayMode !== undefined) {
+        desired_state['users_away'] = ocfSchema.awayMode;
+    }
+    if (ocfSchema.hvacMode !== undefined) {
+        desired_state['mode'] = ocfSchema.hvacMode.modes[0];
+    }
+
+    return result;
+}
+
 var deviceId;
 var deviceType = 'thermostats';
 var winkHelper;
@@ -46,18 +127,7 @@ class Translator {
     getThermostatResURI() {
         return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
-
-                // Wink does not have a target temperature field, so returning the average of min and max setpoint
-                var max = response.data.desired_state['max_set_point'];
-                var min = response.data.desired_state['min_set_point'];
-
-                // map to opent2t schema to return
-                return {
-                    targetTemperature: (max + min) / 2,
-                    targetTemperatureHigh: max,
-                    targetTemperatureLow: min,
-                    ambientTemperature: response['temperature']
-                }
+                return winkSchemaToOcfSchema(response.data);
             });
     }
 
@@ -65,33 +135,13 @@ class Translator {
     // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     //
     // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(postPayload) {
-
+    postThermostatResURI(value) {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload));
 
-        // build the object that Wink requires
-        var putPayload = { 'desired_state': {} };
-
-        // Wink does not have a target temperature field, so ignoring that field in postPayload.
-        // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
-        // Instead, we infer it from the max and min setpoint
-        putPayload.desired_state['max_set_point'] = postPayload.targetTemperatureHigh;
-        putPayload.desired_state['min_set_point'] = postPayload.targetTemperatureLow;
-
+        var putPayload = ocfSchemaToWinkSchema(value);
         return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
-
-                // Wink does not have a target temperature field, so returning the average of min and max setpoint
-                var max = response.data.desired_state['max_set_point'];
-                var min = response.data.desired_state['min_set_point'];
-
-                // map to opent2t schema to return
-                return {
-                    targetTemperature: (max + min) / 2,
-                    targetTemperatureHigh: max,
-                    targetTemperatureLow: min,
-                    ambientTemperature: response['temperature']
-                }
+                return winkSchemaToOcfSchema(response.data);
             });
     }
 
