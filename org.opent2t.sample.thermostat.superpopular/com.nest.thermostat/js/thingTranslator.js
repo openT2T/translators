@@ -20,7 +20,7 @@ function validateArgumentType(arg, argName, expectedType) {
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     // Quirks:
-    // - Nest does not have an external temperature field, so returning the ambient temperature instead
+    // - Nest does not have an external temperature field, so that is left out.
     // - HVAC Mode is not implemented at this time. Allowed modes may be inferred from the can_cool and can_heat properties per Nest documentation
     // - Away Mode is not implemented at this time.
 
@@ -36,7 +36,6 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
         targetTemperatureHigh: { temperature: deviceSchema['target_temperature_high_' + ts], units: tempScale },
         targetTemperatureLow: { temperature: deviceSchema['target_temperature_low_' + ts], units: tempScale },
         ambientTemperature: { temperature: deviceSchema['ambient_temperature_' + ts], units: tempScale },
-        externalTemperature: { temperature: deviceSchema['ambient_temperature_' + ts], units: tempScale },
         hasFan: deviceSchema['has_fan'],
         ecoMode: deviceSchema['has_leaf'],
         fanTimerActive: deviceSchema['fan_timer_active']
@@ -125,27 +124,27 @@ class Translator {
     getAmbientTemperature() {
         console.log('getAmbientTemperature called');
 
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response).ambientTemperature.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.ambientTemperature.temperature;
             });
     }
 
     getTargetTemperature() {
         console.log('getTargetTemperature called');
 
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response).targetTemperature.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperature.temperature;
             });
     }
 
     getTargetTemperatureHigh() {
         console.log('getTargetTemperatureHigh called');
 
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response).targetTemperatureHigh.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperatureHigh.temperature;
             });
     }
 
@@ -155,19 +154,18 @@ class Translator {
         var postPayload = {};
         postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response).targetTemperatureHigh.temperature;
+        return this.postThermostatResURI(postPayload)
+            .then(response => {
+                return response.targetTemperatureHigh.temperature;
             });
     }
 
     getTargetTemperatureLow() {
         console.log('getTargetTemperatureLow called');
 
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response).targetTemperatureLow.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperatureLow.temperature;
             });
     }
 
@@ -177,10 +175,9 @@ class Translator {
         var postPayload = {};
         postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response).targetTemperatureLow.temperature;
+        return this.postThermostatResURI(postPayload)
+            .then(response => {
+                return response.targetTemperatureLow.temperature;
             });
     }
 }

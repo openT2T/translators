@@ -31,22 +31,22 @@ test.serial('Power', t => {
                                 console.log('*** getResponse ***: ' + JSON.stringify(getResponse, null, 2));
                                 t.is(getResponse, true);
 
-                                    // set value to false
-                                    return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power', false)
-                                        .then(() => {
+                                // set value to false
+                                return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power', false)
+                                    .then(() => {
 
-                                            // wait a bit
-                                            return sleep(5000).then(() => {
-                                                // get value back
-                                                return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power')
-                                                    .then((getResponse2) => {
+                                        // wait a bit
+                                        return sleep(5000).then(() => {
+                                            // get value back
+                                            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power')
+                                                .then((getResponse2) => {
 
-                                                        // TEST: the same value was returned that was set
-                                                        console.log('*** getResponse ***: ' + JSON.stringify(getResponse2, null, 2));
-                                                        t.is(getResponse2, false);
-                                                    });
-                                            });
-                                });
+                                                    // TEST: the same value was returned that was set
+                                                    console.log('*** getResponse ***: ' + JSON.stringify(getResponse2, null, 2));
+                                                    t.is(getResponse2, false);
+                                                });
+                                        });
+                                    });
                             });
                     });
                 });
@@ -62,7 +62,6 @@ test.serial('Power_Post_Get', t => {
             t.is(typeof translator, 'object') && t.truthy(translator);
 
             // build value payload with schema for this translator,
-            // setting both properties at the same time
             var postPayload = {
                 power: {
                     value: true

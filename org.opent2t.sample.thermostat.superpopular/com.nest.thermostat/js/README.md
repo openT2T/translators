@@ -44,7 +44,7 @@ The user will be asked for product Id (client Id) and secret for onboarding the 
 Onboarding device  : Nest Thermostat
 deviceTypeFilter        : thermostats
 
-Please enter credentials for the Nest API (from developer.nest.com):
+Please enter credentials for the Nest API (from http://developers.nest.com):
 
 ? Nest API Client ID:  <Product GUID>
 ? Nest API Client Secret:  <Product Secret>
@@ -52,10 +52,10 @@ Please enter credentials for the Nest API (from developer.nest.com):
 Thanks! Initiating Nest sign-in.
 Server running on port 8080
 Signed in to Nest!
-? Which device do you want to onboard? Basement (VHB1) (WIoTQV105WnaOA4-gcROVFQLiwepexno)
-  access_token : <access_token>
-  expires_in   : 315360000
-  device_id    : <device_id>
+? Which device do you want to onboard? Basement (VHB1)
+  access_token : ACCESS_TOKEN
+  expires_in   : EXPIRATION_DURATION
+  device_id    : DEVICE_ID
   message      : All done. Happy coding!
 
 ```

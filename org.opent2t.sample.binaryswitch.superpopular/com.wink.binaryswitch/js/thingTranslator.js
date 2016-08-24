@@ -45,6 +45,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
     return {
         id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
         n: deviceSchema['name'],
+        rt: 'org.opent2t.sample.thermostat.superpopular',
         power: { 'value': powered }
     };
 }
@@ -116,27 +117,24 @@ class Translator {
             });
     }
 
-    // exports for individual properties
-
     getPower() {
-        console.log('getValue called');
+        console.log('getPower called');
 
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).power.value;
+        return this.getBinarySwitchResURI()
+            .then(response => {
+                return response.power.value;
             });
     }
 
     setPower(value) {
-        console.log('setValue called with value: ' + value);
+        console.log('setPower called with value: ' + value);
 
         var postPayload = {};
         postPayload.power = { value: value };
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).power.value;
+        return this.postBinarySwitchResURI(postPayload)
+            .then(response => {
+                return response.power.value;
             });
     }
 }

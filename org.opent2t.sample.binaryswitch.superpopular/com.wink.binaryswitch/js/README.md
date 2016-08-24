@@ -56,8 +56,8 @@ Please enter credentials for the Wink API:
 Thanks! Signing you in to Wink.
 Signed in to WINK.
 ? Which device do you want to onboard? Living Room Lamp Switch (137418)
-  access_token : abcc2f4ds55asd531ec78cc08_l4Qwj
-  id           : 3559678
+  access_token : ACCESS_TOKEN
+  id           : DEVICE_ID
   message      : All done. Happy coding!
 ```
 

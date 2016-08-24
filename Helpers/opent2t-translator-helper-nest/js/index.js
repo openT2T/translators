@@ -2,7 +2,7 @@
 
 var request = require('request-promise');
 
-// Nest developer endpoint as documented here: http:/developer.nest.com/
+// Nest developer endpoint as documented here: http:/developers.nest.com/
 var apiEndpoint = 'https://developer-api.nest.com';
 
 // Internal state used to make subsequent API calls
@@ -17,7 +17,7 @@ class NestHelper {
         console.log('Initialized Nest Helper.');
     }
 
-    // Gets device details (all fields), response formatted per http:/developer.nest.com/
+    // Gets device details (all fields), response formatted per http:/developers.nest.com/
     getDeviceDetailsAsync(deviceType, deviceId) {
 
         // build request URI
@@ -44,7 +44,7 @@ class NestHelper {
             });
     }
 
-    // Puts device details (all fields) payload formatted per http:/developer.nest.com/
+    // Puts device details (all fields) payload formatted per http:/developers.nest.com/
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
 
         // build request URI and body

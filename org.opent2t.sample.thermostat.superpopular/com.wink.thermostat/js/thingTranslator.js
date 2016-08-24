@@ -72,7 +72,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 
 // Helper method to convert the translator schema to the device schema.
 function translatorSchemaToDeviceSchema(translatorSchema) {
-    
+
     // build the object with desired state
     var result = { 'desired_state': {} };
     var desired_state = result.desired_state;
@@ -144,7 +144,7 @@ class Translator {
     //
     // In addition, returns the updated state (see sample in RAML)
     postThermostatResURI(postPayload) {
-        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload));
+        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
         return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
@@ -158,27 +158,27 @@ class Translator {
     getAmbientTemperature() {
         console.log('getAmbientTemperature called');
 
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).ambientTemperature.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.ambientTemperature.temperature;
             });
     }
 
     getTargetTemperature() {
         console.log('getTargetTemperature called');
 
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).targetTemperature.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperature.temperature;
             });
     }
 
     getTargetTemperatureHigh() {
         console.log('getTargetTemperatureHigh called');
 
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureHigh.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperatureHigh.temperature;
             });
     }
 
@@ -188,19 +188,18 @@ class Translator {
         var postPayload = {};
         postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureHigh.temperature;
+        return this.postThermostatResURI(postPayload)
+            .then(response => {
+                return response.targetTemperatureHigh.temperature;
             });
     }
 
     getTargetTemperatureLow() {
         console.log('getTargetTemperatureLow called');
 
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureLow.temperature;
+        return this.getThermostatResURI()
+            .then(response => {
+                return response.targetTemperatureLow.temperature;
             });
     }
 
@@ -210,10 +209,9 @@ class Translator {
         var postPayload = {};
         postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data).targetTemperatureLow.temperature;
+        return this.postThermostatResURI(postPayload)
+            .then(response => {
+                return response.targetTemperatureLow.temperature;
             });
     }
 }
