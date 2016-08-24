@@ -117,6 +117,8 @@ class Translator {
             });
     }
 
+    // exports for individual properties
+
     getPower() {
         console.log('getPower called');
 
