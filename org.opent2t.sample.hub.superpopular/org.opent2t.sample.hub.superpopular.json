@@ -8,6 +8,7 @@
       "type": "object",
       "properties": {
         "devices": {
+          "$ref": "org.opent2t.device.json#/definitions/org.opent2t.device",
           "description": "ReadOnly, Gets the current set of devices associated with the hub."
         }
       }
@@ -16,6 +17,8 @@
   "type": "object",
   "allOf": [
     { "$ref": "oic.core.json#/definitions/oic.core" },
-    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" }
+    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" },
+    { "$ref": "org.opent2t.device.json#/definitions/org.opent2t.device" },
+    { "$ref": "#/definitions/org.opent2t.sample.hub.superpopular" }
   ]
 }
