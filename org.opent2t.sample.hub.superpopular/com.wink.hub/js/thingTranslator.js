@@ -96,13 +96,13 @@ class Translator {
         if (winkDevice.thermostat_id) {
             return { 
                 "schema": 'org.opent2t.sample.thermostat.superpopular',
-                "translator": "com-wink-thermostat"
+                "translator": "opent2t-translator-com-wink-thermostat"
             };
         }
         else if (winkDevice.binary_switch_id) {
             return { 
                 "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                "translator": "com-wink-binaryswitch"
+                "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
         
