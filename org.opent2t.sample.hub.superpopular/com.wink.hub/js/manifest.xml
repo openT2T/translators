@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest>
-  <!-- associated voice handler -->
-  <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
-  <!-- associated schemas -->
   <schemas>
-      <schema id="org.opent2t.sample.thermostat.superpopular" main="true" type="OCF" />
-      <schema id="oic.r.temperature" type="OCF" />
+      <schema id="org.opent2t.sample.hub.superpopular" main="true" type="OCF" />
       <schema id="oic.core" type="OCF" />
       <schema id="oic.baseResource" type="OCF" />
   </schemas>
   <!-- associated onboarding module -->
   <onboarding id="org.opent2t.onboarding.winkhub">
     <onboardflow name="getUserInput">
-      <flow type=”input”>
+      <flow type="input">
         <arg name="username" />
         <description language="en">Type in your Wink username </description>
         <description language="fr">Entrez for nom pour Wink </description>
       </flow>
-      <flow type=”password”>
+      <flow type="password">
         <arg name="password"  />
         <description language="en">Type in your Wink password </description>
         <description language="fr">Entrez for password pour Wink </description>

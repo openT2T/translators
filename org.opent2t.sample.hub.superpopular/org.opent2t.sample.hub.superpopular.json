@@ -7,9 +7,6 @@
     "org.opent2t.sample.hub.superpopular": {
       "type": "object",
       "properties": {
-        "name": {
-          "description": "ReadOnly, Gets the name of the hub."
-        },
         "devices": {
           "description": "ReadOnly, Gets the current set of devices associated with the hub."
         }

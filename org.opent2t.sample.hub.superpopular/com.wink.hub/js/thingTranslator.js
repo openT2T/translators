@@ -23,9 +23,11 @@ class Translator {
     /**
      * Get the list of devices discovered through the hub.
      */
-    getDevicesAsync() {
-        return this._makeRequest(this._devicesPath, 'GET').then((data) => {
-            var devices = data.data;
+    getHubResURI() {
+        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+
+            var toReturn = {};
+            var devices = response.data;
 
             var filteredDevices = [];
             devices.forEach((winkDevice) => {
@@ -48,14 +50,17 @@ class Translator {
                     filteredDevices.push(device);
                 }
             });
-            return filteredDevices;
+
+            toReturn.devices = filteredDevices;
+
+            return toReturn;
         });
     }
 
     /**
-     * Get the name of the hub.
+     * Get the name of the hub.  Ties to the n property from oic.core
      */
-    getName() {
+    getN() {
         return this._name;
     }
 
@@ -88,13 +93,13 @@ class Translator {
      * Given the hub specific device, returns the opent2t schema and translator
     */
     _getOpent2tInfo(winkDevice) {
-        if (winkDevice.thermostat_id != undefined) {
+        if (winkDevice.thermostat_id) {
             return { 
                 "schema": 'org.opent2t.sample.thermostat.superpopular',
                 "translator": "com-wink-thermostat"
             };
         }
-        else if (winkDevice.binary_switch_id != undefined) {
+        else if (winkDevice.binary_switch_id) {
             return { 
                 "schema": 'org.opent2t.sample.binaryswitch.superpopular',
                 "translator": "com-wink-binaryswitch"
