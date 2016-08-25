@@ -1,5 +1,5 @@
-var OcfSchemaReader = require("openT2T/schema/OcfSchemaReader");
+var OcfSchemaReader = require('openT2T/schema/OcfSchemaReader');
 
 module.exports = OcfSchemaReader.readThingSchemaFromFilesAsync(
-        require("path").join(__dirname, "org.opent2t.sample.binaryswitch.superpopular.raml")
+        require('path').join(__dirname, 'org.opent2t.sample.binaryswitch.superpopular.raml')
     );

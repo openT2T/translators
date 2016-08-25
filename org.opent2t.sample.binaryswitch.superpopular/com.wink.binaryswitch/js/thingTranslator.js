@@ -88,7 +88,7 @@ class Translator {
 
         // Initialize Wink Helper
         winkHelper = new WinkHelper(device.props.access_token);
-        console.log('Javascript and Wink Helper initialized : ');
+        console.log('Javascript and Wink Helper initialized.');
     }
 
     // exports for the entire schema object

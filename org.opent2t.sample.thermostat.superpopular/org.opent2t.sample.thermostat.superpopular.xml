@@ -2,7 +2,7 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
 <node>
   <interface name="org.opent2t.sample.thermostat.superpopular">
-    <description>OpenT2T SuperPopular Thermostat interface</description>
+    <description>OpenT2T SuperPopular Thermostat</description>
 
     <property name="ambientTemperature" type="d" access="read">
      <description>ReadOnly, Current temperature measured by the thermostat.</description>

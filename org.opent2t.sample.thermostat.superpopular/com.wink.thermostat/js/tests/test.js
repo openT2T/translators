@@ -9,7 +9,7 @@ var translatorPath = require('path').join(__dirname, '..');
 /// Run a series of tests to validate the translator
 ///
 
-// Set/Get AmbientTemperature via setters for individual properties
+// Get AmbientTemperature via getter for individual property
 test.serial('AmbientTemperature', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)

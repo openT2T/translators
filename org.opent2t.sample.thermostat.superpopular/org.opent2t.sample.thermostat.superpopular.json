@@ -2,7 +2,7 @@
   "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.thermostat.superpopular#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "",
-  "title": "OpenT2T Thermostat",
+  "title": "OpenT2T SuperPopular Thermostat",
   "definitions": {
     "org.opent2t.sample.thermostat.superpopular": {
       "type": "object",
