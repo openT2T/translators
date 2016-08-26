@@ -21,7 +21,7 @@ var r = 255;
 var g = 255;
 var b = 255;
 
-// This translator class implements the 'org.opent2t.sample.temperaturesensor.superpopular' schema.
+// This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
 
     constructor(device) {
@@ -122,6 +122,27 @@ class Translator {
         return this.postLampResURI(postPayload)
             .then(response => {
                 return response.dim.dimmingSetting;
+            });
+    }
+
+    getColor() {
+        console.log('getColor called');
+
+        return this.getLampResURI()
+            .then(response => {
+                return response.color.rgbValue;
+            });
+    }
+
+    setColor(value) {
+        console.log('setColor called with value: ' + JSON.stringify(value));
+
+        var postPayload = {};
+        postPayload.color = { rgbValue: value };
+
+        return this.postLampResURI(postPayload)
+            .then(response => {
+                return response.color.rgbValue;
             });
     }
 }

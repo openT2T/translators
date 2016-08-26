@@ -17,7 +17,7 @@
                 },
                 "colour": {
                     "$ref": "oic. r.colour.rgb #/definitions/oic.r.colour.rgb",
-                    "description": "RGG color emitted by the light."
+                    "description": "RGB color emitted by the light."
                 }
             }
         }

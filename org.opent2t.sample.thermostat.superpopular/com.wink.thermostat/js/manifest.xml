@@ -10,7 +10,7 @@
       <schema id="oic.r.humidity" type="OCF" />
       <schema id="oic.r.mode" type="OCF" />
       <schema id="oic.core" type="OCF" />
-      <schema id="oic.baseResource" type="OCF" />
+      <schema id="oic.baseresource" type="OCF" />
   </schemas>
   <!-- associated onboarding module -->
   <onboarding id="org.opent2t.onboarding.winkhub">

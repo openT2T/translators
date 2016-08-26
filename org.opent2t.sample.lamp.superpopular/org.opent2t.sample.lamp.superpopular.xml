@@ -12,5 +12,9 @@
       <description>Dimming status of the light.</description>
     </property>
 
+    <property name="color" type="ai" access="readwrite">
+      <description>RGB color emitted by the light, e.g. [255, 255, 255]</description>
+    </property>
+
   </interface>
 </node>

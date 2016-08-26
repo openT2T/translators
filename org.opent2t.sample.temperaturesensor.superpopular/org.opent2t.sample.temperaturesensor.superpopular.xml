@@ -5,7 +5,7 @@
     <description>OpenT2T SuperPopular Temperature Sensor</description>
 
     <property name="ambientTemperature" type="d" access="read">
-     <description>ReadOnly, Current temperature measured by the sensor.</description>
+      <description>ReadOnly, Current temperature measured by the sensor.</description>
     </property>
     
   </interface>

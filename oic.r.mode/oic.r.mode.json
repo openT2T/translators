@@ -1,7 +1,7 @@
 {
   "id": "http://openinterconnect.org/iotdatamodels/schemas/oic.r.mode.json#",
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description" : "Copyright (c) 2016 Open Connectivity Foundation, Inc. All rights reserved.",
+  "description": "Copyright (c) 2016 Open Connectivity Foundation, Inc. All rights reserved.",
   "title": "Mode",
   "definitions": {
     "oic.r.mode": {
@@ -14,7 +14,7 @@
             "type": "string"
           }
         },
-        "modes":          {
+        "modes": {
           "type": "array",
           "description": "Array of the currently active mode(s)",
           "items": {
@@ -26,9 +26,18 @@
   },
   "type": "object",
   "allOf": [
-    {"$ref": "oic.core.json#/definitions/oic.core"},
-    {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
-    {"$ref": "#/definitions/oic.r.mode"}
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/oic.r.mode"
+    }
   ],
-  "required": ["supportedModes", "modes"]
+  "required": [
+    "supportedModes",
+    "modes"
+  ]
 }

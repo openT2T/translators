@@ -96,6 +96,55 @@ test.serial('Dim', t => {
         });
 });
 
+// Set/Get Color Value via setters for individual properties
+test.serial('Color', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            // set value to redish: [255,1,5]
+            return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'color', [255, 1, 5])
+                .then(() => {
+
+                    // wait a bit...
+                    return sleep(1000).then(() => {
+                        // get value back
+                        return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'color')
+                            .then((getResponse) => {
+                                // TEST: the same value was returned that was set
+                                console.log('*** getResponse ***: ' + JSON.stringify(getResponse, null, 2));
+                                t.is(getResponse.length, 3);
+                                t.is(getResponse[0], 255);
+                                t.is(getResponse[1], 1);
+                                t.is(getResponse[2], 5);
+
+                                // set value to bluish: [5,1,255]
+                                return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'color', [5, 1, 255])
+                                    .then(() => {
+
+                                        // wait a bit
+                                        return sleep(1000).then(() => {
+                                            // get value back
+                                            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'color')
+                                                .then((getResponse2) => {
+
+                                                    // TEST: the same value was returned that was set
+                                                    console.log('*** getResponse ***: ' + JSON.stringify(getResponse2, null, 2));
+                                                    t.is(getResponse2.length, 3);
+                                                    t.is(getResponse2[0], 5);
+                                                    t.is(getResponse2[1], 1);
+                                                    t.is(getResponse2[2], 255);
+                                                });
+                                        });
+                                    });
+                            });
+                    });
+                });
+        });
+});
+
 // Set/Get power, color and dim Values together via POST/GET of the entire schema object
 test.serial('Power_Dim_Color Post_Get', t => {
 

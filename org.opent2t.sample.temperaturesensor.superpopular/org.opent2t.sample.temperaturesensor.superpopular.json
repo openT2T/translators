@@ -16,8 +16,14 @@
   },
   "type": "object",
   "allOf": [
-    { "$ref": "oic.core.json#/definitions/oic.core" },
-    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" },
-    { "$ref": "#/definitions/org.opent2t.sample.temperaturesensor.superpopular" }
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/org.opent2t.sample.temperaturesensor.superpopular"
+    }
   ]
 }

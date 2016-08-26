@@ -53,7 +53,10 @@
         },
         "heatingFuelSource": {
           "type": "string",
-          "enum": [ "electric", "gas" ],
+          "enum": [
+            "electric",
+            "gas"
+          ],
           "description": "hvac fuel type."
         },
         "hasFan": {
@@ -81,8 +84,14 @@
   },
   "type": "object",
   "allOf": [
-    { "$ref": "oic.core.json#/definitions/oic.core" },
-    { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" },
-    { "$ref": "#/definitions/org.opent2t.sample.thermostat.superpopular" }
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/org.opent2t.sample.thermostat.superpopular"
+    }
   ]
 }
