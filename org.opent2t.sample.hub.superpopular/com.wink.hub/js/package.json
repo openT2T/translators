@@ -1,0 +1,27 @@
+{
+  "name": "opent2t-translator-com-wink-hub",
+  "version": "1.0.0",
+  "description": "Wink Hub",
+  "license": "MIT",
+  "main": "thingTranslator.js",
+  "files": [
+    "thingTranslator.js",
+    "package.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "githttps://github.com/openT2T/translators.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openT2T/translators/issues"
+  },
+  "homepage": "https://github.com/openT2T/translators#readme",
+  "dependencies": {
+    "request": "^2.74.0",
+    "request-promise": "^4.1.1",
+    "opent2t": "^1.0.1"
+  },
+  "devDependencies": {
+    "ava": "^0.15.2"
+  }
+}
