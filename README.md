@@ -22,8 +22,15 @@ git clone https://github.com/openT2T/translators.git
 
 ## Create a New Translator
 
-Follow our getting started guide at http://www.opentranslatorstothings.org.
+Follow our getting started guide at http://www.opentranslatorstothings.org. Note that we have some **required** naming rules for translator node packages:
 
+1. The npm package names must always have "opent2t-translator-" prefix. We are not currently using [npm namespacing](https://docs.npmjs.com/getting-started/scoped-packages).
+2. After the prefix, we will [kebab-case](http://c2.com/cgi/wiki?KebabCase) the reverse-URI that is translator name, so e.g. "com.wink.lightbulb" becomes "opent2t-trasnslator-com-wink-lightbulb".
+
+Here is some background reading for those who are curious:
+1. Node package name requirements/rules: https://docs.npmjs.com/files/package.json.
+2. Issue #50 includes a discussion and some context behind this naming guidance.
+ 
 ## Create a Pull Request
 Made any changes we should consider? Send us a pull request! Check out [this article](https://help.github.com/articles/creating-a-pull-request/)
 on how to get started.
