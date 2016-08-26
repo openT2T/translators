@@ -1,0 +1,37 @@
+#%RAML 0.8
+title: org.opent2t.sample.temperaturesensor.superpopular
+version: v1.0
+
+schemas:
+  - TemperatureSensor: !include org.opent2t.sample.temperaturesensor.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/TemperatureSensorResURI:
+  description: |
+   This resource describes the properties associated with TemperatureSensor.
+   The resource is a composite resource.
+  displayName: TemperatureSensor
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: TemperatureSensor
+            example: |
+              {
+                "rt": "org.opent2t.sample.temperaturesensor.superpopular",
+                "id": "unique_example_id",
+                "ambientTemperature": {
+                  "temperature": 66,
+                  "units": "F"
+                }
+            }

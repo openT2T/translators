@@ -90,7 +90,7 @@ class Translator {
 
         // Initialize Nest Helper
         nestHelper = new NestHelper(device.props.access_token);
-        console.log('Javascript and Nest Helper initialized : ');
+        console.log('Javascript and Nest Helper initialized.');
     }
 
     // exports for the entire schema object

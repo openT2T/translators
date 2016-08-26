@@ -10,7 +10,7 @@ var translatorPath = require('path').join(__dirname, '..');
 /// Run a series of tests to validate the translator
 ///
 
-// Set/Get Value via setters for individual properties
+// Set/Get power Value via setters for individual properties
 test.serial('Power', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -53,7 +53,7 @@ test.serial('Power', t => {
         });
 });
 
-// Set/Get Value via POST/GET of the entire schema object
+// Set/Get power Value via POST/GET of the entire schema object
 test.serial('Power_Post_Get', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)

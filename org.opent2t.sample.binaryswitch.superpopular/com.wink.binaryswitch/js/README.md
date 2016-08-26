@@ -22,7 +22,7 @@ popd
 npm link opent2t-translator-helper-wink
 ```
 
-Run `npm install` again after installing form local paths and confirm there are no errors before proceeding.
+Run `npm install` again after installing from local paths and confirm there are no errors before proceeding.
 
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:
@@ -61,7 +61,7 @@ Signed in to WINK.
   message      : All done. Happy coding!
 ```
 
-Notes the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
+Note the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
 for this translator is org.opent2t.onboarding.winkhub. This basically just describes what sort of setup, pairing or

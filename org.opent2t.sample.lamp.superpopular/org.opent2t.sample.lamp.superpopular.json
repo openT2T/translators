@@ -1,0 +1,37 @@
+{
+    "id": "http://schemas.microsoft.com/org.opent2t.sample.lamp.superpopular#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "",
+    "title": "OpenT2T SuperPopular Lamp",
+    "definitions": {
+        "org.opent2t.sample.lamp.superpopular": {
+            "type": "object",
+            "properties": {
+                "power": {
+                    "$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary",
+                    "description": "Power status of the light."
+                },
+                "dim": {
+                    "$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming",
+                    "description": "Dimming status of the light."
+                },
+                "colour": {
+                    "$ref": "oic. r.colour.rgb #/definitions/oic.r.colour.rgb",
+                    "description": "RGB color emitted by the light."
+                }
+            }
+        }
+    },
+    "type": "object",
+    "allOf": [
+        {
+            "$ref": "oic.core.json#/definitions/oic.core"
+        },
+        {
+            "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+        },
+        {
+            "$ref": "#/definitions/org.opent2t.sample.lamp.superpopular"
+        }
+    ]
+}

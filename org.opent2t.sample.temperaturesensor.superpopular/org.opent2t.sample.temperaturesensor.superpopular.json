@@ -1,0 +1,29 @@
+{
+  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.temperaturesensor.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "OpenT2T SuperPopular Temperature Sensor",
+  "definitions": {
+    "org.opent2t.sample.temperaturesensor.superpopular": {
+      "type": "object",
+      "properties": {
+        "ambientTemperature": {
+          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
+          "description": "ReadOnly, Current temperature measured by the sensor."
+        }
+      }
+    }
+  },
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/org.opent2t.sample.temperaturesensor.superpopular"
+    }
+  ]
+}

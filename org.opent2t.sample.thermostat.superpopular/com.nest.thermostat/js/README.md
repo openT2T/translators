@@ -21,7 +21,7 @@ popd
 npm link opent2t-translator-helper-nest
 ```
 
-Run `npm install` again after installing form local paths and confirm there are no errors before proceeding.
+Run `npm install` again after installing from local paths and confirm there are no errors before proceeding.
 
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:

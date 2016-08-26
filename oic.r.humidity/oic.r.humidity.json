@@ -1,17 +1,17 @@
 {
   "id": "http://openinterconnect.org/iotdatamodels/schemas/oic.r.humidity.json#",
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description" : "Copyright (c) 2016 Open Connectivity Foundation, Inc. All rights reserved.",
+  "description": "Copyright (c) 2016 Open Connectivity Foundation, Inc. All rights reserved.",
   "title": "Humidity",
   "definitions": {
     "oic.r.humidity": {
       "type": "object",
       "properties": {
-        "humidity":    {
+        "humidity": {
           "type": "integer",
           "description": "ReadOnly, Current sensed value for Humidity"
         },
-        "desiredHumidity":  {
+        "desiredHumidity": {
           "type": "integer",
           "description": "Desired value for Humidity"
         }
@@ -20,10 +20,17 @@
   },
   "type": "object",
   "allOf": [
-    {"$ref": "oic.core.json#/definitions/oic.core"},
-    {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
-    {"$ref": "#/definitions/oic.r.humidity"}
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/oic.r.humidity"
+    }
   ],
-  "required": ["humidity"]
+  "required": [
+    "humidity"
+  ]
 }
-    
