@@ -1,8 +1,12 @@
 {
     "name": "opent2t-translator-com-rachio-iro",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "Rachio Iro",
     "homepage": "http://opentranslatorstothings.org",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opent2t/translators.git"
+    },
     "main": "thingTranslator.js",
     "dependencies": {},
     "devDependencies": {

@@ -1,0 +1,77 @@
+#%RAML 0.8
+title: org.opent2t.sample.lamp.superpopular
+version: v1.0
+
+schemas:
+  - Lamp: !include org.opent2t.sample.lamp.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/LampResURI:
+  description: |
+   This resource describes the properties associated with a Lamp.
+   The resource is a composite resource of a switch, dimmer and colour setting
+ 
+
+  displayName: Lamp
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Lamp
+            example: |
+              {
+                "rt": "org.opent2t.sample.lamp.superpopular",
+                "id": "unique_example_id",
+                "power": {
+                  "value": true
+                },
+                "dim": {
+                  "dimmingSetting": 30,
+                   "step": 5,
+                   "range": [0,100]                
+                },
+                "colour": {
+                  "rgbValue": [255,255,255],
+                  "range": [0,255]
+                }
+              }
+    
+  post:
+    body:
+      application/json:
+        schema: Lamp
+        example: |
+          {
+            "id": "unique_example_id",
+            "dim": {
+              "dimmingSetting": 30
+            },
+            "colour": {
+              "rgbValue": [0,255,255]
+            }
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Lamp
+            example: |
+              {
+                "id": "unique_example_id",
+                "dim": {
+                  "dimmingSetting": 30
+                },
+                "colour": {
+                  "rgbValue": [0,255,255]
+                }
+              }

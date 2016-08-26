@@ -2,18 +2,11 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
 <node>
   <interface name="org.opent2t.sample.temperaturesensor.superpopular">
-    <!-- Get the current temperature -->
-    <method name="getCurrentTemperature">
-      <arg name="temp" type="d" direction="out" />
-    </method>
-    <!-- Get the temperature trend (slope) -->
-    <method name="getTemperatureTrend">
-      <arg name="temp" type="d" direction="out" />
-    </method>
-    <!-- Called when there is an error during usage of this translator -->
-    <signal name="error">
-        <arg name="type" type="s" direction="out"/>
-        <arg name="message" type="s" direction="out"/>
-    </signal>
+    <description>OpenT2T SuperPopular Temperature Sensor</description>
+
+    <property name="ambientTemperature" type="d" access="read">
+      <description>ReadOnly, Current temperature measured by the sensor.</description>
+    </property>
+    
   </interface>
 </node>

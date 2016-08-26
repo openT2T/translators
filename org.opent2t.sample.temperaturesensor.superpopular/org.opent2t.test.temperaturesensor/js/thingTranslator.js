@@ -1,62 +1,64 @@
+/* jshint esversion: 6 */
+/* jshint node: true */
 'use strict';
 
-// helper library for interacting with this lamp
-var Statistics = require('./lib/test-temperature-sensor-helper').Statistics;
-var Point = require('./lib/test-temperature-sensor-helper').Point;
+// This code uses ES2015 syntax that requires at least Node.js v4.
+// For Node.js ES2015 support details, reference http://node.green/
 
-// logs device state
-function logDeviceState(device) {
-    if (typeof (device) !== 'undefined') {
-        console.log('  device.name          : ' + device.name);
-        console.log('  device.props         : ' + device.props);
-    } else {
-        console.log('device is undefined');
+function validateArgumentType(arg, argName, expectedType) {
+    if (typeof arg === 'undefined') {
+        throw new Error('Missing argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + '.');
+    } else if (typeof arg !== expectedType) {
+        throw new Error('Invalid argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
-};
-
-// generate a random sample 
-function randomTemperatureTrend() {
-    var len = Math.floor(Math.random() * 30);
-    if (len == 0) return 0;
-    var pts = new Array(len);
-    var trend = len % 2 ? 1 : -1; // generate a pseudo positive or negative trend
-    for (var i = 0; i < len; i++) {
-        pts[i] = new Point(i, Math.floor(60 + trend * (len % 5) * Math.random() * 5));
-    }
-    var line = Statistics.linearRegression(pts);
-    return line[1];
 }
 
-// module exports, implementing the schema
-module.exports = {
+// generate random test temperature data
+function generateTestData() {
+    // random int value in [0, 43] range
+    var randomTemperature = Math.floor(0 + Math.random() * 43);
 
-    device: null,
+    return {
+        id: 'some_test_id',
+        rt: 'org.opent2t.sample.temperaturesensor.superpopular',
+        ambientTemperature: { temperature: randomTemperature, units: 'C' }
+    }
+}
 
-    initDevice: function(dev) {
-        this.device = dev;
+// This translator class implements the 'org.opent2t.sample.temperaturesensor.superpopular' schema.
+class Translator {
+
+    constructor(device) {
+        console.log('Initializing device.');
+
+        validateArgumentType(device, 'device', 'object');
+        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(device.props.token, 'device.props.token', 'string');
 
         console.log('Javascript initialized.');
-        logDeviceState(this.device);
-    },
+    }
 
-    getCurrentTemperature: function() {
+    // exports for the entire schema object
 
-        console.log('getCurrentTemperature called.');
-        var temperature = Math.floor(32 + Math.random() * 78); //random int value in [32, 110] range
-        console.log('returning random temperature: ' + temperature);
-        return temperature;
-    },
+    // Queries the entire state of the sensor
+    // and returns an object that maps to the json schema org.opent2t.sample.temperaturesensor.superpopular
+    getTemperatureSensorResURI() {
+        return Promise.resolve(generateTestData());
+    }
 
-    getTemperatureTrend: function() {
+    // exports for individual properties
 
-        console.log('getTemperatureTrend called.');
-        var trend = randomTemperatureTrend();
-        console.log('returning random temperature trend: ' + trend);
-        return trend;
-    },
+    getAmbientTemperature() {
+        console.log('getAmbientTemperature called');
 
-    disconnect: function() {
-        console.log('disconnect called.');
-        logDeviceState(this.device);
+        return this.getTemperatureSensorResURI()
+            .then(response => {
+                return response.ambientTemperature.temperature;
+            });
     }
 }
+
+// Export the translator from the module.
+module.exports = Translator;

@@ -1,15 +1,28 @@
 {
     "name": "opent2t-translator-org-opent2t-test-temperaturesensor",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "description": "Test Temperature Sensor",
     "homepage": "http://opentranslatorstothings.org",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opent2t/translators.git"
+    },
     "main": "thingTranslator.js",
+    "license": "MIT",
+    "scripts": {
+        "test": "ava"
+    },
+    "ava": {
+        "files": [
+            "tests/*.js"
+        ]
+    },
     "dependencies": {},
     "devDependencies": {
-        "async": "~1.5.2",
-        "optimist": "0.6.1",
-        "opent2t-onboarding-manual": "*"
-    },
-    "author": "",
-    "license": "MIT"
+        "optimist": "*",
+        "opent2t": "*",
+        "opent2t-onboarding-manual": "*",
+        "jshint": "^2.9.2",
+        "ava": "^0.15.2"
+    }
 }

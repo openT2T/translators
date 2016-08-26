@@ -1,4 +1,4 @@
-# Wink Thermostat translator
+# Wink Thermostat Translator
 Translator for Wink thermostat (https://wink.com)
 
 ## Setup Your Hardware
@@ -22,7 +22,7 @@ popd
 npm link opent2t-translator-helper-wink
 ```
 
-Run `npm install` again after installing form local paths and confirm there are no errors before proceeding.
+Run `npm install` again after installing from local paths and confirm there are no errors before proceeding.
 
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:
@@ -55,13 +55,13 @@ Please enter credentials for the Wink API:
 
 Thanks! Signing you in to Wink.
 Signed in to WINK.
-? Which device do you want to onboard? Jaffri Home Entryway Thermostat (137418)
-  access_token : abcc2f4ds55asd531ec78cc08_l4Qwj
-  id           : 3559678
+? Which device do you want to onboard? Home Entryway Thermostat (137418)
+  access_token : ACCESS_TOKEN
+  id           : DEVICE_ID
   message      : All done. Happy coding!
 ```
 
-Notes the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
+Note the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
 for this translator is org.opent2t.onboarding.winkhub. This basically just describes what sort of setup, pairing or

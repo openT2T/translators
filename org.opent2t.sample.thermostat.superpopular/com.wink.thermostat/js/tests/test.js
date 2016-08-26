@@ -9,7 +9,7 @@ var translatorPath = require('path').join(__dirname, '..');
 /// Run a series of tests to validate the translator
 ///
 
-// Get AmbientTemperature
+// Get AmbientTemperature via getter for individual property
 test.serial('AmbientTemperature', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -26,7 +26,7 @@ test.serial('AmbientTemperature', t => {
         });
 });
 
-// Set/Get TargetTemperatureHigh
+// Set/Get TargetTemperatureHigh via setters for individual properties
 test.serial('TargetTemperatureHigh', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -48,7 +48,7 @@ test.serial('TargetTemperatureHigh', t => {
         });
 });
 
-// Set/Get TargetTemperatureLow
+// Set/Get TargetTemperatureLow via setters for individual properties
 test.serial('TargetTemperatureLow', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
@@ -70,8 +70,8 @@ test.serial('TargetTemperatureLow', t => {
         });
 });
 
-// Set/Get TargetTemperatureHigh + TargetTemperatureLow Together
-test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
+// Set/Get TargetTemperatureHigh + TargetTemperatureLow via POST/GET of the entire schema object
+test.serial('TargetTemperatureHigh_TargetTemperatureLow_Post_Get', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
         .then(translator => {
@@ -81,22 +81,22 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
             // build value payload with schema for this translator,
             // setting both properties at the same time
             var value = {};
-            value['targetTemperatureHigh'] = 22;
-            value['targetTemperatureLow'] = 19;
+            value['targetTemperatureHigh'] = { temperature: 22 };
+            value['targetTemperatureLow'] = { temperature: 19 };
 
             return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
                 .then((response1) => {
 
-                    console.log('*** multi-set response: ' + JSON.stringify(response1));
+                    console.log('*** multi-set response: ' + JSON.stringify(response1, null, 2));
 
                     return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', [])
                         .then((response2) => {
 
                             // TEST: The same values were returned that were set
                             //       (due to rounding the value returned is sometimes a little different)
-                            console.log('*** multi-get response: ' + JSON.stringify(response2));
-                            t.truthy(Math.abs(response2.targetTemperatureLow - 19) < 0.75);
-                            t.truthy(Math.abs(response2.targetTemperatureHigh - 22) < 0.75);
+                            console.log('*** multi-get response: ' + JSON.stringify(response2, null, 2));
+                            t.truthy(Math.abs(response2.targetTemperatureLow.temperature - 19) < 0.75);
+                            t.truthy(Math.abs(response2.targetTemperatureHigh.temperature - 22) < 0.75);
 
                             // Test that the target temp is an average of the two setpoints, approximately
                             return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperature')
@@ -109,6 +109,71 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow', t => {
                                     t.truthy(Math.abs(targetTemperature - 20.5) < 0.75);
                                 });
                         });
+                });
+        });
+});
+
+// Get the entire Thermostat schema object
+test.serial('GetThermostatResURI', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', [])
+                .then((response) => {
+
+                    t.not(response.id, undefined);
+                    t.is(response.rt, 'org.opent2t.sample.thermostat.superpopular');
+                    t.not(response.targetTemperature, undefined);
+                    t.not(response.targetTemperatureHigh, undefined);
+                    t.not(response.targetTemperatureLow, undefined);
+                    t.not(response.ambientTemperature, undefined);
+                    t.not(response.awayMode, undefined);
+                    t.not(response.hasFan, undefined);
+                    t.not(response.ecoMode, undefined);
+                    t.not(response.hvacMode, undefined);
+                    t.not(response.fanTimerActive, undefined);
+
+                    console.log('*** response: \n' + JSON.stringify(response, null, 2));
+                });
+        });
+});
+
+test.serial('PostThermostatResURI_Set_AwayMode', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            var value = {};
+            value['awayMode'] = true;
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
+                .then((response) => {
+                    t.truthy(response.awayMode);
+
+                    console.log('*** response: \n' + JSON.stringify(response, null, 2));
+                });
+        });
+});
+
+test.serial('PostThermostatResURI_Set_HvacMode', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+            var value = {};
+            value['hvacMode'] = { 'modes': ['auto'] };
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
+                .then((response) => {
+                    t.is(response.hvacMode.modes[0], 'auto');
+
+                    console.log('*** response: \n' + JSON.stringify(response, null, 2));
                 });
         });
 });
