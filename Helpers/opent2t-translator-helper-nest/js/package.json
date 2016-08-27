@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-helper-nest",
-    "version": "1.0.3",
+    "version": "1.0.7",
     "description": "",
     "dependencies": {
         "request": "^2.34",

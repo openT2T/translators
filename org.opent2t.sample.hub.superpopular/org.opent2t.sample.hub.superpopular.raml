@@ -1,0 +1,36 @@
+#%RAML 0.8
+title: org.opent2t.sample.hub.superpopular
+version: v1.0
+
+schemas:
+  - Hub: !include org.opent2t.sample.hub.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/HubResURI:
+  description: |
+   This resource describes the properties associated with the hub.
+   The resource is a composite resource.
+  displayName: Hub
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Hub
+            example: |
+              {
+                "schema": "org.opent2t.sample.hub.superpopular",
+                "id": "unique_example_id",
+                "devices": {
+                },
+            }
+    
