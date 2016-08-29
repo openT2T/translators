@@ -107,3 +107,17 @@ To run a specific test, run:
 ava <test file path> <options>
 ```
 
+### 5. Verify javascript passes linting
+
+To lint all javascript files in this directory, run:
+
+```bash
+npm run-script lint .
+```
+
+To lint a specific file, run:
+
+```bash
+npm run-script lint npm run-script lint <source file path>
+```
+

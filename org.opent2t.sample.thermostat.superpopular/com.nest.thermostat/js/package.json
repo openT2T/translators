@@ -10,7 +10,8 @@
   "main": "thingTranslator.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "lint": "eslint"
   },
   "ava": {
     "files": [
@@ -26,6 +27,8 @@
     "opent2t": "*",
     "opent2t-onboarding-nest": "*",
     "jshint": "^2.9.2",
+    "eslint": "latest",
+    "eslint-config-opent2t": "latest",
     "ava": "^0.15.2"
   }
 }
