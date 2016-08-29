@@ -26,7 +26,7 @@ var deviceId = null;
 // in memory state of bulb
 var powered = false;
 var r = 0;
-var g = -0
+var g = 0;
 var b = 0;
 
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
