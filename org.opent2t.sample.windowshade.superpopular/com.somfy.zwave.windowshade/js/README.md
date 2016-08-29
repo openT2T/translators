@@ -28,7 +28,7 @@ npm install
 After everything is installed, run:
 
 ```bash
-node node_modules/opent2t-onboarding-zwave/test.js -n 'Somfy' -f '^Somfy*'
+node node_modules/opent2t-onboarding-zwave/test.js -n "Somfy" -f "^Somfy*"
 ```
 
 The -f parameter is a regular expression to identify the window shade by matching its manufacturer name.
