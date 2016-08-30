@@ -1,10 +1,9 @@
-# Wink Light Bulb
-
-Translator for lights connected to the Wink hub: http://wink.com
+# Wink Light Translator
+Translator for Wink Light (https://wink.com)
 
 ## Setup Your Hardware
-
-Follow instructions on the Wink site: http://wink.com 
+Follow instructions in the Wink app to set up your light with Wink. This is a pre-requisite
+before using this translator to interact with your light.
 
 ## Installing Dependencies
 To install dependencies for this translator, run:
@@ -13,11 +12,16 @@ To install dependencies for this translator, run:
 npm install
 ```
 
-## Test Device
-After everything is installed, run:
+## Running Test Automation
+This translator comes with some automated tests. Here's how you can run them:
+
+### 1. Run onboarding to get credentials
+
+After dependencies are installed, cd to the translator root directory (i.e. the directory where
+this `README.md` and the `thingTranslator.js` exists).
 
 ```bash
-node node_modules/opent2t-onboarding-winkhub/test.js -n "Wink Light Bulb" -f "light_bulb_id"
+node node_modules/opent2t-onboarding-winkhub/test.js -n 'Wink Light' -f 'light_bulb_id'
 ```
 
 The -f parameter is a regular expression to identify this device type by matching its ID field name. In this case, we are looking
@@ -39,37 +43,56 @@ Please enter credentials for the Wink API:
 
 Thanks! Signing you in to Wink.
 Signed in to WINK.
-? Which device do you want to onboard?
- GE Link Bulb (1559737)
->GE Link Bulb (3559678)
- GE Link Bulb (5523425)
-  access_token : abcc2f4ds55asd531ec78cc08b236gd
-  id           : 3559678
+? Which device do you want to onboard? Office Light (137528)
+  access_token : ACCESS_TOKEN
+  id           : DEVICE_ID
   message      : All done. Happy coding!
 ```
 
-Copy the access token and id of the device that was discovered, and use that to run the translator test file:
-
-```bash
-$ node test -i 3559678 -a abcc2f4ds55asd531ec78cc08b236gd
-
-```
-
-If the device is on and connected to the Wink hub, you should see it turn on/off and change brightness per
-the commands in the test file. You should also see output similar to:
-
-```bash
-Javascript initialized.
-  device.name          : Wink Light Bulb (Test)
-  device.props         :  { "id": "3559678", "access_token": "abcc2f4ds55asd531ec78cc08b236gd" }
-turnOn called.
-turnOff called.
-disconnect called.
-  device.name          : Wink Light Bulb (Test)
-  device.props         :  { "id": "3559678", "access_token": "abcc2f4ds55asd531ec78cc08b236gd" }
-```
+Note the `access_token` and `id` of the device that was discovered. You will need it later to run the test automation.
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
 for this translator is org.opent2t.onboarding.winkhub. This basically just describes what sort of setup, pairing or
 auth information is required to interact with the device. In the case of this onboarding type, success means you get
-an ID parameter and an access token. These parameters needs to be provided to the translator for it to work.
+an ID parameter and an access token. These parameters are provided to the translator for it to work.
+
+### 2. Create the `tests/testConfig.json` file
+This is where you can put credentials/config to drive this test (this file is added to .gitignore
+to prevent inadvertent check-in). Use the following contents to start this file:
+
+   ```json
+    {
+        "Device" : {
+            "name": "Wink Light.",
+            "props": { 
+                "id": "<id>", 
+                "access_token": "<access-token>" 
+            }
+        }
+    }
+   ```
+
+### 3. Modify testConfig.json with Test Configuration
+Populate `<id>` and `<access_token>` in `tests/testconfig.json`. You can get these values by running
+the onboarding script (see above).
+
+### 4. Install Test Dependencies:
+
+```bash
+npm install -g ava
+```
+
+### 5. Run the tests
+
+To run all the tests, run:
+
+```bash
+npm test
+```
+
+To run a specific test, run:
+
+```bash
+ava <test file path> <options>
+```
+
