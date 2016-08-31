@@ -1,3 +1,10 @@
 {
-    "extends": "opent2t"
+    "extends": "opent2t",
+	"parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module"
+    },
+	"rules": {
+		"no-console": "off"
+	}
 }
