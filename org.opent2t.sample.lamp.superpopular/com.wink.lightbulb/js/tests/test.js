@@ -102,12 +102,12 @@ test.serial('PostLampResURI_Set_NameAndDim', t => {
 
             var value = {};
             value['n'] = "opent2t light";
-            value['dim'] = { 'dimmingSetting': 40 };
+            value['dim'] = { 'dimmingSetting': 43 };
 
             return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postLampResURI', [value]);
         }).then((response) => {
             t.is(response.n, "opent2t light");
-            t.is(response.dim.dimmingSetting, 40);
+            t.is(response.dim.dimmingSetting, 43);
 
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
         });
