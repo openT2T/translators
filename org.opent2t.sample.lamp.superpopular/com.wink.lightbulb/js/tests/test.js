@@ -52,3 +52,64 @@ test.serial('Power', t => {
                 });
         });
 });
+
+// Get the entire Lamp schema object
+test.serial('GetLampResURI', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'getLampResURI', []);
+        }).then((response) => {
+            t.not(response.id, undefined);
+            t.is(response.rt, 'org.opent2t.sample.lamp.superpopular');
+            t.not(response.power, undefined);
+            t.not(response.dim, undefined);
+
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
+        });
+});
+
+
+// Get the entire Lamp schema object
+test.serial('PostLampResURI_Set_Power', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            var value = {};
+            value['power'] = { 'value': true };
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postLampResURI', [value]);
+        }).then((response) => {
+            t.truthy(response.power.value);
+
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
+        });
+});
+
+// Set the name and dimming for the Lamp
+test.serial('PostLampResURI_Set_NameAndDim', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            var value = {};
+            value['n'] = "opent2t light";
+            value['dim'] = { 'dimmingSetting': 40 };
+
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postLampResURI', [value]);
+        }).then((response) => {
+            t.is(response.n, "opent2t light");
+            t.is(response.dim.dimmingSetting, 40);
+
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
+        });
+});
+
