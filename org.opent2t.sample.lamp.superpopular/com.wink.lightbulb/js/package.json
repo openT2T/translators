@@ -8,12 +8,24 @@
         "url": "https://github.com/opent2t/translators.git"
     },
     "main": "thingTranslator.js",
-    "dependencies": {},
-    "devDependencies": {
-        "async": "~1.5.2",
-        "optimist": "0.6.1",
-        "opent2t-onboarding-winkhub": "*"
+    "license": "MIT",
+    "scripts": {
+        "test": "ava"
     },
-    "author": "",
-    "license": "MIT"
+    "ava": {
+        "files": [
+            "tests/*.js"
+        ]
+    },
+    "dependencies": {
+        "opent2t-translator-helper-wink": "*"
+    },
+    "devDependencies": {
+        "optimist": "*",
+        "opent2t": "*",
+        "opent2t-onboarding-winkhub": "*",
+        "jshint": "^2.9.2",
+        "ava": "^0.15.2",
+        "es6-sleep": "*"
+    }
 }
