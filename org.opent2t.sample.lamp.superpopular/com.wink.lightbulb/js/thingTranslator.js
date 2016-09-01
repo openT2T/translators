@@ -77,7 +77,7 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
         desired_state['powered'] = translatorSchema.power.value;
     }
 
-    if (!!translatorSchema.dim) {
+    if (translatorSchema.dim) {
         desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(translatorSchema.dim.dimmingSetting);
     }
 
