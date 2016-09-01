@@ -17,7 +17,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 // Helper method to send power state commands to Vera
 function sendPowerStateCommandToDevice(veraService, veraAction, veraVariable,
@@ -56,7 +56,7 @@ function sendPowerStateCommandToDevice(veraService, veraAction, veraVariable,
     req.on('response', (res) => {
         res.setEncoding('utf8');
 
-        res.on('data', (chunk) => {
+        res.on('data', () => {
         });
 
         res.on('end', () => {

@@ -63,11 +63,11 @@ class Translator {
         console.log('postLampResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         // set in memory state
-        if (!!postPayload.power) {
+        if (postPayload.power) {
             powered = postPayload.power.value;
         }
 
-        if (!!postPayload.dim) {
+        if (postPayload.dim) {
             dimmingSetting = postPayload.dim.dimmingSetting;
         }
 

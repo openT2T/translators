@@ -1,5 +1,4 @@
 var translator = require('./thingTranslator');
-var Q = require('q');
 
 var argv = require('optimist')
     .usage('Usage: $0 -c [ZWave bridge COM port] -a [JSON string that looks like: {\\\"homeId\\\":25478028,\\\"nodeId\\\":3} ]')

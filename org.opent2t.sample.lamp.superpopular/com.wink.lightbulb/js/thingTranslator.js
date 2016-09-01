@@ -69,11 +69,11 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     var result = { 'desired_state': {} };
     var desired_state = result.desired_state;
 
-    if (!!translatorSchema.n) {
+    if (translatorSchema.n) {
         result['name'] = translatorSchema.n;
     }
 
-    if (!!translatorSchema.power) {
+    if (translatorSchema.power) {
         desired_state['powered'] = translatorSchema.power.value;
     }
 

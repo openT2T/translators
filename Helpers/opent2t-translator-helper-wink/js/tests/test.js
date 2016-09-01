@@ -11,7 +11,7 @@ var putPayload = {};
 putPayload['min_set_point'] = 21;
 putPayload['max_set_point'] = 22;
 
-return helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
+helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
     .then(result => {
         console.log('set multiple result: ' + JSON.stringify(result, null, 2));
 

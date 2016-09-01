@@ -42,7 +42,7 @@ class Translator {
                     device.name = winkDevice.name;
 
                     // set the specific device object id to be the id
-                    device.id = this._getDeviceId(winkDevice);;
+                    device.id = this._getDeviceId(winkDevice);
 
                     // set the opent2t info for the wink device
                     device.openT2T = opent2tInfo;
@@ -73,7 +73,7 @@ class Translator {
         var requestPath = '/' + deviceType + '/' + deviceId;
 
         // Make the async request
-        return _makeRequest(requestPath, 'GET');
+        return this._makeRequest(requestPath, 'GET');
     }
 
     /**
@@ -86,7 +86,7 @@ class Translator {
         var putPayloadString = JSON.stringify(putPayload);
 
         // Make the async request
-        return _makeRequest(requestPath, 'PUT', putPayloadString);
+        return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
 
     /** 

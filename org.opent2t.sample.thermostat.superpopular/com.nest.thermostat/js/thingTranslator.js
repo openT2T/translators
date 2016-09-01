@@ -51,19 +51,19 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
     var result = {};
 
-    if (!!translatorSchema.n) {
+    if (translatorSchema.n) {
         result['name'] = translatorSchema.n;
     }
 
-    if (!!translatorSchema.targetTemperature) {
+    if (translatorSchema.targetTemperature) {
         result['target_temperature_' + translatorSchema.targetTemperature.units.toLowerCase()] = translatorSchema.targetTemperature.temperature;
     }
 
-    if (!!translatorSchema.targetTemperatureHigh) {
+    if (translatorSchema.targetTemperatureHigh) {
         result['target_temperature_high_' + translatorSchema.targetTemperatureHigh.units.toLowerCase()] = translatorSchema.targetTemperatureHigh.temperature;
     }
 
-    if (!!translatorSchema.targetTemperatureLow) {
+    if (translatorSchema.targetTemperatureLow) {
         result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = translatorSchema.targetTemperatureLow.temperature;
     }
 
