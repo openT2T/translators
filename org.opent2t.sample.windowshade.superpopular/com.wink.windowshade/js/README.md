@@ -17,7 +17,7 @@ npm install
 After everything is installed, run:
 
 ```bash
-node node_modules/opent2t-onboarding-winkhub/test.js -n 'Wink Window Shades' -f 'shade_id'
+node node_modules/opent2t-onboarding-winkhub/test.js -n "Wink Window Shades" -f "shade_id"
 ```
 
 The -f parameter is a regular expression to identify this device type by matching its ID field name. In this case, we are looking

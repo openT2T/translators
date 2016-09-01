@@ -28,7 +28,7 @@ After dependencies are installed, cd to the translator root directory (i.e. the 
 this `README.md` and the `thingTranslator.js` exists).
 
 ```bash
-node node_modules/opent2t-onboarding-bluetoothle/test.js -n 'TI SensorTag' -f 'SensorTag'
+node node_modules/opent2t-onboarding-bluetoothle/test.js -n "TI SensorTag" -f "SensorTag"
 ```
 
 The -f parameter is a regular expression to identify this sensor by matching its advertisement local name.

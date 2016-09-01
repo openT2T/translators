@@ -14,18 +14,6 @@ To install dependencies for this translator, run:
 npm install
 ```
 
-> **Note:** At the time of writing some packages are not published to npm. If you get errors, 
-  Here's how you can install them from local paths via `npm link`.
-
-```bash
-pushd '../../../Helpers/opent2t-translator-helper-wink/js/'
-npm link
-popd
-npm link opent2t-translator-helper-wink
-```
-
-Run `npm install` again after installing from local paths and confirm there are no errors before proceeding.
-
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:
 
@@ -35,7 +23,7 @@ After dependencies are installed, cd to the translator root directory (i.e. the 
 this `README.md` and the `thingTranslator.js` exists).
 
 ```bash
-node node_modules/opent2t-onboarding-winkhub/test.js -n 'Wink Thermostat' -f 'thermostat_id'
+node node_modules/opent2t-onboarding-winkhub/test.js -n "Wink Thermostat" -f "thermostat_id"
 ```
 
 The -f parameter is a regular expression to identify this device type by matching its ID field name. In this case, we are looking
