@@ -11,7 +11,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 var zwave = new ZWave({
     ConsoleOutput: false
@@ -25,7 +25,6 @@ zwave.on('driver failed', function () {
 
 var device = null;
 var nodeId = null;
-var homeId = null;
 
 // module exports, implementing the schema
 module.exports = {
@@ -45,7 +44,6 @@ module.exports = {
                 }
 
 
-                homeId = props.id.homeId;
                 nodeId = props.id.nodeId;
 
                 var zwavedriverroot = {

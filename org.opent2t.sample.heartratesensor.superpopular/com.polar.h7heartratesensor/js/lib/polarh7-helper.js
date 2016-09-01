@@ -59,7 +59,7 @@ PolarH7.prototype.getBeatsPerMinute = function(callback) {
             
             console.log('characteristic found');
             characteristics[0].notify(true);
-            characteristics[0].on('read', function(value, isNotification) {
+            characteristics[0].on('read', function(value) {
                 
                 // all done
                 var rate = value.readUInt8(1);                

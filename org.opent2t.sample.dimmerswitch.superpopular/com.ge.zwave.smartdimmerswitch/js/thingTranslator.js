@@ -12,7 +12,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 var zwave = new ZWave({
 	ConsoleOutput: false
@@ -26,7 +26,6 @@ zwave.on('driver failed', function () {
 
 var device = null;
 var nodeId = null;
-var homeId = null;
 var comport = null;
 
 // module exports, implementing the schema
@@ -47,7 +46,6 @@ module.exports = {
                     return deferred.promise;
                 }
 
-                homeId = props.id.homeId;
                 nodeId = props.id.nodeId;
 
                 var zwavedriverroot = {
@@ -91,45 +89,45 @@ module.exports = {
 
     turnOn: function() {
         console.log("turnOn called.");
-    	var deferred = Q.defer();
+        var deferred = Q.defer();
 
-        // {node_id:nodeId,	class_id: 38,	instance:1,	index:0}
+        // {node_id:nodeId,	class_id: 38, instance:1, index:0}
         if (nodeId !== 'undefined') {
             zwave.setValue(nodeId, 38, 1, 0, 99);
-        	setImmediate(deferred.resolve);
+            setImmediate(deferred.resolve);
         } else {
             console.log('undefined nodeId');
-        	setImmediate(deferred.reject);
+            setImmediate(deferred.reject);
         }
         return deferred.promise;
     },
 
     turnOff: function() {
         console.log("turnOff called.");
-    	var deferred = Q.defer();
+        var deferred = Q.defer();
 
-        // {node_id:device.nodeId,	class_id: 38,	instance:1,	index:0}
+        // {node_id:device.nodeId, class_id: 38, instance:1, index:0}
         if (nodeId !== 'undefined') {
             zwave.setValue(nodeId, 38, 1, 0, 0);
-        	setImmediate(deferred.resolve);
+            setImmediate(deferred.resolve);
         } else {
             console.log('undefined nodeId');
-        	setImmediate(deferred.reject);
+            setImmediate(deferred.reject);
         }
         return deferred.promise;
     },
 
     setBrightness: function(brightness) {
         console.log('setBrightness called with value: ' + brightness);
-    	var deferred = Q.defer();
+        var deferred = Q.defer();
 
-        // {node_id:device.nodeId,	class_id: 38,	instance:1,	index:0}
+        // {node_id:device.nodeId, class_id: 38, instance:1,	index:0}
         if (nodeId !== 'undefined') {
             zwave.setValue(nodeId, 38, 1, 0, brightness);
-        	setImmediate(deferred.resolve);
+            setImmediate(deferred.resolve);
         } else {
             console.log('undefined nodeId');
-        	setImmediate(deferred.reject);
+            setImmediate(deferred.reject);
         }
         return deferred.promise;
     }

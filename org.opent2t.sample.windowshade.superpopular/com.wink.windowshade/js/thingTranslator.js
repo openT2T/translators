@@ -10,7 +10,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 // Helper method to send position commands to Wink
 function sendPositionCommandToDevice(positionState) {
@@ -36,7 +36,7 @@ function sendPositionCommandToDevice(positionState) {
     var req = https.request(options, (res) => {
 
         res.setEncoding('utf8');
-        res.on('data', (chunk) => {
+        res.on('data', () => {
         });
         res.on('end', () => {
         });

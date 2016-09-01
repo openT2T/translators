@@ -10,7 +10,7 @@ var bluetoothDevice;
 class Flux {
 
     static discover(id) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             noble.on('stateChange', function () {
                 noble.on('discover', function (foundBluetoothDevice) {
                     if (foundBluetoothDevice.id === id) {
@@ -32,9 +32,9 @@ class Flux {
     }
 
     connect() {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             bluetoothDevice.connect(function (error) {
-                if (!!error) {
+                if (error) {
                     throw new Error(error);
                 } else {
                     resolve();
@@ -44,9 +44,9 @@ class Flux {
     }
 
     disconnect() {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             bluetoothDevice.disconnect(function (error) {
-                if (!!error) {
+                if (error) {
                     throw new Error(error);
                 } else {
                     resolve();
@@ -56,9 +56,9 @@ class Flux {
     }
 
     pair(key) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             bluetoothDevice.writeHandle(PAIR_KEY_HANDLE, new Buffer([key]), true, function (error) {
-                if (!!error) {
+                if (error) {
                     throw new Error(error);
                 } else {
                     resolve();
@@ -68,16 +68,16 @@ class Flux {
     }
 
     discoverCharecteristic(serviceId, characteristicId) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
             // first, discover the appropriate service (via magic number unique to this hardware)
             bluetoothDevice.discoverServices([serviceId], function (error, services) {
 
-                if (!!error) {
+                if (error) {
                     throw new Error(error);
                 } else {
                     // next, discover the appropriate characteristic (via magic number unique to this hardware)
                     services[0].discoverCharacteristics([characteristicId], function (error, characteristics) {
-                        if (!!error) {
+                        if (error) {
                             throw new Error(error);
                         } else {
                             // return the first matching characteristic
@@ -92,10 +92,10 @@ class Flux {
     setColor(R, G, B) {
         // discover the color characterstic for this bulb, using magic numbers unique to this hardware
         return this.discoverCharecteristic('ffe5', 'ffe9').then(characteristic => {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 // write the required characteristic to set the value we need
                 characteristic.write(new Buffer([0x56, R, G, B, 0x00, 0xF0, 0xAA]), true, function (error) {
-                    if (!!error) {
+                    if (error) {
                         throw new Error(error);
                     } else {
                         resolve();
@@ -108,12 +108,12 @@ class Flux {
     setPowerState(state) {
         // discover the power state characterstic for this bulb, using magic numbers unique to this hardware
         return this.discoverCharecteristic('ffe5', 'ffe9').then(characteristic => {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 // pick the right command (on or off) to send to the bulb
                 var powerStateCommand = state ? 0x23 : 0x24;
 
                 characteristic.write(new Buffer([0xcc, powerStateCommand, 0x33]), true, function (error) {
-                    if (!!error) {
+                    if (error) {
                         throw new Error(error);
                     } else {
                         resolve();

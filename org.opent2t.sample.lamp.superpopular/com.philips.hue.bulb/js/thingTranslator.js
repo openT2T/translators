@@ -13,7 +13,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 
 // gets a light index, given a unique id for a light

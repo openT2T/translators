@@ -11,7 +11,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 var sensor;
 
