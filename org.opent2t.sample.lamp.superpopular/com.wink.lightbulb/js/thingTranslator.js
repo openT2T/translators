@@ -36,17 +36,29 @@ class StateReader {
     }
 }
 
+// Helper method to convert Wink's 0.0-1.0 brightness scale to a 0-100 scale
+function scaleDeviceBrightnessToTranslatorBrightness(brightnessValue) {
+    return Math.floor(brightnessValue * 100);
+}
+
+// Helper method to convert a 0-100 scale to Wink's 0.0-1.0 brightness scale
+function scaleTranslatorBrightnessToDeviceBrightness(dimmingValue) {
+    return dimmingValue / 100;
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
     var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
 
     var powered = stateReader.get('powered');
+    var brightness = stateReader.get('brightness');
 
     return {
         id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
         n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.thermostat.superpopular',
-        power: { 'value': powered }
+        rt: 'org.opent2t.sample.lamp.superpopular',
+        power: { 'value': powered },
+        dim: { 'dimmingSetting': scaleDeviceBrightnessToTranslatorBrightness(brightness), 'range': [0, 100] }
     };
 }
 
@@ -63,6 +75,10 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
     if (!!translatorSchema.power) {
         desired_state['powered'] = translatorSchema.power.value;
+    }
+
+    if (!!translatorSchema.dim) {
+        desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(translatorSchema.dim.dimmingSetting);
     }
 
     return result;
