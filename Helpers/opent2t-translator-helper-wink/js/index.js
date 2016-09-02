@@ -1,6 +1,7 @@
 'use strict';
 
 var request = require('request-promise');
+var url = require('url');
 
 // wink v2 api endpoint as documented here: http://docs.winkapiv2.apiary.io/
 var apiEndpoint = 'https://api.wink.com';
@@ -72,6 +73,79 @@ class WinkHelper {
         return request(options)
             .then(function (body) {
                 // request succeeded.
+                return JSON.parse(body);
+            });
+    }
+
+    // TODO: Is the WinkHelper an appropriate place for this?  Or should I just move them to the wink hub translator?
+    // The translate method needs to live on the translator, so these could go there as well.  The winkhelper keeps
+    // the authorization though, but this comes from the translator/onboarding anyhow, right?
+
+    // Subscribe to Wink notifications
+    // serviceurl - The url endpoint set up to receive postbacks and manage verification
+    // secret - Subscriber generated secret for HMAC computation (if omitted, HMAC digest will
+    //      not be present on callbacks)
+    // This method passes the PubSubHubbub a subscriber URL to the Wink device so that the subscriber
+    // will receive postbacks.  This subscription needs to be refreshed or it will expire (currently 24 hrs).
+    subscribe(deviceType, deviceId, serviceUrl, secret) {
+        var requestUri = apiEndpoint + '/' + deviceType + '/' + deviceId + '/' + 'subscriptions';
+
+        // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
+        // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
+        // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
+        var putPayload = {
+            'callback': serviceUrl,
+            'secret': secret
+        }
+
+        var putPayloadString = JSON.stringify(putPayload);
+
+        console.log("Attempting to subscribe to %s with %s", requestUri, JSON.stringify(putPayload));
+
+        var headers = {
+            'Authorization': 'Bearer ' + bearerToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Content-length': putPayloadString.length
+        }
+
+        var options = {
+            url: requestUri,
+            method: 'POST',
+            headers: headers,
+            followAllRedirects: true,
+            body: putPayloadString
+        }
+
+        return request(options)
+            .then(function (body) {
+                // The request succeeded.
+                // The hub response will be 202 "Accepted", and now validation with the service url
+                // will proceed.
+                return JSON.parse(body);
+            });
+    }
+
+    // Unsubscribes a subscription id from the device.  This will
+    unsubscribe(deviceType, deviceId, subscriptionid)
+    {
+        var requestUri = apiEndpoint + '/' + deviceType + '/' + deviceId + '/' + 'subscriptions/' + subscriptionid;
+
+        console.log("Attempting to unsubscribe from %s", requestUri)
+        
+        var headers = {
+            'Authorization': 'Bearer ' + bearerToken,
+        }
+
+        var options = {
+            url: requestUri,
+            method: 'DELETE',
+            header = headers,
+            followAllRedirects: true
+        }
+
+        return request(options)
+            .then(function (body) {
                 return JSON.parse(body);
             });
     }
