@@ -53,7 +53,7 @@ class Translator {
                 range: [0, 255]
             }
         });
-    }
+    };
 
     // Updates the current state of the lamp with the contents of postPayload
     // postPayload is an object that maps to the json schema org.opent2t.sample.lamp.superpopular
