@@ -35,7 +35,7 @@ class Translator {
 
     connect() {
         console.log('connect called.');
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
 
             console.log('Starting SensorTag Discovery for ID: ' + deviceId);
 
@@ -58,7 +58,7 @@ class Translator {
                                     throw new Error(enable_error);
                                 } else {
                                     resolve();
-                                };
+                                }
                             }, 1000);	// slight wait is neccessary for hardware to start up
                         });
                     }
@@ -70,8 +70,8 @@ class Translator {
     disconnect() {
         console.log('disconnect called.');
 
-        return new Promise(function (resolve, reject) {
-            if (!!sensorTag) {
+        return new Promise(function (resolve) {
+            if (sensorTag) {
                 sensorTag.disconnect(function (error) {
                     if (error != null) {
                         throw new Error(error);
@@ -89,7 +89,7 @@ class Translator {
     // Queries the entire state of the sensor
     // and returns an object that maps to the json schema org.opent2t.sample.temperaturesensor.superpopular
     getTemperatureSensorResURI() {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve) {
 
             if (!sensorTag) {
                 throw new Error('No SensorTag found (Please check if SensorTag is awake?)');

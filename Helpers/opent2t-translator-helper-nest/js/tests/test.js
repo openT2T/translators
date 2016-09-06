@@ -10,7 +10,7 @@ var putPayload = {};
 putPayload['target_temperature_high_c'] = 22;
 putPayload['target_temperature_low_c'] = 20;
 
-return helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
+helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
     .then(result => {
         console.log('set multiple result: ' + JSON.stringify(result, null, 2));
 

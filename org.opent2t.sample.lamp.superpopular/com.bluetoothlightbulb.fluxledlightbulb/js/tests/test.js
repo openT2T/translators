@@ -1,16 +1,14 @@
 const sleep = require('es6-sleep').promise;
 const test = require('ava');
-const OpenT2T = require('opent2t').OpenT2T;
 const config = require('./testConfig');
 const fluxHelper = require('../flux');
-const translatorPath = require('path').join(__dirname, '..');
 
 console.log('Device Under Test -  Name: ' + config.Device.name + '  Props: ' + JSON.stringify(config.Device.props));
 
 ///
 /// Run through a series of tests for the helper class directly
 ///
-test.serial('Helper_Direct', t => {
+test.serial('Helper_Direct', () => {
     // discover a bulb with given ID in config
     var id = config.Device.props.id
     console.log('Starting discovery for: ' + id);

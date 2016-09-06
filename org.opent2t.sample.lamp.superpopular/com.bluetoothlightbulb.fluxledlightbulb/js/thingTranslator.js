@@ -61,15 +61,11 @@ class Translator {
     disconnect() {
         console.log('disconnect called.');
 
-        return new Promise(function (resolve, reject) {
-            if (!!bulb) {
+        return new Promise(function (resolve) {
+            if (bulb) {
                 return bulb.disconnect(function () {
-                    if (!!error) {
-                        throw new Error(error);
-                    } else {
-                        console.log('disconnected');
-                        resolve();
-                    }
+                    console.log('disconnected');
+                    resolve();
                 });
             } else {
                 resolve();
@@ -89,7 +85,7 @@ class Translator {
         // of the underlying BLE services and characteristics of the bulb to read the current state.
         // - Also, dimming is not supported at this time
 
-        if (!!bulb) {
+        if (bulb) {
             return Promise.resolve({
                 id: deviceId,
                 rt: 'org.opent2t.sample.lamp.superpopular',
@@ -117,11 +113,11 @@ class Translator {
         // this can be added here easily later.
         // - Also, dimming is not supported at this time.
 
-        if (!!bulb) {
+        if (bulb) {
 
             // process power
-            if (!!postPayload.power) {
-                return bulb.setPowerState(postPayload.power.value).then(result => {
+            if (postPayload.power) {
+                return bulb.setPowerState(postPayload.power.value).then(() => {
 
                     // update in-memory state
                     powered = postPayload.power.value;
@@ -136,13 +132,13 @@ class Translator {
             }
 
             // process color
-            if (!!postPayload.color) {
+            if (postPayload.color) {
 
                 return bulb.setColor(
                     postPayload.color.colorRGB.R,
                     postPayload.color.colorRGB.G,
                     postPayload.color.colorRGB.B)
-                    .then(result => {
+                    .then(() => {
 
                         // update in-memory state
                         r = postPayload.color.colorRGB.R;

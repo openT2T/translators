@@ -13,20 +13,20 @@ function Device(serialPort, addressString) {
 
 var device = new Device(argv.c,argv.a);
 
-// initialize the translator for testing purposes (this is normally called by the runtime)initDevice(device)
-initDevice(device);
+// initialize the translator for testing purposes (this is normally called by the runtime)
+translator.initDevice(device);
 
 setTimeout(function () {
     translator.close();
 	setTimeout(function () {
-	    translator.open();
+        translator.open();
 		setTimeout(function () {
-		    translator.close()
-			setTimeout(function () {
-			    translator.open()
-				setTimeout(function () {
+            translator.close()
+            setTimeout(function () {
+                translator.open()
+                setTimeout(function () {
 					process.exit(0);
-				}, 2000);
+                }, 2000);
 			}, 2000);
 		}, 2000);
 	}, 2000);

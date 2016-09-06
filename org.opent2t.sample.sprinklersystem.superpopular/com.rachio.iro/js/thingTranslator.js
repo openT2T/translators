@@ -10,7 +10,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 // Helper method to send start command to zone
 function sendStartCommandToZone(accessToken, zoneId, duration) {
@@ -34,7 +34,7 @@ function sendStartCommandToZone(accessToken, zoneId, duration) {
 
     var req = https.request(options, (res) => {
         res.setEncoding('utf8');
-        res.on('data', (chunk) => {
+        res.on('data', () => {
         });
         res.on('end', () => {
         });
@@ -72,7 +72,7 @@ function sendStopCommandToDevice(accessToken, deviceId) {
 
     var req = https.request(options, (res) => {
         res.setEncoding('utf8');
-        res.on('data', (chunk) => {
+        res.on('data', () => {
         });
         res.on('end', () => {
         });
@@ -89,7 +89,7 @@ function sendStopCommandToDevice(accessToken, deviceId) {
     req.end();
 }
 
-var device, token;
+var token;
 var deviceId, zoneId;
 
 // module exports, implementing the schema

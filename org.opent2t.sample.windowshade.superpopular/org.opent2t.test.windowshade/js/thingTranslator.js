@@ -8,7 +8,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 // module exports, implementing the schema
 module.exports = {

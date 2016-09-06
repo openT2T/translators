@@ -1,6 +1,5 @@
 'use strict';
 
-var https = require('https');
 var wh = require("opent2t-translator-helper-wink"); //link locally for now
 
 // logs device state
@@ -11,7 +10,7 @@ function logDeviceState(device) {
     } else {
         console.log('device is undefined');
     }
-};
+}
 
 var deviceId, accessToken;
 
