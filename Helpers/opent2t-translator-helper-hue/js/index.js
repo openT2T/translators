@@ -3,10 +3,10 @@
 var request = require('request-promise');
 
 // Hue v2 api endpoint as documented here: http://www.developers.meethue.com/philips-hue-api
-var apiEndpoint = 'https://api.meethue.com/v2/bridges/';
+var apiBaseAddress = 'https://api.meethue.com/v2/bridges/';
 
 // Internal state used to make subsequent API calls
-var bearerToken;
+var apiEndpoint, bearerToken;
 
 function isLightState(propertyName)
 {
@@ -34,7 +34,7 @@ class HueHelper {
     // Init Helper: Sets the initial parameters to build our target endpoint
     constructor(accessToken, bridgeId, whitelistId) {
         bearerToken = accessToken;
-		apiEndpoint +=  bridgeId + '/' + whitelistId;
+		apiEndpoint =  apiBaseAddress + bridgeId + '/' + whitelistId;
         console.log('Initialized Hue Helper.');
     }
 
@@ -46,7 +46,8 @@ class HueHelper {
 
         // Set the headers
         var headers = {
-            'Authorization': 'Bearer ' + bearerToken
+            'Authorization': 'Bearer ' + bearerToken,
+            'Accept': 'application/json'
         }
 
         // Configure the request
@@ -56,7 +57,7 @@ class HueHelper {
             headers: headers,
             followAllRedirects: true
         }
-
+        
         // Start the async request
         return request(options)
             .then(function (body) {
@@ -68,35 +69,61 @@ class HueHelper {
     // Puts device details (all fields) payload formatted per http://www.developers.meethue.com/philips-hue-api
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
 
-        // build request URI and body
-        var requestUri = apiEndpoint + '/' + deviceType + '/' + deviceId +　'/state';
-		
-        var putPayloadString = JSON.stringify(putPayload);
-
-        // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + bearerToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Content-length': putPayloadString.length
+        var stateChanges = {};
+        var nonStateChanges = {};
+        var result = "[";
+        var requestUri, headers, options;
+        for (var item in putPayload)
+        {
+            if(isLightState(item))
+            {
+                stateChanges[item] = putPayload[item];
+            }else{
+                nonStateChanges[item] = putPayload[item];
+            }
         }
-
-        // Configure the request
-        var options = {
-            url: requestUri,
-            method: 'PUT',
-            headers: headers,
-            followAllRedirects: true,
-            body: putPayloadString
-        }
-
-        // Start the async request
-        return request(options)
-            .then(function (body) {
-                // request succeeded.
-                return JSON.parse(body);
-            });
+        
+        return sendAsyncRequest(apiEndpoint + '/' + deviceType + '/' + deviceId +　'/state', stateChanges)
+        .then(function(body){
+            result += body;
+            return sendAsyncRequest(apiEndpoint + '/' + deviceType + '/' + deviceId, nonStateChanges)
+            .then(function(body){
+                if(body.length > 1 && result[result.length-1] == '}'){
+                    result += ',';
+                } 
+                result += body + ']';
+                return JSON.parse(result);
+            })
+        });
     }
+}
+
+function sendAsyncRequest(requestUri, payload)
+{  
+    if(payload != {}){
+        
+        var headers = {
+                'Authorization': 'Bearer ' + bearerToken,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Content-length': (JSON.stringify(payload)).length
+            }
+
+            // Configure the request
+        var options = {
+                url: requestUri,
+                method: 'PUT',
+                headers: headers,
+                followAllRedirects: true,
+                body: JSON.stringify(payload)
+            }
+        
+        return request(options).then(function (body) {
+             // request succeeded.
+             return body.substring(1,body.length-1);
+        });
+    }
+    return Promise.resolve('');
 }
 
 // Export the helper from the module.

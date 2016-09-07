@@ -10,6 +10,7 @@ var helper = new HueHelper(testConfig.accessToken, testConfig.bridgeId, testConf
 var putPayload = {};
 putPayload['on'] = true;
 putPayload['bri'] = 20;
+putPayload['name'] = "Hue Color Lamp";
 
 return helper.putDeviceDetailsAsync(testConfig.deviceType, testConfig.deviceId, putPayload)
     .then(result => {
