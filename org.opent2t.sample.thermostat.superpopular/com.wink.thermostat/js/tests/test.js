@@ -1,6 +1,8 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
+var q = require('q');
+var pubSubHubbub = require('pubsubhubbub');
 
 console.log('Device Under Test -  Name: ' + config.Device.name + '  Props: ' + JSON.stringify(config.Device.props));
 var translatorPath = require('path').join(__dirname, '..');
@@ -175,5 +177,96 @@ test.serial('PostThermostatResURI_Set_HvacMode', t => {
 
                     console.log('*** response: \n' + JSON.stringify(response, null, 2));
                 });
+        });
+});
+
+// Test PubSubHubbub subscription to Wink
+test.serial('Thermostat_Subscribe', t => {
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
+        .then( translator => {
+            // This test is interfacing with async functions that are callback based
+            // so create a promise that will be fulfilled when the chain of events have
+            // completed.
+            var deferred = q.defer();
+
+            // Verify that the translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+
+            // Create a server to listen to the postbacks from Wink
+            var options = {
+                callbackUrl: 'http://localhost:8000'
+            }
+
+            var pubSubSubscriber = pubSubHubbub.createServer();
+            var subscriptionId = 0;
+
+            pubSubSubscriber.on('denied', function(data) {
+                console.log('FAIL: Access denied.')
+                deferred.reject('failed');
+            });
+
+            pubSubSubscriber.on('error', function(data) {
+                console.log('FAIL: Error');
+                deferred.reject('failed');
+            });
+
+            pubSubSubscriber.on('listen', function() {
+                console.log("Listening");
+
+                // Pass the postBackUrl to the wink device for subscription
+                return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', ['http://localhost:8000'])
+                    .then((response) => {
+                        console.log('*** response: \n' + JSON.stringify(response, null, 2));
+                });
+            });
+
+            pubSubSubscriber.on('subscribe', function(data) {
+                console.log('Subscribed');
+                console.log(data);
+
+                t.pass('Success: Subscribed');
+
+                // Change a property on the device
+                return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 22)
+                    .then(() => {
+                    })
+                    .catch(error => {
+                    console.log('Error: ' + error);
+                });
+
+            });
+
+            pubSubSubscriber.on('feed', function(data) {
+                console.log('Postback contents:');
+                console.log(JSON.stringify(data));
+
+                t.pass('Success: Received feed postback');
+
+                return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [subscriptionId])
+                .then((response) => {
+                    console.log('*** response: \n' + JSON.stringify(response, null, 2));
+                })
+            });
+
+            pubSubSubscriber.on('unsubscribe', function(data) {
+                console.log('Unsubscribed');
+                console.log(JSON.stringify(data));
+
+                t.pass('Success: Unsubscribed');
+
+                // Close the server as we're done with it now.
+                pubSubSubscriber.server.close();
+
+                // Test is complete, resolve the promise
+                deferred.resolve('Passed');
+            });
+
+            // Sart the server
+            console.log("Starting server");
+            pubSubSubscriber.listen(8000);
+
+            console.log("Server is running on " + pubSubSubscriber.server);
+
+            return deferred.promise;
         });
 });

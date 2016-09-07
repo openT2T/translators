@@ -214,6 +214,85 @@ class Translator {
                 return response.targetTemperatureLow.temperature;
             });
     }
+
+    subscribe(postbackUrl) {
+        console.log('thingTranslator subscribe to "%s", %d, %s', deviceType, deviceId, postbackUrl);
+        return this.commonsubscribe(deviceType, deviceId, postbackUrl);
+    }
+
+    unsubscribe(subscriptionId) {
+        console.log('thingTranslator un-subscribe');
+        return this.commonunsubscribe(deviceType, deviceId, subscriptionId);
+    }
+
+    // Subscribe to Wink notifications
+    // serviceurl - The url endpoint set up to receive postbacks and manage verification
+    // secret - Subscriber generated secret for HMAC computation (if omitted, HMAC digest will
+    //      not be present on callbacks)
+    // This method passes the PubSubHubbub a subscriber URL to the Wink device so that the subscriber
+    // will receive postbacks.  This subscription needs to be refreshed or it will expire (currently 24 hrs).
+    commonsubscribe(deviceType, deviceId, serviceUrl) {
+        var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions';
+
+        // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
+        // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
+        // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
+        var putPayload = {
+            'callback': serviceUrl
+        }
+
+        var putPayloadString = JSON.stringify(putPayload);
+
+        console.log("Attempting to subscribe to %s with %s", requestUri, JSON.stringify(putPayload));
+
+        var headers = {
+            'Authorization': 'Bearer ' + bearerToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Content-length': putPayloadString.length
+        }
+
+        var options = {
+            url: requestUri,
+            method: 'POST',
+            headers: headers,
+            followAllRedirects: true,
+            body: putPayloadString
+        }
+
+        return request(options)
+            .then(function (body) {
+                // The request succeeded.
+                // The hub response will be 202 "Accepted", and now validation with the service url
+                // will proceed.
+                console.log(body);
+                return JSON.parse(body);
+            });
+    }
+
+    // Unsubscribes a subscription id from the device.  This will need to be put in a common location or all wink device.
+    commonunsubscribe(deviceType, deviceId, subscriptionid)
+    {
+        var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions/' + subscriptionid;
+
+        console.log("Attempting to unsubscribe from %s", requestUri)
+        
+        var headers = {
+            'Authorization': 'Bearer ' + bearerToken,
+        }
+
+        var options = {
+            url: requestUri,
+            method: 'DELETE',
+            header: headers,
+            followAllRedirects: true
+        }
+
+        return request(options)
+            .then(function (body) {
+                return JSON.parse(body);
+            });
+    }
 }
 
 // Export the translator from the module.
