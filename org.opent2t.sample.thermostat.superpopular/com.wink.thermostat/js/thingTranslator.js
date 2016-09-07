@@ -3,6 +3,8 @@
 'use strict';
 const WinkHelper = require('opent2t-translator-helper-wink');
 
+var request = require('request-promise');
+
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
@@ -108,6 +110,7 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 var deviceId;
 var deviceType = 'thermostats';
 var winkHelper;
+var accessToken;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
@@ -122,6 +125,7 @@ class Translator {
         validateArgumentType(device.props.id, 'device.props.id', 'string');
 
         deviceId = device.props.id;
+        accessToken = device.props.access_token;
 
         // Initialize Wink Helper
         winkHelper = new WinkHelper(device.props.access_token);
@@ -215,13 +219,11 @@ class Translator {
             });
     }
 
-    subscribe(postbackUrl) {
-        console.log('thingTranslator subscribe to "%s", %d, %s', deviceType, deviceId, postbackUrl);
-        return this.commonsubscribe(deviceType, deviceId, postbackUrl);
+    subscribe(options) {
+        return this.commonsubscribe(deviceType, deviceId, options.callbackUrl, options.secret);
     }
 
     unsubscribe(subscriptionId) {
-        console.log('thingTranslator un-subscribe');
         return this.commonunsubscribe(deviceType, deviceId, subscriptionId);
     }
 
@@ -231,14 +233,15 @@ class Translator {
     //      not be present on callbacks)
     // This method passes the PubSubHubbub a subscriber URL to the Wink device so that the subscriber
     // will receive postbacks.  This subscription needs to be refreshed or it will expire (currently 24 hrs).
-    commonsubscribe(deviceType, deviceId, serviceUrl) {
+    commonsubscribe(deviceType, deviceId, serviceUrl, secret) {
         var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions';
 
         // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
         // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
         // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
         var putPayload = {
-            'callback': serviceUrl
+            callback: serviceUrl,
+            secret: secret
         }
 
         var putPayloadString = JSON.stringify(putPayload);
@@ -246,7 +249,7 @@ class Translator {
         console.log("Attempting to subscribe to %s with %s", requestUri, JSON.stringify(putPayload));
 
         var headers = {
-            'Authorization': 'Bearer ' + bearerToken,
+            'Authorization': 'Bearer ' + accessToken,
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             'Content-length': putPayloadString.length
@@ -260,13 +263,16 @@ class Translator {
             body: putPayloadString
         }
 
-        return request(options)
+        var req =  request(options)
             .then(function (body) {
                 // The request succeeded.
                 // The hub response will be 202 "Accepted", and now validation with the service url
                 // will proceed.
                 console.log(body);
                 return JSON.parse(body);
+            })
+            .catch(function(reason) {
+                console.log('Error: ' + reason);
             });
     }
 
@@ -278,7 +284,7 @@ class Translator {
         console.log("Attempting to unsubscribe from %s", requestUri)
         
         var headers = {
-            'Authorization': 'Bearer ' + bearerToken,
+            'Authorization': 'Bearer ' + accessToken,
         }
 
         var options = {
@@ -291,6 +297,9 @@ class Translator {
         return request(options)
             .then(function (body) {
                 return JSON.parse(body);
+            })
+            .catch(function(reason) {
+                console.log('Error: ' + reason);
             });
     }
 }
