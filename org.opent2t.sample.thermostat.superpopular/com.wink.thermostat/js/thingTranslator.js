@@ -227,6 +227,34 @@ class Translator {
         return this.commonunsubscribe(deviceType, deviceId, subscriptionId);
     }
 
+    getSubscriptions() {
+        // GET /sensor_pods/<sensor pod id>/subscriptions
+        var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions';
+
+        // Set the headers
+        var headers = {
+            'Authorization': 'Bearer ' + accessToken
+        }
+
+        // Configure the request
+        var options = {
+            url: requestUri,
+            method: 'GET',
+            headers: headers,
+            followAllRedirects: true
+        }
+
+        // Start the async request
+        return request(options)
+            .then(function (body) {
+                // request succeeded.
+                return JSON.parse(body);
+            })
+            .catch(function(reason) {
+                console.log('Error: ' + reason);
+            });
+    }
+
     // Subscribe to Wink notifications
     // serviceurl - The url endpoint set up to receive postbacks and manage verification
     // secret - Subscriber generated secret for HMAC computation (if omitted, HMAC digest will
@@ -265,14 +293,7 @@ class Translator {
 
         var req =  request(options)
             .then(function (body) {
-                // The request succeeded.
-                // The hub response will be 202 "Accepted", and now validation with the service url
-                // will proceed.
-                console.log(body);
                 return JSON.parse(body);
-            })
-            .catch(function(reason) {
-                console.log('Error: ' + reason);
             });
     }
 
@@ -282,9 +303,11 @@ class Translator {
         var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions/' + subscriptionid;
 
         console.log("Attempting to unsubscribe from %s", requestUri)
-        
+
         var headers = {
             'Authorization': 'Bearer ' + accessToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
 
         var options = {
@@ -297,9 +320,6 @@ class Translator {
         return request(options)
             .then(function (body) {
                 return JSON.parse(body);
-            })
-            .catch(function(reason) {
-                console.log('Error: ' + reason);
             });
     }
 }
