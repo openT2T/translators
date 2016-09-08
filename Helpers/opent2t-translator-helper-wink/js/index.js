@@ -1,7 +1,6 @@
 'use strict';
 
 var request = require('request-promise');
-var url = require('url');
 
 // wink v2 api endpoint as documented here: http://docs.winkapiv2.apiary.io/
 var apiEndpoint = 'https://api.wink.com';
