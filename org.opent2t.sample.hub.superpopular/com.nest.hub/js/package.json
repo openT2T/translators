@@ -19,8 +19,7 @@
   "dependencies": {
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
-    "opent2t": "^1.0.1",
-    "org-opent2t-onboarding-wink": "^1.0.1"
+    "opent2t": "^1.0.1"
   },
   "devDependencies": {
     "ava": "^0.15.2"
