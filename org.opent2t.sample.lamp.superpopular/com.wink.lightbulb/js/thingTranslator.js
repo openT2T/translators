@@ -93,6 +93,8 @@ class Translator {
     constructor(deviceInfo) {
         console.log('Wink Lightbulb initializing...');
 
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+        
         deviceId = deviceInfo.deviceInfo.id;
         winkHub = deviceInfo.hub;
 

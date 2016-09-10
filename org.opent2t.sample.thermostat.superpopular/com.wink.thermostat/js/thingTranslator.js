@@ -114,6 +114,8 @@ class Translator {
     constructor(deviceInfo) {
         console.log('Initializing device.');
 
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+
         deviceId = deviceInfo.deviceInfo.id;
         winkHub = deviceInfo.hub;
 

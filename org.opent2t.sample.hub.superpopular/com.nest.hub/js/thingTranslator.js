@@ -32,9 +32,10 @@ class Translator {
             
             // get all nest sub device collections 
             var nestThermostats = nestDevices.thermostats;
+            
             // unused at the moment, but setup for future
-            var nestCameras = nestDevices.cameras; 
-            var nestSmokeAlarms = nestDevices.smoke_co_alarms;
+            // var nestCameras = nestDevices.cameras; 
+            // var nestSmokeAlarms = nestDevices.smoke_co_alarms;
 
             var filteredDevices = [];
 
