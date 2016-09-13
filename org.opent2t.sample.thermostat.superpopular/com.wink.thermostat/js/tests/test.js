@@ -23,7 +23,7 @@ function getThermostat(devices) {
 }
 
 // setup the translator before all the tests run
-test.before(async t => {
+test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
     var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
     var deviceInfo = getThermostat(hubInfo.devices);
