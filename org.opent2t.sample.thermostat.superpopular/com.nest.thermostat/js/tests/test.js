@@ -26,9 +26,6 @@ test.serial('AmbientTemperature', t => {
         });
 });
 
-test.before(async t => {
-});
-
 // Set/Get TargetTemperatureHigh via setters for individual properties
 test.serial('TargetTemperatureHigh', t => {
 
