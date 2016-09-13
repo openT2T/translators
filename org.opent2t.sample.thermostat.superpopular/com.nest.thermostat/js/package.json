@@ -20,12 +20,12 @@
   },
   "dependencies": {
     "opent2t": "1.0.1",
-    "opent2t-translator-com-wink-hub": "*"
+    "opent2t-translator-com-nest-hub": "*"
   },
   "devDependencies": {
     "optimist": "*",
     "opent2t": "*",
-    "opent2t-translator-com-wink-hub": "*",
+    "opent2t-translator-com-nest-hub": "*",
     "eslint": "latest",
     "eslint-config-opent2t": "latest",
     "ava": "^0.15.2"
