@@ -55,9 +55,9 @@ test.serial('AmbientTemperature', t => {
 test.serial('TargetTemperatureHigh', t => {
 
     return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh')
-        .then((targetTemperatureHigh2) => {
+        .then((targetTemperatureHighBefore) => {
 
-            console.log('*** targetTemperatureHigh2: ' + targetTemperatureHigh2);
+            console.log('*** targetTemperatureHighBefore: ' + targetTemperatureHighBefore);
 
             return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 22)
                 .then(() => {

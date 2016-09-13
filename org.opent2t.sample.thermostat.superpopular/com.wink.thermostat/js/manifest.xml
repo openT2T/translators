@@ -4,12 +4,12 @@
   <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
   <!-- associated schemas -->
   <schemas>
-      <schema id="org.opent2t.sample.thermostat.superpopular" main="true" type="OCF" />
-      <schema id="oic.r.temperature" type="OCF" />
-      <schema id="oic.r.clock" type="OCF" />
-      <schema id="oic.r.humidity" type="OCF" />
-      <schema id="oic.r.mode" type="OCF" />
-      <schema id="oic.core" type="OCF" />
-      <schema id="oic.baseresource" type="OCF" />
+    <schema id="org.opent2t.sample.thermostat.superpopular" main="true" type="OCF" />
+    <schema id="oic.r.temperature" type="OCF" />
+    <schema id="oic.r.clock" type="OCF" />
+    <schema id="oic.r.humidity" type="OCF" />
+    <schema id="oic.r.mode" type="OCF" />
+    <schema id="oic.core" type="OCF" />
+    <schema id="oic.baseresource" type="OCF" />
   </schemas>
 </manifest>

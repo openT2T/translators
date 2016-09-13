@@ -17,7 +17,7 @@ class Translator {
         this._baseUrl = "https://developer-api.nest.com";
         this._devicesPath = '/devices';
 
-        this._name = "Nest Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
+        this._name = "Nest Hub";
     }
 
     /**
@@ -44,7 +44,7 @@ class Translator {
             nestThermostatIds.forEach((nestThermostatId) => {
                 var nestDevice = nestThermostats[nestThermostatId];
 
-                // get the opent2t schema and translator for the wink device
+                // get the opent2t schema and translator for the nest device
                 var opent2tInfo = this._getOpent2tInfo("thermostats");
 
                 // we only need to return certain properties back
@@ -54,7 +54,7 @@ class Translator {
                 // set the specific device object id to be the id
                 device.id = nestThermostatId;
 
-                // set the opent2t info for the wink device
+                // set the opent2t info for the nest device
                 device.openT2T = opent2tInfo;
                 
                 filteredDevices.push(device);
@@ -74,7 +74,7 @@ class Translator {
     }
 
     /**
-     * Gets device details (all fields), response formatted per http://docs.winkapiv2.apiary.io/
+     * Gets device details (all fields), response formatted per nest api
      */
     getDeviceDetailsAsync(deviceType, deviceId) {
 
@@ -86,7 +86,7 @@ class Translator {
     }
 
     /**
-     * Puts device details (all fields) payload formatted per http://docs.winkapiv2.apiary.io/
+     * Puts device details (all fields) payload formatted per nest api
     */
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
 
@@ -113,7 +113,7 @@ class Translator {
     }
 
     /**
-     * Internal helper method which makes the actual request to the wink service
+     * Internal helper method which makes the actual request to the nest service
      */
     _makeRequest(path, method, content) {
         // build request URI

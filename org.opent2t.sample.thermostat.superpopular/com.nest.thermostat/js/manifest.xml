@@ -4,32 +4,12 @@
   <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
   <!-- associated schemas -->
   <schemas>
-      <schema id="org.opent2t.sample.thermostat.superpopular" main="true" type="OCF" />
-      <schema id="oic.r.temperature" type="OCF" />
-      <schema id="oic.r.clock" type="OCF" />
-      <schema id="oic.r.humidity" type="OCF" />
-      <schema id="oic.r.mode" type="OCF" />
-      <schema id="oic.core" type="OCF" />
-      <schema id="oic.baseresource" type="OCF" />
+    <schema id="org.opent2t.sample.thermostat.superpopular" main="true" type="OCF" />
+    <schema id="oic.r.temperature" type="OCF" />
+    <schema id="oic.r.clock" type="OCF" />
+    <schema id="oic.r.humidity" type="OCF" />
+    <schema id="oic.r.mode" type="OCF" />
+    <schema id="oic.core" type="OCF" />
+    <schema id="oic.baseresource" type="OCF" />
   </schemas>
-  <onboarding id="org.opent2t.onboarding.nest">
-    <onboardflow name="getDeveloperInput">
-      <flow>
-        <arg name="client_id" />
-        <description language="en">Ask for Client ID</description>
-        <description language="fr">Demandez Client ID</description>
-      </flow>
-      <flow>
-        <arg name="client_secret" />
-        <description language="en">Ask for Client Secret</description>
-        <description language="fr">Demandez Client Secret</description>
-      </flow>
-    </onboardflow>
-    <onboardflow name="askUserPermission">
-      <flow>
-        <arg name="url" />
-        <description language="en">https://home.nest.com/login/oauth2?client_id=*client_id*&amp;state=*state*</description>
-      </flow>
-    </onboardflow>
-  </onboarding>
 </manifest>
