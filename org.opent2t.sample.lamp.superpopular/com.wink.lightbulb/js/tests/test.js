@@ -3,8 +3,6 @@ var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
 
-var config = require('./testConfig');
-
 console.log("Config:");
 console.log(JSON.stringify(config, null, 2));
 
