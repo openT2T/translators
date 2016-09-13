@@ -6,29 +6,23 @@
     <schema id="oic.baseResource" type="OCF" />
   </schemas>
   <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.winkhub">
-    <onboardflow name="getUserInput">
-      <flow type="input">
-        <arg name="username" />
-        <description language="en">Type in your Wink username</description>
-        <description language="fr">Entrez for nom pour Wink</description>
-      </flow>
-      <flow type="password">
-        <arg name="password"  />
-        <description language="en">Type in your Wink password</description>
-        <description language="fr">Entrez for password pour Wink</description>
-      </flow>
-    </onboardflow>
+  <onboarding id="org.opent2t.onboarding.nest">
     <onboardflow name="getDeveloperInput">
       <flow>
         <arg name="client_id" />
-        <description language="en">Ask for Client id</description>
+        <description language="en">Ask for Client ID</description>
         <description language="fr">Demandez Client ID</description>
       </flow>
       <flow>
         <arg name="client_secret" />
         <description language="en">Ask for Client Secret</description>
         <description language="fr">Demandez Client Secret</description>
+      </flow>
+    </onboardflow>
+    <onboardflow name="askUserPermission">
+      <flow>
+        <arg name="url" />
+        <description language="en">https://home.nest.com/login/oauth2?client_id=*client_id*&amp;state=*state*</description>
       </flow>
     </onboardflow>
   </onboarding>

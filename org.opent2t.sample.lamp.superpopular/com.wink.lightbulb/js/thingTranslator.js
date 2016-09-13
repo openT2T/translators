@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const WinkHelper = require('opent2t-translator-helper-wink');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -86,25 +85,20 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
 var deviceId;
 var deviceType = 'light_bulbs';
-var winkHelper;
+var winkHub;
 
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(device) {
-        console.log('Initializing device.');
+    constructor(deviceInfo) {
+        console.log('Wink Lightbulb initializing...');
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+        
+        deviceId = deviceInfo.deviceInfo.id;
+        winkHub = deviceInfo.hub;
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.id, 'device.props.id', 'string');
-
-        deviceId = device.props.id;
-
-        // Initialize Wink Helper
-        winkHelper = new WinkHelper(device.props.access_token);
-        console.log('Javascript and Wink Helper initialized.');
+        console.log('Wink Lightbulb initializing...Done');
     }
 
     // exports for the entire schema object
@@ -112,7 +106,7 @@ class Translator {
     // Queries the entire state of the lamp
     // and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
     getLampResURI() {
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
@@ -127,7 +121,7 @@ class Translator {
         console.log('postLampResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
