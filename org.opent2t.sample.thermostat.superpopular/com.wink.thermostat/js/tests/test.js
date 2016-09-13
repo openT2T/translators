@@ -1,13 +1,42 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
-var q = require('q');
-var request = require('request-promise');
 
-var WinkPubSubHubbubSubscriber = require('./WinkPubSubHubbubSubscriber');
+console.log("Config:");
+console.log(JSON.stringify(config, null, 2));
 
-console.log('Device Under Test -  Name: ' + config.Device.name + '  Props: ' + JSON.stringify(config.Device.props));
 var translatorPath = require('path').join(__dirname, '..');
+var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
+console.log("Translator: " + translatorPath);
+console.log("Provider: " + hubPath);
+
+var translator = undefined;
+
+function getThermostat(devices) {
+    for (var i = 0; i < devices.length; i++) {
+        var d = devices[i];
+
+        if (d.openT2T.translator === 'opent2t-translator-com-wink-thermostat') {
+            return d;
+        }
+    }
+
+    return undefined;
+}
+
+// setup the translator before all the tests run
+test.before(async t => {
+    var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', {'accessToken': config.Device.accessToken});
+    var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
+    var deviceInfo = getThermostat(hubInfo.devices);
+
+    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
+});
+
+test.serial("Valid Thermostat Translator", t => {
+    t.is(typeof translator, 'object') && t.truthy(translator);
+});
+
 
 //
 // Run a series of tests to validate the translator
@@ -290,89 +319,88 @@ test.serial('Notifications - Subscribe/Unsubscribe', t => {
         });
 })
 
-test.serial('Notifications - Feed Postback', t => {
-    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config.Device)
-        .then( translator => {
-            var deferred = q.defer();
+/**
+ * Subscribs a pubsubhubbub server to the thermostat for post backs.
+ * testConfig.json should provide the following:
+ *  {
+ *      "callbackUrl": "<url to existing server>",
+ *      "secret": "<secret for verifying messages>"
+ *  }
+ * 
+ * The server must be a pubsubhubbub endpoint, which can be set up using Node.js with
+ * ./WinkPubSubHubbubSubscriber.js.  There are some important differences with the Wink
+ * implementation of pubsubhubbub that prevents using the pubsubhubbub module directly
+ * (feeds don't include topic information in a way that the pubsubhubbub module likes).
+ */
+test.serial('Notifications - Subscribe', t => {
+    // Expecting 12 assertions. If the results are different, the test will fail.
+    t.plan(12);
 
-            var subscription = {};
+    t.not(config.callbackUrl, undefined, 'Please provide a callbackUrl in ./testConfig.json');
+    t.not(config.secret, undefined, 'Please provide a secret in ./testConfig.json');
 
-            var options = {
-                callbackUrl: config.callback_url,
-                secret: 'imalwaysangry'
-            }
+    // Subscribe to the device topic
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [config.callbackUrl, config.secret])
+        .then((response) => {
 
-            var pubSubSubscriber = WinkPubSubHubbubSubscriber.createServer(options);
+            t.is(response.errors.length, 0);
+            t.not(response.data, undefined);
+            t.is(response.data.callback, config.callbackUrl);
+            t.is(response.data.secret, config.secret);
+            t.is(response.data.secret, config.secret);
+            
+            var subscriptionId = response.data.subscription_id;
+            var expires = response.data.expires_at;
+            console.log("Subscribed %d, expires at %d", subscriptionId, expires);
 
-            pubSubSubscriber.on('error', function(data) {
-                t.fail("Server error 2: " + data);
-                deferred.reject('failed');
-            });
-
-            // When the server starts listening, change the value of a property to ensure a feed postback is sent
-            pubSubSubscriber.on('listen', function() {
-                // Pass the postBackUrl to the wink device for subscription
-                return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [options])
-                    .then((response) => {
-                        // Get the subscriptions
-                        if (response) {
-                            subscription = response;
-                            console.log('Using subscription: ' + JSON.stringify(subscription, null, 2));
-                        } else {
-                            console.log('This subscription already exists');
-                        }
-
-                        // Change a property to cause a feed update
-                        return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 25);
-                });
-            });
-
-            // When a server subscribes, change a property to immediately send a feed postback
-            pubSubSubscriber.on('subscribe', function(data) {
-                t.pass('Success: Subscribed');
-                console.log(data);
-            });
-
-            // When the server gets a feed postback to the callbackUrl, unsubscribe and change the value again
-            pubSubSubscriber.on('feed', function(data) {
-                t.pass('Success: Received feed postback');
-
-
-                t.todo('Verify the contents of the postback');
-
-                // Now unsubscribe
-                if (subscription) {
-                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'unsubscribe', [subscription.subscription_id])
-                        .then((response) => {
-
-                        })
-                        .catch(function(reason) {
-                            console.log("Failed to unsubscribe: " + reason);
-                            deferred.reject();
-                        });
-                }
-                else {
-                    deferred.resolve('Passed');
-                }
-            });
-
-            // When the server gets unsubscribed, it 
-            pubSubSubscriber.on('unsubscribe', function(data) {
-                // Change a property one final time to ensure that no more feed callbacks are received
-                OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 24)
+            // Verify that the subscription is listed
+            return OpenT2T.invokeMethodAsync(translator,'org.opent2t.sample.thermostat.superpopular', 'getSubscriptions', [])
                 .then((response) => {
-                    // Test is complete, resolve the promise
-                    deferred.resolve('Passed');
+                    console.log("Found %d subscriptions", response.data.length);
+                    
+                    t.is(response.errors.length, 0, "No errors");
+
+                    // Verify that the subscription has been added
+                    t.true(response.data.some(function(item) {
+                        return item.callback == config.callbackUrl &&
+                               item.subscription_id == subscriptionId &&
+                               item.secret == config.secret;
+                    }));
+
+                    // Waste some time (block execution) otherwise this will execute too fast and the expires_at value
+                    // will not increase.
+                    var waitTill = new Date(new Date().getTime() + 5000);
+                    while(waitTill > new Date()) {}
+
+                    // Resubscribe to refresh the expiration
+                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [config.callbackUrl, config.secret])
+                        .then((response) => {
+                            
+                            console.log("Refreshed expiration of %d to %d", subscriptionId, response.data.expires_at);
+
+                            t.true(response.data.expires_at > expires);
+
+                            // Unsubscribe
+                            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'unsubscribe', [subscriptionId])
+                                .then((response) => {
+                                    console.log("Unsubscribed %d", subscriptionId);
+
+                                    t.is(response.data, null);
+                                    t.is(response.errors.length, 0);
+
+                                    return OpenT2T.invokeMethodAsync(translator,'org.opent2t.sample.thermostat.superpopular', 'getSubscriptions', [])
+                                        .then((response) => {
+                                            console.log("Found %d subscriptions", response.data.length);
+
+                                            t.is(response.errors.length, 0, "No errors");
+
+                                            // Verify the subscription has been removed.
+                                            t.false(response.data.some(function(item) {
+                                                return item.subscription_id == config.subscriptionId;
+                                            }));
+                                        });
+                                });
+                        });
                 });
-                
-            });
-
-            // Sart the server
-            pubSubSubscriber.listen();
-
-            // Wait until the test has finished and close the server
-            return deferred.promise.then( () => {
-                pubSubSubscriber.close();
-            });
         });
 });

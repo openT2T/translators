@@ -1,9 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const WinkHelper = require('opent2t-translator-helper-wink');
-
-var request = require('request-promise');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -109,27 +106,18 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
 var deviceId;
 var deviceType = 'thermostats';
-var winkHelper;
-var accessToken;
+var winkHub;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(device) {
+    constructor(deviceInfo) {
         console.log('Initializing device.');
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        deviceId = deviceInfo.deviceInfo.id;
+        winkHub = deviceInfo.hub;
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.id, 'device.props.id', 'string');
-
-        deviceId = device.props.id;
-        accessToken = device.props.access_token;
-
-        // Initialize Wink Helper
-        winkHelper = new WinkHelper(device.props.access_token);
-        console.log('Javascript and Wink Helper initialized.');
+        console.log('Wink Thermostat Translator initialized.');
     }
 
     // exports for the entire schema object
@@ -137,7 +125,7 @@ class Translator {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
@@ -151,7 +139,7 @@ class Translator {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
@@ -219,108 +207,16 @@ class Translator {
             });
     }
 
-    subscribe(options) {
-        return this.commonsubscribe(deviceType, deviceId, options.callbackUrl, options.secret);
+    subscribe(callbackUrl, secret) {
+        return winkHub.subscribe(deviceType, deviceId, callbackUrl, secret)
     }
 
     unsubscribe(subscriptionId) {
-        return this.commonunsubscribe(deviceType, deviceId, subscriptionId);
+        return winkHub.unsubscribe(deviceType, deviceId, subscriptionId);
     }
 
     getSubscriptions() {
-        // GET /sensor_pods/<sensor pod id>/subscriptions
-        var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions';
-
-        // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + accessToken
-        }
-
-        // Configure the request
-        var options = {
-            url: requestUri,
-            method: 'GET',
-            headers: headers,
-            followAllRedirects: true
-        }
-
-        // Start the async request
-        return request(options)
-            .then(function (body) {
-                // request succeeded.
-                return JSON.parse(body);
-            })
-            .catch(function(reason) {
-                console.log('Error: ' + reason);
-            });
-    }
-
-    // Subscribe to Wink notifications
-    // serviceurl - The url endpoint set up to receive postbacks and manage verification
-    // secret - Subscriber generated secret for HMAC computation (if omitted, HMAC digest will
-    //      not be present on callbacks)
-    // This method passes the PubSubHubbub a subscriber URL to the Wink device so that the subscriber
-    // will receive postbacks.  This subscription needs to be refreshed or it will expire (currently 24 hrs).
-    commonsubscribe(deviceType, deviceId, serviceUrl, secret) {
-        var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions';
-
-        // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
-        // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
-        // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
-        var putPayload = {
-            callback: serviceUrl,
-            secret: secret
-        }
-
-        var putPayloadString = JSON.stringify(putPayload);
-
-        console.log("Attempting to subscribe to %s with %s", requestUri, JSON.stringify(putPayload));
-
-        var headers = {
-            'Authorization': 'Bearer ' + accessToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Content-length': putPayloadString.length
-        }
-
-        var options = {
-            url: requestUri,
-            method: 'POST',
-            headers: headers,
-            followAllRedirects: true,
-            body: putPayloadString
-        }
-
-        var req =  request(options)
-            .then(function (body) {
-                return JSON.parse(body);
-            });
-    }
-
-    // Unsubscribes a subscription id from the device.  This will need to be put in a common location or all wink device.
-    commonunsubscribe(deviceType, deviceId, subscriptionid)
-    {
-        var requestUri = 'https://api.wink.com/' + deviceType + '/' + deviceId + '/subscriptions/' + subscriptionid;
-
-        console.log("Attempting to unsubscribe from %s", requestUri)
-
-        var headers = {
-            'Authorization': 'Bearer ' + accessToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-
-        var options = {
-            url: requestUri,
-            method: 'DELETE',
-            header: headers,
-            followAllRedirects: true
-        }
-
-        return request(options)
-            .then(function (body) {
-                return JSON.parse(body);
-            });
+        return winkHub.getSubscriptions(deviceType, deviceId);
     }
 }
 

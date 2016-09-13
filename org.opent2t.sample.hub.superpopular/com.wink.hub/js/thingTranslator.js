@@ -89,6 +89,66 @@ class Translator {
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
 
+    /**
+     * Subscribes to a Wink pubsubhubbub feed
+     * 
+     * @param {string} deviceType - Device Type (e.g. 'thermostats')
+     * @param {string|number} deviceId - Id for the specific device
+     * @param {string} callbackUrl - Callback url for feed postbacks
+     * @param {string} [secret] - Secret to provide HMAC verification of responses
+     * @returns {request} Promise that supplies the server response.  If the callbackUrl is
+     *      already subscribed, then the timeout is refreshed, but the response is empty.
+     */
+    subscribe(deviceType, deviceId, callbackUrl, secret) {
+        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
+
+        // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
+        // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
+        // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
+
+        // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
+        // with another POST.
+
+        var postPayload = {
+            callback: callbackUrl,
+            secret: secret
+        }
+
+        var postPayloadString = JSON.stringify(postPayload);
+
+        return this._makeRequest(requestPath, 'POST', postPayloadString);
+    }
+
+    /**
+     * Unsubscribes from an existing Wink pubsubhubbub feed
+     * 
+     * @param {string} deviceType - Device Type (e.g. 'thermostats')
+     * @param {string|number} deviceId - Id for the specific device
+     * @param {string|number} subscriptionid - Id that will be unsubscribed
+     * @returns {request} Promise that supplies the server response
+     * 
+     */
+    unsubscribe(deviceType, deviceId, subscriptionid)
+    {
+        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions/' + subscriptionid;
+
+        return this._makeRequest(requestPath, 'DELETE');
+    }
+
+    /**
+     * Gets all subscriptions for a device.
+     * 
+     * @param {string} deviceType - Device Type (e.g. 'thermostats')
+     * @param {string|number} deviceId - Id for the specific device
+     * @returns {request} Promise that supplies the server response
+     */
+    getSubscriptions(deviceType, deviceId) {
+        // GET /sensor_pods/<sensor pod id>/subscriptions
+        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
+
+        return this._makeRequest(requestPath, 'GET');
+    }
+
     /** 
      * Given the hub specific device, returns the opent2t schema and translator
     */
@@ -108,7 +168,7 @@ class Translator {
         
         return undefined;
     }
-
+    
     /**
      * Internal helper method which makes the actual request to the wink service
      */
