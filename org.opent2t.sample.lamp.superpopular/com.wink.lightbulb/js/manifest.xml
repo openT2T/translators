@@ -4,20 +4,11 @@
   <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
   <!-- associated schemas -->
   <schemas>
-<<<<<<< HEAD
-      <schema id="org.opent2t.sample.lamp.superpopular" main="true" type="OCF" />
-      <schema id="oic.core" type="OCF" />
-      <schema id="oic.baseresource" type="OCF" />
-      <schema id="oic.r.switch.binary" type="OCF" />
-      <schema id="oic.r.light.dimming" type="OCF" />
-      <schema id="oic.r.colour.rgb" type="OCF" />
-=======
     <schema id="org.opent2t.sample.lamp.superpopular" main="true" type="OCF" />
     <schema id="oic.core" type="OCF" />
     <schema id="oic.baseresource" type="OCF" />
     <schema id="oic.r.switch.binary" type="OCF">
     <schema id="oic.r.light.dimming" type="OCF">
     <schema id="oic.r.colour.rgb" type="OCF">
->>>>>>> 3ed3822770190a122a83ca3f0bf6eab64fe8049f
   </schemas>
 </manifest>
