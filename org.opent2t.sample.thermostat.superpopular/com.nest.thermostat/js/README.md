@@ -119,6 +119,6 @@ npm run-script lint .
 To lint a specific file, run:
 
 ```bash
-npm run-script lint npm run-script lint <source file path>
+npm run-script lint <source file path>
 ```
 

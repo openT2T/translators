@@ -11,6 +11,7 @@
   "license": "MIT",
   "scripts": {
     "test": "ava",
+    "debug": "ava --debug-brk",
     "lint": "eslint"
   },
   "ava": {
