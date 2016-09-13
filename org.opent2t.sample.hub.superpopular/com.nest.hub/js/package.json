@@ -1,7 +1,7 @@
 {
-  "name": "opent2t-translator-com-wink-hub",
+  "name": "opent2t-translator-com-nest-hub",
   "version": "1.0.0",
-  "description": "Wink Hub",
+  "description": "Nest Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
   "files": [
@@ -20,7 +20,7 @@
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
     "opent2t": "^1.0.1",
-    "org-opent2t-onboarding-wink": "^1.0.1"
+    "org-opent2t-onboarding-nest": "^1.0.0"
   },
   "devDependencies": {
     "ava": "^0.15.2"

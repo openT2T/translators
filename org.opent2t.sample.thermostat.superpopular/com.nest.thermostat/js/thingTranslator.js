@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const NestHelper = require('opent2t-translator-helper-nest');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -72,25 +71,24 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
 var deviceId;
 var deviceType = 'thermostats';
-var nestHelper;
+var nestHub;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
-    constructor(device) {
+    constructor(deviceInfo) {
         console.log('Initializing device.');
+        console.log(JSON.stringify(deviceInfo, null, 2));
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(deviceInfo, 'deviceInfo', 'object');
+        validateArgumentType(deviceInfo.hub, 'deviceInfo.hub', 'object');
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.id, 'device.props.id', 'string');
+        validateArgumentType(deviceInfo.deviceInfo.id, 'deviceInfo.deviceInfo.id', 'string');
 
-        deviceId = device.props.id;
+        deviceId = deviceInfo.deviceInfo.id;
+        nestHub = deviceInfo.hub;
 
-        // Initialize Nest Helper
-        nestHelper = new NestHelper(device.props.access_token);
-        console.log('Javascript and Nest Helper initialized.');
+        console.log('Javascript and Nest Thermostat initialized.');
     }
 
     // exports for the entire schema object
@@ -98,7 +96,7 @@ class Translator {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return nestHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response);
             });
@@ -113,7 +111,7 @@ class Translator {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return nestHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response);
             });

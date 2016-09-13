@@ -17,70 +17,37 @@ This translator comes with some automated tests. Here's how you can run them:
 
 ### 1. Run onboarding to get credentials
 
-After dependencies are installed, cd to the translator root directory (i.e. the directory where
-this `README.md` and the `thingTranslator.js` exists).
+Using the opent2t-cli, following its readme to setup and perform onboarding, you perform onboarding with this commmand:
 
 ```bash
-node node_modules/opent2t-onboarding-winkhub/test.js
+node index.js -o opent2t-translator-com-wink-hub
 ```
-
-The user will be asked for their Wink credentials (plus API key information) and then the onboarding module will enumerate devices
-connected to the Wink hub. If there is a Wink hub correctly set up and the user chooses a device (any device), you should see output similar to:
+The user will be asked for their Wink credentials (plus API key information) and then save the access_token to a json file.
 
 ```bash
-Onboarding device  : device name
-idKeyFilter        : thermostat_id
-
 Please enter credentials for the Wink API:
 
 ? Wink API Client ID:  --MASKED (get this from Wink)--
 ? Wink API Client Secret:  --MASKED (get this from Wink)--
 ? Wink User Name (create this in the Wink app):  --MASKED--
 ? Wink Password (create this in the Wink app):  --MASKED--
-
-Thanks! Signing you in to Wink.
-Signed in to WINK.
-? Which device do you want to onboard? Home Entryway Thermostat (123456)
-  access_token : <access token, refreshToken, tokenType, scopes>
-  id           : <device id>
-  message      : All done. Happy coding!
-```
-
-Note the `access_token` that was discovered. You will need it later to run the test automation.
+````
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
-for this translator is org.opent2t.onboarding.winkhub. This basically just describes what sort of setup, pairing or
+for this translator to be org.opent2t.onboarding.winkhub. This basically just describes what sort of setup, pairing or
 auth information is required to interact with the device. In the case of this onboarding type, success means you get
 an access token. These parameters are provided to the translator for it to work.
 
 ### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
-to prevent inadvertent check-in). Use the following contents to start this file:
+to prevent inadvertent check-in). Copy the generated json file as the testconfig.json.
 
-   ```json
-    { 
-        "accessToken": "<accessToken value>",
-        "refreshToken": "<refreshToken value>",
-        "tokenType": "bearer",
-        "scopes": "full_access"
-    }
-   ```
-
-### 3. Modify testConfig.json with Test Configuration
-Populate `<accessToken>` and `<refreshToken>` in `tests/testconfig.json`. 
-
-### 4. Install Test Dependencies:
-
-```bash
-npm install -g ava
-```
-
-### 5. Run the tests
+### 3. Run the tests
 
 To run all the tests, run:
 
 ```bash
-npm test
+ava test.js
 ```
 
 To run a specific test, run:
