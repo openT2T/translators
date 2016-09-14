@@ -80,7 +80,7 @@ class HueHelper {
             }
         }
         
-        return sendAsyncRequest(apiEndpoint + '/' + deviceType + '/' + deviceId +　'/state', stateChanges)
+        return sendAsyncRequest(apiEndpoint + '/' + deviceType + '/' + deviceId + '/state', stateChanges)
         .then(function(body){
             result += body;
             return sendAsyncRequest(apiEndpoint + '/' + deviceType + '/' + deviceId, nonStateChanges)
