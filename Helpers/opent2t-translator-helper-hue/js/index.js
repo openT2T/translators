@@ -22,11 +22,9 @@ function isLightState(propertyName)
         case "colormode":
         case "reachable":
             return true;
-            break;
         default:
             return false;
     }
-    return false;
 }
 
 class HueHelper {
@@ -72,7 +70,6 @@ class HueHelper {
         var stateChanges = {};
         var nonStateChanges = {};
         var result = "[";
-        var requestUri, headers, options;
         for (var item in putPayload)
         {
             if(isLightState(item))
