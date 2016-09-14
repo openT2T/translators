@@ -1,10 +1,6 @@
-# Hue Light Bulb
+# Hue Light Translator
+Translator for Hue Light (https://meethue.com)
 
-Translator for lights connected to the Hue hub: http://www.meethue.com
-
-## Setup Your Hardware
-
-Follow instructions on the Hue site: http://www2.meethue.com/en-us/about-hue/get-started/
 
 ## Installing Dependencies
 To install dependencies for this translator, run:
@@ -13,52 +9,47 @@ To install dependencies for this translator, run:
 npm install
 ```
 
-## Test Device
-After everything is installed, run:
+## Running Test Automation
+This translator comes with some automated tests. Here's how you can run them:
+
+1. Create the `tests/testConfig.json` file
+This is where you can put credentials/config to drive this test (this file is added to .gitignore
+to prevent inadvertent check-in). Use the following contents to start this file:
+
+   ```json
+    {
+        "Device" : {
+            "name": "Hue Light.",
+            "props": { 
+                "access_token": "<access-token>",
+                "device_type": "lights",
+                "device_id": "<light-device-id>",
+                "bridge_id": "<remote-bridge-id>",
+                "whitelist_id": "<whitelist-id>" 
+            }
+        }
+    }
+   ```
+
+### 2. Modify testConfig.json with Test Configuration
+Populate `<whitelist_id>` ,`<bridge_id>` ,`<device_id>` and `<access_token>` in `tests/testconfig.json`. Noted that <whitelist_id> is also known as the app_username of the bridge.
+
+### 3. Install Test Dependencies:
 
 ```bash
-node node_modules/opent2t-onboarding-huehub/test.js
+npm install -g ava
 ```
 
-With the Hue installed on the local network, the user will be asked to press the button on the top of the Hue and then the onboarding module will enumerate devices
-connected to the Hue hub. If there is a Hue hub correctly set up , you should see output similar to:
+### 4. Run the tests
+
+To run all the tests, run:
 
 ```bash
-Onboarding device:
-Found Hue bridge at 192.168.1.4
-Important! Press the button on the top of the Hue.
-Then press Enter here within 30 seconds...
-Created user: 71143d957508f24e355f833c51d2247d
-? Which light do you want to onboard? (Use arrow keys)
-> {"uniqueid":"00:17:88:01:10:57:ec:f4-0b","name":"My Hue Lamp 1"}
-  {"uniqueid":"00:17:88:01:10:57:ec:40-0b","name":"My Hue Lamp 2"}
-  ...
-  ipAddress : 192.168.1.4
-  userId    : s06A0pNjNaLkHHFpJHmkYLV4HI84mZ7D-9P-V5r3
-  uniqueId  : 00:17:88:01:10:57:ec:f4-0b
-  message   : All done. Happy coding!
+npm test
 ```
 
-Copy the displayed IP address, user ID, and device unique ID and use that to run the translator test:
+To run a specific test, run:
 
 ```bash
-$ node test -a '192.168.1.4' -u 's06A0pNjNaLkHHFpJHmkYLV4HI84mZ7D-9P-V5r3' -i '00:17:88:01:10:57:ec:f4-0b'
+ava <test file path> <options>
 ```
-
-If the device is on and connected to the Hue hub, you should see it turn on/off per
-the commands in the test file. You should also see output similar to:
-
-```bash
-Initializing device.
-turnOn called.
-turnOff called.
-turnOn called.
-turnOff called.
-turnOn called.
-turnOff called.
-```
-
-Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
-for this translator is org.opent2t.onboarding.huehub. This basically just describes what sort of setup, pairing or
-auth information is required to interact with the device. In the case of this onboarding type, success means you get
-a userid parameter and a uniqueid of the light. These parameters needs to be provided to the translator for it to work.

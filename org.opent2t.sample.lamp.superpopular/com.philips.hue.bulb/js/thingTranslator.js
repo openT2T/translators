@@ -19,34 +19,28 @@ function validateArgumentType(arg, argName, expectedType) {
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
-	var deviceState = deviceSchema.state;
+    var deviceState = deviceSchema.state;
     var result = {
         id:  'lights.' + deviceId,
-        n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.lamp.superpopular',
-    }
+        rt: 'org.opent2t.sample.lamp.superpopular'
+    };
     
-	if(typeof deviceState != 'undefined'){
+    if(typeof deviceState != 'undefined'){
+        result.n = deviceSchema['name'] ;
         result.power = { value: deviceState['on'] };
         result.dim = { dimmingSetting: deviceState['bri'], range: [1, 254]};
-    }else{
-        for (var i = 0; i < deviceSchema.length; i++)
-        {
+    } else {
+        for (var i = 0; i < deviceSchema.length; i++){
             var changeResult = deviceSchema[i].success;
-            if(typeof changeResult != 'undefined')
-            {
+            if(typeof changeResult != 'undefined'){
                 var key = Object.keys(changeResult)[0];
                 var parseKey = key.split("/");
                 var attribute = parseKey[parseKey.length-1];
-                if( attribute == 'on')
-                {
+                if( attribute == 'on'){
                     result.power = { value: changeResult[key] };
-                }
-                else if ( attribute == 'bri')
-                {
+                } else if ( attribute == 'bri'){
                     result.dim = { dimmingSetting: changeResult[key], range: [1, 254]};
-                }else if ( attribute == 'name')
-                {
+                } else if ( attribute == 'name'){
                     result.n = changeResult[key];
                 }
             }
@@ -91,7 +85,7 @@ class Translator {
 
         validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
         validateArgumentType(device.props.device_id, 'device.props.device_id', 'string');
-		validateArgumentType(device.props.bridge_id, 'device.props.bridge_id', 'string');
+        validateArgumentType(device.props.bridge_id, 'device.props.bridge_id', 'string');
         validateArgumentType(device.props.whitelist_id, 'device.props.whitelist_id', 'string');
 
         deviceId = device.props.device_id;
@@ -131,7 +125,6 @@ class Translator {
 
     getPower() {
         console.log('getPower called');
-
         return this.getLampResURI()
             .then(response => {
                 return response.power.value;

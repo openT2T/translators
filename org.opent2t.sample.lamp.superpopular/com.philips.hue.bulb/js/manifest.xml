@@ -5,7 +5,7 @@
   <!-- associated schema -->
   <schema id="org.opent2t.sample.lamp.superpopular" />
   <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.winkhub">
+  <onboarding id="org.opent2t.onboarding.huehub">
     <arg name="name" value="Hue Light Bulb" />
   </onboarding>
 </manifest>

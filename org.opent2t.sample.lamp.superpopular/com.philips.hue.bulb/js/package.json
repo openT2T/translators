@@ -18,14 +18,14 @@
         ]
     },
     "dependencies": {
-        "opent2t-translator-helper-hue": "*"
+      "opent2t-translator-helper-hue": "*",
+      "opent2t": "*",
+      "opent2t-onboarding-huehub": "*"
     },
     "devDependencies": {
-        "optimist": "*",
-        "opent2t": "*",
-        "opent2t-onboarding-huehub": "*",
-        "jshint": "^2.9.2",
-        "ava": "^0.15.2",
-        "es6-sleep": "*"
+      "optimist": "*",
+      "jshint": "^2.9.2",
+      "ava": "^0.15.2",
+      "es6-sleep": "*"
     }
 }
