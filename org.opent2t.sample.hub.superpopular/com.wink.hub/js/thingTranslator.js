@@ -6,54 +6,77 @@
 
 "use strict";
 var request = require('request-promise');
+var PubNub = require('pubnub');
+var EventEmitter = require('events');
 
 /**
 * This translator class implements the "Hub" interface.
 */
-class Translator {
+class Translator extends EventEmitter {
     constructor(accessToken) {
+        super();
+
         this._accessToken = accessToken;
 
         this._baseUrl = "https://api.wink.com";
+        this._userPath = '/users/me';
         this._devicesPath = '/users/me/wink_devices';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
+
+        this._eventTranslators = {};
     }
 
     /**
      * Get the list of devices discovered through the hub.
      */
     getHubResURI() {
-        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+        return this._makeRequest(this._userPath, 'GET').then((response) => {
+            // Subscribe to the user feed for device discovery
+            // TODO: This doesn't work, at least for non-wink devices like Nest thermostats
+            // May need to contact Wink.
+            this._subscribe(response.data.subscription.pubnub);
 
-            var toReturn = {};
-            var devices = response.data;
+            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+                this._pubNubChannels = [];
+                this._pubNubSubscribeKey;
 
-            var filteredDevices = [];
-            devices.forEach((winkDevice) => {
-                // get the opent2t schema and translator for the wink device
-                var opent2tInfo = this._getOpent2tInfo(winkDevice);
+                var toReturn = {};
+                var devices = response.data;
 
-                if ((winkDevice.model_name !== 'HUB')  &&  // Skip hub itself. (WINK specific check, of course!)
-                    opent2tInfo != undefined) // we support the device
-                {
-                    // we only need to return certain properties back
-                    var device = {};
-                    device.name = winkDevice.name;
+                //console.log(JSON.stringify(response, null, 2));
 
-                    // set the specific device object id to be the id
-                    device.id = this._getDeviceId(winkDevice);
+                var filteredDevices = [];
+                devices.forEach((winkDevice) => {
+                    // get the opent2t schema and translator for the wink device
+                    var opent2tInfo = this._getOpent2tInfo(winkDevice);
+                    if (opent2tInfo != undefined) { // We support the device
+                        
+                        if (winkDevice.subscription != undefined) {
+                            this._subscribe(winkDevice.subscription.pubnub);
+                        }
+                        
+                        // Skip hub itself. (WINK specific check, of course!)
+                        if (winkDevice.model_name !== 'HUB') { 
+                            // we only need to return certain properties back
+                            var device = {};
+                            device.name = winkDevice.name;
 
-                    // set the opent2t info for the wink device
-                    device.openT2T = opent2tInfo;
-                    
-                    filteredDevices.push(device);
-                }
+                            // set the specific device object id to be the id
+                            device.id = this._getDeviceId(winkDevice);
+
+                            // set the opent2t info for the wink device
+                            device.openT2T = opent2tInfo;
+                            
+                            filteredDevices.push(device);
+                        }
+                    }
+                });
+
+                toReturn.devices = filteredDevices;
+
+                return toReturn;
             });
-
-            toReturn.devices = filteredDevices;
-
-            return toReturn;
         });
     }
 
@@ -87,6 +110,67 @@ class Translator {
 
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
+    }
+
+    /**
+     * Subscribes to changes for devices on this provider
+     *
+     * options {
+     * channel: <channel id>,
+     * subscribe_key: <subscribe_id>
+     * } 
+     *
+    */
+    _subscribe(subscriptionOptions) {
+
+        console.log('Subscribing to: ');
+        console.log(subscriptionOptions.subscribe_key);
+        console.log(subscriptionOptions.channel);
+
+        // Create the pubnub subscription on demand if needed
+        if (this._pubnub === undefined) {
+            console.log('Creating pubnub subscription');
+
+            this._pubnub = new PubNub({
+                subscribeKey: subscriptionOptions.subscribe_key
+            });
+
+            this._pubnub.addListener({
+                message: function(message) {;
+                    var opent2tinfo = this._getOpent2tInfo(JSON.parse(message.message));
+
+                    if (opent2tinfo !== undefined) {
+                        console.log("Received a change event for ", opent2tinfo.translator);
+
+                        // TODO:
+                        // Create an instance of the translator, or do whatever
+                        // needs to be done to get the OCF representation of the device
+                        // I do not need to get the state of the translator, since I already have it 
+                        // I just need a method to convert the deviceSchema to the translatorSchema.
+                        // Wink translators provide this functionality, but it isn't accessible from here.
+
+                        this.emit('change', opent2tinfo);
+                        // TODO: handle add and remove device
+                    }
+                }.bind(this),
+                status: function(status) {
+                    console.log(status);
+                }.bind(this)
+            });
+        }
+
+        this._pubnub.subscribe({
+            channels: [subscriptionOptions.channel]
+        });
+    }
+
+
+    _unsubscribe(channel) {
+        if (this._pubnub !== undefined) {
+            this._pubnub.unsubscribe({
+                channels: [channel]
+            });
+        }
     }
 
     /** 
