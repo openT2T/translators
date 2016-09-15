@@ -52,7 +52,7 @@ test.serial('GetSensorpodResURI', t => {
 });
 
 // Set the name and dimming for the Lamp
-test.serial('PostSensorpodResURIResURI_Set_Name', t => {
+test.serial('PostSensorpodResURI_Set_Name', t => {
     var value = {};
     value['n'] = "opent2t sensor pod";
 
