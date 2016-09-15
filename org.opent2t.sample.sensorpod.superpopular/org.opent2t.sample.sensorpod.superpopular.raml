@@ -1,0 +1,84 @@
+#%RAML 0.8
+title: org.opent2t.sample.sensorpod.superpopular
+version: v1.0
+
+schemas:
+  - Sensorpod: !include org.opent2t.sample.sensorpod.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/SensorpodResURI:
+  description: |
+   This resource describes the properties associated with Sensorpod.
+   The resource is a composite resource.
+  displayName: Sensorpod
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Sensorpod
+            example: |
+              {
+                  "rt": "org.opent2t.sample.sensorpod.superpopular",
+                  "id": "unique_example_id",
+                  "sensors": [
+                      {
+                          "id": "motion",
+                          "rt": "oic.r.sensor.motion",
+                          "value": false
+                      },
+                      {
+                          "id": "contact",
+                          "rt": "oic.r.sensor.contact",
+                          "value": true
+                      }
+                  ]
+              }
+    
+  post:
+    body:
+      application/json:
+        schema: Sensorpod
+        example: |
+            {
+                "id": "unique_example_id",
+                "n": "new name"
+            }
+
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Sensorpod
+            example: |
+                {
+                    "id": "unique_example_id",
+                    "n": "new name",
+                    "sensors": [
+                        {
+                            "id": "motion",
+                            "rt": "oic.r.sensor.motion",
+                            "value": false
+                        },
+                        {
+                            "id": "contact",
+                            "rt": "oic.r.sensor.contact",
+                            "value": true
+                        },
+                        {
+                            "id": "temperature",
+                            "rt": "oic.r.temperature",
+                            "temperature": 20,
+                            "units": "C"
+                        }
+                    ]
+                }

@@ -1,0 +1,39 @@
+{
+  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.sensorpod.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "OpenT2T SuperPopular Sensor Pod",
+  "definitions": {
+    "org.opent2t.sample.sensorpod.superpopular": {
+      "type": "object",
+      "properties": {
+        "sensors": {
+          "type": "array",
+          "description": "ReadOnly, Array defining all of the sensors in the sensor pod",
+          "items": {
+            "oneOf": [
+              { "$ref": "oic.r.sensor.json#/definitions/oic.r.sensor" },
+              { "$ref": "oic.r.sensor.motion.json#/definitions/oic.r.sensor.motion" },
+              { "$ref": "oic.r.sensor.contact.json#/definitions/oic.r.sensor.contact" },
+              { "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature" },
+              { "$ref": "oic.r.humidity.json#/definitions/oic.r.humidity" }
+            ],
+            "required": ["id", "rt"]
+          }
+        }
+      }
+    }
+  },
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/org.opent2t.sample.sensorpod.superpopular"
+    }
+  ]
+}

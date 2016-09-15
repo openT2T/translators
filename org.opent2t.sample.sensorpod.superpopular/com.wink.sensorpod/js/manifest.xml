@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated schemas -->
+  <schemas>
+    <schema id="org.opent2t.sample.sensorpod.superpopular" main="true" type="OCF" />
+    <schema id="oic.core" type="OCF" />
+    <schema id="oic.baseresource" type="OCF" />
+    <schema id="oic.r.sensor" type="OCF" />
+    <schema id="oic.r.sensor.motion" type="OCF" />
+    <schema id="oic.r.sensor.contact" type="OCF" />
+    <schema id="oic.r.temperature" type="OCF" />
+    <schema id="oic.r.humidity" type="OCF" />
+  </schemas>
+</manifest>
