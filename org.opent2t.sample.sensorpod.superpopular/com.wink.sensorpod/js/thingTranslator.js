@@ -150,7 +150,6 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
     // build the object with desired state
     var result = { 'desired_state': {} };
-    var desired_state = result.desired_state;
 
     if (translatorSchema.n) {
         result['name'] = translatorSchema.n;

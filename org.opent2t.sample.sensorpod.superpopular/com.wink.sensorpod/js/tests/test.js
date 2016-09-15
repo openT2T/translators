@@ -1,4 +1,3 @@
-const sleep = require('es6-sleep').promise;
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
@@ -23,7 +22,7 @@ function getSensorpod(devices) {
 }
 
 // setup the translator before all the tests run
-test.before(async t => {
+test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
     var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
     var deviceInfo = getSensorpod(hubInfo.devices);
