@@ -210,7 +210,7 @@ test.serial('Thermostat_Eventing', t => {
                         deferred.reject("Timed out before receiving a notification from the device");
                     }, 10000);
 
-                    return deferred.promise.then( p => {
+                    return deferred.promise.then(() => {
                         t.true(notifications > 0);
                     });
                 });

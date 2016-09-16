@@ -71,7 +71,7 @@ class Translator {
     getLampResURI() {
         return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
+                return this.deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -83,10 +83,10 @@ class Translator {
 
         console.log('postLampResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
+        var putPayload = this.translatorSchemaToDeviceSchema(postPayload);
         return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
+                return this.deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
