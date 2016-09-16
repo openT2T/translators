@@ -1,15 +1,15 @@
 {
-  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.sensorpod.superpopular#",
+  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.multisensor.superpopular#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "",
-  "title": "OpenT2T SuperPopular Sensor Pod",
+  "title": "OpenT2T SuperPopular Multisensor",
   "definitions": {
-    "org.opent2t.sample.sensorpod.superpopular": {
+    "org.opent2t.sample.multisensor.superpopular": {
       "type": "object",
       "properties": {
         "sensors": {
           "type": "array",
-          "description": "ReadOnly, Array defining all of the sensors in the sensor pod",
+          "description": "ReadOnly, Array defining all of the sensors in the multisensor",
           "items": {
             "oneOf": [
               { "$ref": "oic.r.sensor.json#/definitions/oic.r.sensor" },
@@ -33,7 +33,7 @@
       "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
     },
     {
-      "$ref": "#/definitions/org.opent2t.sample.sensorpod.superpopular"
+      "$ref": "#/definitions/org.opent2t.sample.multisensor.superpopular"
     }
   ]
 }

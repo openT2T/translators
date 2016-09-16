@@ -45,89 +45,61 @@ function scaleDeviceHumidityToTranslatorHumidity(humidity) {
     return Math.floor(humidity * 100);
 }
 
+function createSensor(key, value, resourceType) {
+    return {
+        id: key,
+        rt: resourceType || 'oic.r.sensor',
+        value: value
+    };
+}
+
+function createMotionSensor(key, value) {
+    return createSensor(key, value, 'oic.r.sensor.motion');
+}
+
+function createContactSensor(key, value) {
+    return createSensor(key, value, 'oic.r.sensor.contact');
+}
+
+function createTemperature(key, value) {
+    return {
+        id: key,
+        rt: 'oic.r.temperature',
+        temperature: value,
+        units: "C"
+    };
+}
+
+function createHumidity(key, value) {
+    return {
+        id: key,
+        rt: 'oic.r.humidity',
+        humidity: scaleDeviceHumidityToTranslatorHumidity(value)
+    };
+}
+
 function readSensorsArray(stateReader) {
     var sensors = [];
 
-    if (stateReader.containsKey('motion')) {
-        sensors.push({
-            id: 'motion',
-            rt: 'oic.r.sensor.motion',
-            value: stateReader.get('motion')
-        });
-    }
+    var winkSensors = {
+        'motion': createMotionSensor,
+        'opened': createContactSensor,
+        'temperature': createTemperature,
+        'humidity': createHumidity,
+        'brightness': createSensor,
+        'loudness': createSensor,
+        'vibration': createSensor,
+        'locked': createSensor,
+        'liquid_detected': createSensor,
+        'occupied': createSensor
+    };
 
-    if (stateReader.containsKey('opened')) {
-        sensors.push({
-            id: 'opened',
-            rt: 'oic.r.sensor.contact',
-            value: stateReader.get('opened')
-        });
-    }
-
-    if (stateReader.containsKey('temperature')) {
-        sensors.push({
-            id: 'temperature',
-            rt: 'oic.r.temperature',
-            temperature: stateReader.get('temperature'),
-            units: "C"
-        });
-    }
-
-    if (stateReader.containsKey('humidity')) {
-        sensors.push({
-            id: 'humidity',
-            rt: 'oic.r.humidity',
-            humidity: scaleDeviceHumidityToTranslatorHumidity(stateReader.get('humidity'))
-        });
-    }
-
-    if (stateReader.containsKey('brightness')) {
-        sensors.push({
-            id: 'brightness',
-            rt: 'oic.r.sensor',
-            value: stateReader.get('brightness')
-        });
-    }
-
-    if (stateReader.containsKey('loudness')) {
-        sensors.push({
-            id: 'loudness',
-            rt: 'oic.r.sensor',
-            value: stateReader.get('loudness')
-        });
-    }
-
-    if (stateReader.containsKey('vibration')) {
-        sensors.push({
-            id: 'loudness',
-            rt: 'oic.r.sensor',
-            value: stateReader.get('vibration')
-        });
-    }
-
-    if (stateReader.containsKey('locked')) {
-        sensors.push({
-            id: 'locked',
-            rt: 'oic.r.sensor',
-            value: stateReader.get('locked')
-        });
-    }
-
-    if (stateReader.containsKey('liquid_detected')) {
-        sensors.push({
-            id: 'liquidDetected',
-            rt: 'oic.r.sensor',
-            value: stateReader.get('liquid_detected')
-        });
-    }
-
-    if (stateReader.containsKey('occupied')) {
-        sensors.push({
-            id: 'occupied',
-            rt: 'oic.r.sensor',
-            value: stateReader.get('occupied')
-        });
-    }
+    Object.keys(winkSensors).forEach(key => {
+        if (stateReader.containsKey(key)) {
+            var sensor = winkSensors[key](key, stateReader.get(key));
+            sensors.push(sensor);
+        }
+    });
 
     return sensors;
 }
@@ -140,7 +112,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
     return {
         id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
         n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.sensorpod.superpopular',
+        rt: 'org.opent2t.sample.multisensor.superpopular',
         sensors: readSensorsArray(stateReader)
     };
 }
@@ -162,7 +134,7 @@ var deviceId;
 var deviceType = 'sensor_pods';
 var winkHub;
 
-// This translator class implements the 'org.opent2t.sample.sensorpod.superpopular' interface.
+// This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.
 class Translator {
 
     constructor(deviceInfo) {
@@ -178,22 +150,24 @@ class Translator {
 
     // exports for the entire schema object
 
-    // Queries the entire state of the sensorpod
-    // and returns an object that maps to the json schema org.opent2t.sample.sensorpod.superpopular
-    getSensorpodResURI() {
+    // Queries the entire state of the multisensor
+    // and returns an object that maps to the json schema org.opent2t.sample.multisensor.superpopular
+    getMultisensorResURI() {
         return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
-    // Updates the current state of the sensorpod with the contents of postPayload
-    // postPayload is an object that maps to the json schema org.opent2t.sample.sensorpod.superpopular
+    // Updates the current state of the multisensor with the contents of postPayload
+    // postPayload is an object that maps to the json schema org.opent2t.sample.multisensor.superpopular
+    //
+    // For a multisensor, this should only be used to update the name field
     //
     // In addition, returns the updated state (see sample in RAML)
-    postSensorpodResURI(postPayload) {
+    postMultisensorResURI(postPayload) {
 
-        console.log('postSensorpodResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
+        console.log('postMultisensorResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
         return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)

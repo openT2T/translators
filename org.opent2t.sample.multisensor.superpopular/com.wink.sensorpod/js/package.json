@@ -1,7 +1,7 @@
 {
-    "name": "opent2t-translator-com-wink-sensorpod",
+    "name": "opent2t-translator-com-wink-multisensor",
     "version": "0.1.0",
-    "description": "Wink Sensor Pod",
+    "description": "Wink Multisensor",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
         "type": "git",
@@ -18,7 +18,6 @@
         ]
     },
     "dependencies": {
-        "opent2t": "1.0.1",
         "opent2t-translator-com-wink-hub": "*"
     },
     "devDependencies": {

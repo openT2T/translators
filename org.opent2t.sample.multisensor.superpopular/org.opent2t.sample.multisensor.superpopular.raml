@@ -1,9 +1,9 @@
 #%RAML 0.8
-title: org.opent2t.sample.sensorpod.superpopular
+title: org.opent2t.sample.multisensor.superpopular
 version: v1.0
 
 schemas:
-  - Sensorpod: !include org.opent2t.sample.sensorpod.superpopular.json
+  - Multisensor: !include org.opent2t.sample.multisensor.superpopular.json
 
 traits:
   - interface:
@@ -11,11 +11,11 @@ traits:
         if:
           enum: ["oic.if.a"]
 
-/SensorpodResURI:
+/MultisensorResURI:
   description: |
-   This resource describes the properties associated with Sensorpod.
+   This resource describes the properties associated with Multisensor.
    The resource is a composite resource.
-  displayName: Sensorpod
+  displayName: Multisensor
   is: [ interface ]
 
   get:
@@ -25,10 +25,10 @@ traits:
       200:
         body:
           application/json:
-            schema: Sensorpod
+            schema: Multisensor
             example: |
               {
-                  "rt": "org.opent2t.sample.sensorpod.superpopular",
+                  "rt": "org.opent2t.sample.Multisensor.superpopular",
                   "id": "unique_example_id",
                   "sensors": [
                       {
@@ -47,7 +47,7 @@ traits:
   post:
     body:
       application/json:
-        schema: Sensorpod
+        schema: Multisensor
         example: |
             {
                 "id": "unique_example_id",
@@ -58,7 +58,7 @@ traits:
       200:
         body:
           application/json:
-            schema: Sensorpod
+            schema: Multisensor
             example: |
                 {
                     "id": "unique_example_id",

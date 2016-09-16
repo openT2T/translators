@@ -1,9 +1,9 @@
 # Wink Light Translator
-Translator for Wink Sensorpod (https://wink.com)
+Translator for Wink Multisensor (https://wink.com)
 
 ## Setup Your Hardware
-Follow instructions in the Wink app to set up your sensorpod with Wink. This is a pre-requisite
-before using this translator to interact with your sensorpod.
+Follow instructions in the Wink app to set up your multisensor with Wink. This is a pre-requisite
+before using this translator to interact with your multisensor.
 
 ## Installing Dependencies
 To install dependencies for this translator, run:
