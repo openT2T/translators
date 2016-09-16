@@ -15,7 +15,7 @@ var translatorPath = require('path').join(__dirname, '..');
 
 // HubResURI
 test.serial('HubResURI', t => {
-    
+
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config)
         .then(translator => {
             // TEST: translator is valid
