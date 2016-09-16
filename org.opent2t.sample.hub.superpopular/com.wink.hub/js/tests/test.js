@@ -15,10 +15,8 @@ var translatorPath = require('path').join(__dirname, '..');
 
 // HubResURI
 test.serial('HubResURI', t => {
-    var deferred = q.defer();
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config)
         .then(translator => {
-
             // TEST: translator is valid
             t.is(typeof translator, 'object') && t.truthy(translator);
             return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.hub.superpopular', 'HubResURI')
