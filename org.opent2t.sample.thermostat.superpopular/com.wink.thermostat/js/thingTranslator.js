@@ -35,75 +35,6 @@ class StateReader {
     }
 }
 
-// Helper method to convert the device schema to the translator schema.
-function deviceSchemaToTranslatorSchema(deviceSchema) {
-
-    var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
-
-    // Quirks:
-    // - Wink does not have a target temperature field, so returning the average of min and max setpoint
-
-    var max = stateReader.get('max_set_point');
-    var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units').temperature;
-
-    var result = {
-        id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
-        n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.thermostat.superpopular',
-        targetTemperature: { temperature: (max + min) / 2, units: temperatureUnits },
-        targetTemperatureHigh: { temperature: max, units: temperatureUnits },
-        targetTemperatureLow: { temperature: min, units: temperatureUnits },
-        ambientTemperature: { temperature: stateReader.get('temperature'), units: temperatureUnits },
-        awayMode: stateReader.get('users_away'),
-        hasFan: stateReader.get('has_fan'),
-        ecoMode: stateReader.get('eco_target'),
-        hvacMode: { supportedModes: stateReader.get('modes_allowed'), modes: [stateReader.get('mode')] },
-        fanTimerActive: stateReader.get('fan_timer_active')
-    };
-
-    if (stateReader.get('external_temperature') !== null) {
-        result.externalTemperature = { temperature: stateReader.get('external_temperature'), units: temperatureUnits };
-    }
-
-    return result;
-}
-
-// Helper method to convert the translator schema to the device schema.
-function translatorSchemaToDeviceSchema(translatorSchema) {
-
-    // build the object with desired state
-    var result = { 'desired_state': {} };
-    var desired_state = result.desired_state;
-
-    // Quirks:
-    // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
-    // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
-    // Instead, we infer it from the max and min setpoint
-
-    if (translatorSchema.n !== undefined) {
-        result['name'] = translatorSchema.n;
-    }
-
-    if (translatorSchema.targetTemperatureHigh !== undefined) {
-        desired_state['max_set_point'] = translatorSchema.targetTemperatureHigh.temperature;
-    }
-
-    if (translatorSchema.targetTemperatureLow !== undefined) {
-        desired_state['min_set_point'] = translatorSchema.targetTemperatureLow.temperature;
-    }
-
-    if (translatorSchema.awayMode !== undefined) {
-        desired_state['users_away'] = translatorSchema.awayMode;
-    }
-
-    if (translatorSchema.hvacMode !== undefined) {
-        desired_state['mode'] = translatorSchema.hvacMode.modes[0];
-    }
-
-    return result;
-}
-
 var deviceId;
 var deviceType = 'thermostats';
 var winkHub;
@@ -129,7 +60,7 @@ class Translator {
     getThermostatResURI() {
         return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
+                return this.deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -140,10 +71,10 @@ class Translator {
     postThermostatResURI(postPayload) {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
+        var putPayload = this.translatorSchemaToDeviceSchema(postPayload);
         return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
+                return this.deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -207,6 +138,75 @@ class Translator {
             .then(response => {
                 return response.targetTemperatureLow.temperature;
             });
+    }
+
+    // Helper method to convert the device schema to the translator schema.
+    deviceSchemaToTranslatorSchema(deviceSchema) {
+
+        var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
+
+        // Quirks:
+        // - Wink does not have a target temperature field, so returning the average of min and max setpoint
+
+        var max = stateReader.get('max_set_point');
+        var min = stateReader.get('min_set_point');
+        var temperatureUnits = stateReader.get('units').temperature;
+
+        var result = {
+            id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
+            n: deviceSchema['name'],
+            rt: 'org.opent2t.sample.thermostat.superpopular',
+            targetTemperature: { temperature: (max + min) / 2, units: temperatureUnits },
+            targetTemperatureHigh: { temperature: max, units: temperatureUnits },
+            targetTemperatureLow: { temperature: min, units: temperatureUnits },
+            ambientTemperature: { temperature: stateReader.get('temperature'), units: temperatureUnits },
+            awayMode: stateReader.get('users_away'),
+            hasFan: stateReader.get('has_fan'),
+            ecoMode: stateReader.get('eco_target'),
+            hvacMode: { supportedModes: stateReader.get('modes_allowed'), modes: [stateReader.get('mode')] },
+            fanTimerActive: stateReader.get('fan_timer_active')
+        };
+
+        if (stateReader.get('external_temperature') !== null) {
+            result.externalTemperature = { temperature: stateReader.get('external_temperature'), units: temperatureUnits };
+        }
+
+        return result;
+    }
+
+    // Helper method to convert the translator schema to the device schema.
+    translatorSchemaToDeviceSchema(translatorSchema) {
+
+        // build the object with desired state
+        var result = { 'desired_state': {} };
+        var desired_state = result.desired_state;
+
+        // Quirks:
+        // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
+        // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+        // Instead, we infer it from the max and min setpoint
+
+        if (translatorSchema.n !== undefined) {
+            result['name'] = translatorSchema.n;
+        }
+
+        if (translatorSchema.targetTemperatureHigh !== undefined) {
+            desired_state['max_set_point'] = translatorSchema.targetTemperatureHigh.temperature;
+        }
+
+        if (translatorSchema.targetTemperatureLow !== undefined) {
+            desired_state['min_set_point'] = translatorSchema.targetTemperatureLow.temperature;
+        }
+
+        if (translatorSchema.awayMode !== undefined) {
+            desired_state['users_away'] = translatorSchema.awayMode;
+        }
+
+        if (translatorSchema.hvacMode !== undefined) {
+            desired_state['mode'] = translatorSchema.hvacMode.modes[0];
+        }
+
+        return result;
     }
 }
 
