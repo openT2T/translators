@@ -1,4 +1,4 @@
-# Wink Light Translator
+# Wink Multisensor
 Translator for Wink Multisensor (https://wink.com)
 
 ## Setup Your Hardware
