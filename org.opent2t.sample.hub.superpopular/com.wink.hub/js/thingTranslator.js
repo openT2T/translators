@@ -6,16 +6,16 @@
 
 "use strict";
 var request = require('request-promise');
+
+// Wink uses a single PubNub subscription with a channel for each device for
+// realtime notifications
 var PubNub = require('pubnub');
-var EventEmitter = require('events');
 
 /**
 * This translator class implements the "Hub" interface.
 */
-class Translator extends EventEmitter {
+class Translator {
     constructor(accessToken) {
-        super();
-
         this._accessToken = accessToken;
 
         this._baseUrl = "https://api.wink.com";
@@ -23,60 +23,38 @@ class Translator extends EventEmitter {
         this._devicesPath = '/users/me/wink_devices';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
-
-        this._eventTranslators = {};
     }
 
     /**
      * Get the list of devices discovered through the hub.
      */
     getHubResURI() {
-        return this._makeRequest(this._userPath, 'GET').then((response) => {
-            // Subscribe to the user feed for device discovery
-            // TODO: This doesn't work, at least for non-wink devices like Nest thermostats
-            // May need to contact Wink.
-            this._subscribe(response.data.subscription.pubnub);
+        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+            var toReturn = {};
+            var devices = response.data;
 
-            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-                this._pubNubChannels = [];
-                this._pubNubSubscribeKey;
+            var filteredDevices = [];
+            devices.forEach((winkDevice) => {
+                // get the opent2t schema and translator for the wink device
+                var opent2tInfo = this._getOpent2tInfo(winkDevice);
+                if (opent2tInfo != undefined && winkDevice.model_name !== 'HUB') { 
+                        // we only need to return certain properties back
+                        var device = {};
+                        device.name = winkDevice.name;
 
-                var toReturn = {};
-                var devices = response.data;
+                        // set the specific device object id to be the id
+                        device.id = this._getDeviceId(winkDevice);
 
-                //console.log(JSON.stringify(response, null, 2));
-
-                var filteredDevices = [];
-                devices.forEach((winkDevice) => {
-                    // get the opent2t schema and translator for the wink device
-                    var opent2tInfo = this._getOpent2tInfo(winkDevice);
-                    if (opent2tInfo != undefined) { // We support the device
+                        // set the opent2t info for the wink device
+                        device.openT2T = opent2tInfo;
                         
-                        if (winkDevice.subscription != undefined) {
-                            this._subscribe(winkDevice.subscription.pubnub);
-                        }
-                        
-                        // Skip hub itself. (WINK specific check, of course!)
-                        if (winkDevice.model_name !== 'HUB') { 
-                            // we only need to return certain properties back
-                            var device = {};
-                            device.name = winkDevice.name;
-
-                            // set the specific device object id to be the id
-                            device.id = this._getDeviceId(winkDevice);
-
-                            // set the opent2t info for the wink device
-                            device.openT2T = opent2tInfo;
-                            
-                            filteredDevices.push(device);
-                        }
-                    }
-                });
-
-                toReturn.devices = filteredDevices;
-
-                return toReturn;
+                        filteredDevices.push(device);
+                }
             });
+
+            toReturn.devices = filteredDevices;
+
+            return toReturn;
         });
     }
 
@@ -113,63 +91,84 @@ class Translator extends EventEmitter {
     }
 
     /**
-     * Subscribes to changes for devices on this provider
-     *
-     * options {
-     * channel: <channel id>,
-     * subscribe_key: <subscribe_id>
-     * } 
-     *
-    */
-    _subscribe(subscriptionOptions) {
+     * Subscribes to realtime notifications for this provider.
+     * 
+     * callback is the function that will be called with the JSON ocf representation of the changed device
+     */
+    subscribe(callback) {
+        this._eventCallback = callback;
+        var pubnubChannels = [];
 
-        console.log('Subscribing to: ');
-        console.log(subscriptionOptions.subscribe_key);
-        console.log(subscriptionOptions.channel);
-
-        // Create the pubnub subscription on demand if needed
-        if (this._pubnub === undefined) {
-            console.log('Creating pubnub subscription');
-
+        // This function needs to make 2 GET calls, one for the user account, and another
+        // to get all devices.  These are done in serial to get the subscribe_key before 
+        // subscribing to the channels.  The subscribe_key will be the same for all
+        // devices on an account (even non Wink)
+        return this._makeRequest(this._userPath, 'GET').then((response) => {
             this._pubnub = new PubNub({
-                subscribeKey: subscriptionOptions.subscribe_key
+                subscribeKey: response.data.subscription.pubnub.subscribe_key
             });
 
             this._pubnub.addListener({
-                message: function(message) {;
-                    var opent2tinfo = this._getOpent2tInfo(JSON.parse(message.message));
-
-                    if (opent2tinfo !== undefined) {
-                        console.log("Received a change event for ", opent2tinfo.translator);
-
-                        // TODO:
-                        // Create an instance of the translator, or do whatever
-                        // needs to be done to get the OCF representation of the device
-                        // I do not need to get the state of the translator, since I already have it 
-                        // I just need a method to convert the deviceSchema to the translatorSchema.
-                        // Wink translators provide this functionality, but it isn't accessible from here.
-
-                        this.emit('change', opent2tinfo);
-                        // TODO: handle add and remove device
-                    }
-                }.bind(this),
-                status: function(status) {
-                    console.log(status);
-                }.bind(this)
+                message: this._translateEvent.bind(this)
             });
-        }
 
-        this._pubnub.subscribe({
-            channels: [subscriptionOptions.channel]
+            // Subscribe to the user channel for device discovery
+            pubnubChannels.push(response.data.subscription.pubnub.channel)
+
+            // Get all of the devices attached to this provider
+            // This can include non-Wink devices that have been connected to a Wink account
+            // such as a Nest Thermostat, though they will still be translated into a Wink representation
+            // by the Wink API.
+            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+                response.data.forEach((winkDevice) => {
+                    var opent2tInfo = this._getOpent2tInfo(winkDevice);
+
+                    // SKip any devices that do not have an opent2t definition
+                    if (opent2tInfo != undefined) {
+                        if (winkDevice.subscription != undefined) {
+                            pubnubChannels.push(winkDevice.subscription.pubnub.channel);
+                        }
+                    }
+                });
+
+                // Subscribe to all of the channels
+                this._pubnub.subscribe({ channels: pubnubChannels });
+            });
         });
     }
 
+    /**
+     * Translates realtime notifications from the appropriate Wink device schema to OCF and calls the
+     * registered callback function
+     */
+    _translateEvent(event) {
+        if (this._eventCallback !== undefined) {
+            var deviceData = JSON.parse(event.message);
+            var opent2tinfo = this._getOpent2tInfo(deviceData);
 
-    _unsubscribe(channel) {
-        if (this._pubnub !== undefined) {
-            this._pubnub.unsubscribe({
-                channels: [channel]
-            });
+            // Find the translator for this device
+            if (opent2tinfo !== undefined) {
+                var deviceInfo = {
+                    hub: this,
+                    deviceInfo: { id: 0 } // Device identifier isn't needed as the translator will not be used to
+                                          // communicate with an API endpoint.
+                };
+
+                // TODO: There must be a better way of doing this that escapes me at the moment
+                // We're not truly creating a translator, I just want access to the 'deviceSchemaToTranslatorSchema'
+                // function
+                var translatorName = opent2tinfo.translator.replace(/opent2t-translator-/gi, "").replace(/-/g, ".");
+                var translatorPath = require('path').join(__dirname, '../../..', opent2tinfo.schema, translatorName, "js", "thingTranslator.js");
+
+                console.log("Using: " + translatorPath);
+
+                var Translator = require(translatorPath);
+                var translator = new Translator(deviceInfo);
+                var translatedDeviceData = translator.deviceSchemaToTranslatorSchema(deviceData);
+                
+                // Execute the callback
+                this._eventCallback(translatedDeviceData);  
+            }
         }
     }
 
