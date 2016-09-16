@@ -22,7 +22,7 @@
     <onboardflow name="askUserPermission">
       <flow>
         <arg name="url" />
-        <description language="en">https://home.nest.com/login/oauth2?client_id=*client_id*&amp;state=*state*</description>
+        <description language="en">https://home.nest.com/login/oauth2?client_id={client_id}&amp;state={state}</description>
       </flow>
     </onboardflow>
   </onboarding>
