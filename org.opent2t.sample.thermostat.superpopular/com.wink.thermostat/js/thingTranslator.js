@@ -35,6 +35,48 @@ class StateReader {
     }
 }
 
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    switch (mode) {
+        case 'cool_only':
+            return 'coolOnly';
+        case 'heat_only':
+            return 'heatOnly';
+        case 'auto':
+            return 'auto';
+    }
+
+    return undefined;
+}
+
+function translatorHvacModeToDeviceHvacMode(mode) {
+    switch (mode) {
+        case 'coolOnly':
+            return 'cool_only';
+        case 'heatOnly':
+            return 'heat_only';
+        case 'auto':
+            return 'auto';
+    }
+
+    return undefined;
+}
+
+function readHvacMode(stateReader) {
+    var supportedHvacModes = stateReader.get('modes_allowed').map(deviceHvacModeToTranslatorHvacMode);
+    var hvacMode = deviceHvacModeToTranslatorHvacMode(stateReader.get('mode'));
+    var powered = stateReader.get('powered');
+
+    supportedHvacModes.push('off');
+    if (!powered) {
+        hvacMode = 'off';
+    }
+
+    return {
+        supportedModes: supportedHvacModes,
+        modes: [hvacMode]
+    };
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
@@ -42,6 +84,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     // Quirks:
     // - Wink does not have a target temperature field, so returning the average of min and max setpoint
+    // - Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
@@ -58,7 +101,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
         awayMode: stateReader.get('users_away'),
         hasFan: stateReader.get('has_fan'),
         ecoMode: stateReader.get('eco_target'),
-        hvacMode: { supportedModes: stateReader.get('modes_allowed'), modes: [stateReader.get('mode')] },
+        hvacMode: readHvacMode(stateReader),
         fanTimerActive: stateReader.get('fan_timer_active')
     };
 
@@ -80,6 +123,7 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
     // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     // Instead, we infer it from the max and min setpoint
+    // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
     if (translatorSchema.n !== undefined) {
         result['name'] = translatorSchema.n;
@@ -98,7 +142,15 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     }
 
     if (translatorSchema.hvacMode !== undefined) {
-        desired_state['mode'] = translatorSchema.hvacMode.modes[0];
+        var mode = translatorSchema.hvacMode.modes[0];
+
+        if (mode === 'off') {
+            desired_state['powered'] = false;
+        }
+        else {
+            desired_state['powered'] = true;
+            desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+        }
     }
 
     return result;
