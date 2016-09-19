@@ -118,7 +118,7 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     }
 
     if (translatorSchema.hvacMode) {
-        result['hvac_mode'] = translatorSchema.hvacMode.modes[0];
+        result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(translatorSchema.hvacMode.modes[0]);
     }
 
     return result;
