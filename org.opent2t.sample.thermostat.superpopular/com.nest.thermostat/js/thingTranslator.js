@@ -15,12 +15,63 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    switch (mode) {
+        case 'cool':
+            return 'coolOnly';
+        case 'heat':
+            return 'heatOnly';
+        case 'heat-cool':
+            return 'auto';
+        case 'off':
+            return 'off';
+    }
+
+    return undefined;
+}
+
+function translatorHvacModeToDeviceHvacMode(mode) {
+    switch (mode) {
+        case 'coolOnly':
+            return 'cool';
+        case 'heatOnly':
+            return 'heat';
+        case 'auto':
+            return 'heat-cool';
+        case 'off':
+            return 'off';
+    }
+
+    return undefined;
+}
+
+function readHvacMode(deviceSchema) {
+    // Assume 'auto' and 'off' are always supported
+    var supportedHvacModes = [
+        'auto',
+        'off'
+    ];
+
+    if (deviceSchema['can_cool']) {
+        supportedHvacModes.push('coolOnly');
+    }
+    if (deviceSchema['can_heat']) {
+        supportedHvacModes.push('heatOnly');
+    }
+
+    var hvacMode = deviceHvacModeToTranslatorHvacMode(deviceSchema['hvac_mode']);
+
+    return {
+        supportedModes: supportedHvacModes,
+        modes: [hvacMode]
+    };
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     // Quirks:
     // - Nest does not have an external temperature field, so that is left out.
-    // - HVAC Mode is not implemented at this time. Allowed modes may be inferred from the can_cool and can_heat properties per Nest documentation
     // - Away Mode is not implemented at this time.
 
     // return units in Celsius regardless of what the thermostat is set to
@@ -37,6 +88,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
         ambientTemperature: { temperature: deviceSchema['ambient_temperature_' + ts], units: tempScale },
         hasFan: deviceSchema['has_fan'],
         ecoMode: deviceSchema['has_leaf'],
+        hvacMode: readHvacMode(deviceSchema),
         fanTimerActive: deviceSchema['fan_timer_active']
     };
 }
@@ -45,7 +97,6 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 function translatorSchemaToDeviceSchema(translatorSchema) {
 
     // Quirks:
-    // - HVAC Mode is not implemented at this time.
     // - Away Mode is not implemented at this time.
 
     var result = {};
@@ -64,6 +115,10 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
     if (translatorSchema.targetTemperatureLow) {
         result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = translatorSchema.targetTemperatureLow.temperature;
+    }
+
+    if (translatorSchema.hvacMode) {
+        result['hvac_mode'] = translatorSchema.hvacMode.modes[0];
     }
 
     return result;
