@@ -253,6 +253,12 @@ class Translator {
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
+        else if (winkDevice.light_bulb_id) {
+            return { 
+                "schema": 'org.opent2t.sample.lamp.superpopular',
+                "translator": "opent2t-translator-com-wink-lightbulb"
+            };
+        }
         
         return undefined;
     }
