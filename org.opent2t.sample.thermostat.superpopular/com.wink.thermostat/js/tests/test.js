@@ -341,30 +341,16 @@ test.serial('Notifications - Subscribe', t => {
 
     // Subscribe to the device topic
     return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [config.callbackUrl, config.secret])
-        .then((response) => {
-
-            t.is(response.errors.length, 0);
-            t.not(response.data, undefined);
-            t.is(response.data.callback, config.callbackUrl);
-            t.is(response.data.secret, config.secret);
-            t.is(response.data.secret, config.secret);
-            
-            var subscriptionId = response.data.subscription_id;
-            var expires = response.data.expires_at;
-            console.log("Subscribed %d, expires at %d", subscriptionId, expires);
+        .then((expires) => {
 
             // Verify that the subscription is listed
             return OpenT2T.invokeMethodAsync(translator,'org.opent2t.sample.thermostat.superpopular', 'getSubscriptions', [])
-                .then((response) => {
-                    console.log("Found %d subscriptions", response.data.length);
-                    
-                    t.is(response.errors.length, 0, "No errors");
+                .then((subscriptions) => {
+                    console.log("Found %d subscriptions", subscriptions.length);
 
                     // Verify that the subscription has been added
-                    t.true(response.data.some(function(item) {
-                        return item.callback == config.callbackUrl &&
-                               item.subscription_id == subscriptionId &&
-                               item.secret == config.secret;
+                    t.true(subscriptions.some(function(item) {
+                        return item.callback == config.callbackUrl
                     }));
 
                     // Waste some time (block execution) otherwise this will execute too fast and the expires_at value
@@ -373,30 +359,25 @@ test.serial('Notifications - Subscribe', t => {
                     while(waitTill > new Date()) {}
 
                     // Resubscribe to refresh the expiration
-                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [config.callbackUrl, config.secret])
-                        .then((response) => {
+                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'subscribe', [config.callbackUrl])
+                        .then((newExpires) => {
                             
-                            console.log("Refreshed expiration of %d to %d", subscriptionId, response.data.expires_at);
+                            console.log("Refreshed expiration to %d", newExpires);
 
-                            t.true(response.data.expires_at > expires);
+                            t.true(newExpires > expires);
 
                             // Unsubscribe
-                            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'unsubscribe', [subscriptionId])
+                            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'unsubscribe', [config.callbackUrl])
                                 .then((response) => {
-                                    console.log("Unsubscribed %d", subscriptionId);
-
-                                    t.is(response.data, null);
-                                    t.is(response.errors.length, 0);
+                                    console.log("Unsubscribed");
 
                                     return OpenT2T.invokeMethodAsync(translator,'org.opent2t.sample.thermostat.superpopular', 'getSubscriptions', [])
-                                        .then((response) => {
-                                            console.log("Found %d subscriptions", response.data.length);
-
-                                            t.is(response.errors.length, 0, "No errors");
+                                        .then((subscriptions) => {
+                                            console.log("Found %d subscriptions", subscriptions.length);
 
                                             // Verify the subscription has been removed.
-                                            t.false(response.data.some(function(item) {
-                                                return item.subscription_id == config.subscriptionId;
+                                            t.false(subscriptions.some(function(item) {
+                                                return item.callback_url == config.callbackUrl;
                                             }));
                                         });
                                 });

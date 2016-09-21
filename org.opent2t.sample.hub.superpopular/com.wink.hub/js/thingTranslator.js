@@ -88,51 +88,134 @@ class Translator {
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
-
+    
     /**
-     * Subscribes to a Wink pubsubhubbub feed
+     * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
+     * The first call will contain just the callbackUrl, which will be subscribed for postbacks
+     * from the Wink cloud service.
+     * The second call will contain the request, and response for a GET to the callbackUrl that was
+     * provided in order to complete the verification of the subscription.
+     * 
+     * The expected sequence is as follows:
+     * - Call subscribe with a callback url, get a response.
+     * - Http server running at the callback url receives a GET request, this request and a response string
+     *      are passed to a 2nd call to subscribe() (callbackUrl is ignored in this case)
+     * - Http server responds to the GET with the verificationResponseContent that was populated by subscribe
+     * - Future POST calls to the callback url are passed to the device translator get*Uri function
+     * 
+     * All calls to subscribe will return the expiration time of the subscription.  For Wink, this is
+     * currently 24 hours.  Subsequent calls to subscribe will refresh the expiration time, and in the
+     * case of Wink/Pubsubhubbub will not require verification.
      * 
      * @param {string} deviceType - Device Type (e.g. 'thermostats')
      * @param {string|number} deviceId - Id for the specific device
      * @param {string} callbackUrl - Callback url for feed postbacks
-     * @param {string} [secret] - Secret to provide HMAC verification of responses
-     * @returns {request} Promise that supplies the server response.  If the callbackUrl is
-     *      already subscribed, then the timeout is refreshed, but the response is empty.
+     * @param {HttpRequest} verificationRequest - GET request received by the server at a previously subscribed
+     *      callback URL.  This completes the verification half of the subscription.
+     * @param {HttpResponse} verificationResponseContent - Content that should be provided in the response to the
+     *      verification request as {'Content-Type': 'text/plain'}.  All responses should use code 200 unless an
+     *      error is caught.
+     * @returns {number} Subscription expiration time.
      */
-    subscribe(deviceType, deviceId, callbackUrl, secret) {
-        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
+    _subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponseContent) {
+        var expiration = 0;
 
-        // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
-        // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
-        // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
+        if (callbackUrl) {
+            // Subscribe to notifications
 
-        // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
-        // with another POST.
+            var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
 
-        var postPayload = {
-            callback: callbackUrl,
-            secret: secret
+            // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
+            // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
+            // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
+
+            // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
+            // with another call to this function.
+
+            var postPayload = {
+                callback: callbackUrl,
+            }
+
+            var postPayloadString = JSON.stringify(postPayload);
+
+            return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
+                // Return the expiration time for the subscription
+                return response.data.expires_at;
+            })
+
+        } else if (verificationPayload) {
+            // Verify a subscription request by constructing the appropriate response
+
+            var params = require('url').parse(verificationRequest.url, true, true);
+            // This is a subscription validation, populate the response
+            switch(params.query['hub.mode']) {
+                case "denied":
+                    // The subscription cannot be completed, access was denied.
+                    // This is likely due to a bad access token.
+                    throw new Error("Access denied");
+                case "unsubscribe": // Could remove this, see below.
+                case "subscribe":
+                    // Successful subscription/unsubscription requires a response to contain the same
+                    // challenge that was included in the request.
+                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
+                    // with no verification.
+
+                    // Verify that this subscription is for the correct topic
+                    if (params.query['hub.topic'].endsWith(deviceType + '/' + deviceId)) {
+
+                        verificationResponseContent = params.query['hub.challenge'];
+
+                        // Its at this point that the lease is given
+                        expiration = params.query['hub.lease_seconds'];
+                    } else {
+                        // There is a mistmatch.  This subscription doesn't match this device.
+                        throw new Error("Subscription cannot be verified");
+                    }
+                    break;
+                default:
+                    // Hub mode is unknown.
+                    throw new Error("Unknown request");
+            }
+            return expiration;
         }
-
-        var postPayloadString = JSON.stringify(postPayload);
-
-        return this._makeRequest(requestPath, 'POST', postPayloadString);
     }
 
     /**
-     * Unsubscribes from an existing Wink pubsubhubbub feed
+     * Unsubscribes from an existing Wink pubsubhubbub feed.  The subscription id for a
+     * topic is not cached, so this results in 2 web calls:
+     * - GET to return a list of subscriptions
+     * - DELETE to remove the existing subscriptions.
+     * 
+     * Wink's pubsubhubbub is slightly different than standard as it uses DELETE along
+     * with a subscriptionID rather than another GET with a hub.mode of 'unsubscribe'
      * 
      * @param {string} deviceType - Device Type (e.g. 'thermostats')
      * @param {string|number} deviceId - Id for the specific device
-     * @param {string|number} subscriptionid - Id that will be unsubscribed
+     * @param {string} callbackUrl - URL that will be unsubscribed
      * @returns {request} Promise that supplies the server response
      * 
+     * This is just a helper for tests and verification
      */
-    unsubscribe(deviceType, deviceId, subscriptionid)
+    _unsubscribe(deviceType, deviceId, callbackUrl)
     {
-        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions/' + subscriptionid;
+        // Find the subscription ID for this callback URL
+        return this._getSubscriptions(deviceType, deviceId).then((subscriptions) => {
+            subscriptions.forEach((sub) => {
+                // Find the subscription id for this callback URL and device
+                if (sub.callback == callbackUrl &&
+                    sub.topic.endsWith(deviceType + '/' + deviceId)) {
+                    var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions/' + sub.subscription_id;
 
-        return this._makeRequest(requestPath, 'DELETE');
+                    // Do the actual unsubscribe
+                    return this._makeRequest(requestPath, 'DELETE').then((response) => {
+                        return {};
+                    })
+                }
+            });
+
+            // Subscription wasn't found so there's nothing to do
+            return {};
+        });
     }
 
     /**
@@ -140,13 +223,17 @@ class Translator {
      * 
      * @param {string} deviceType - Device Type (e.g. 'thermostats')
      * @param {string|number} deviceId - Id for the specific device
-     * @returns {request} Promise that supplies the server response
+     * @returns {request} Promise that supplies the list of subscriptions
+     * 
+     * This is just a helper for tests and verification.
      */
-    getSubscriptions(deviceType, deviceId) {
-        // GET /sensor_pods/<sensor pod id>/subscriptions
+    _getSubscriptions(deviceType, deviceId) {
+        // GET /<deviceType>/<device Id>/subscriptions
         var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
 
-        return this._makeRequest(requestPath, 'GET');
+        return this._makeRequest(requestPath, 'GET').then((response) => {
+            return response.data;
+        });
     }
 
     /** 

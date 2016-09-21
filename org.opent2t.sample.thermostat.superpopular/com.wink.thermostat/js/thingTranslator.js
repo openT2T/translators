@@ -125,10 +125,10 @@ class Translator {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
-            });
+            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+                .then((response) => {
+                    return deviceSchemaToTranslatorSchema(response.data);
+                });
     }
 
     // Updates the current state of the thermostat with the contents of postPayload
@@ -207,16 +207,16 @@ class Translator {
             });
     }
 
-    subscribe(callbackUrl, secret) {
-        return winkHub.subscribe(deviceType, deviceId, callbackUrl, secret)
+    subscribe(callbackUrl, verificationRequest, verificationResponse) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
     }
 
-    unsubscribe(subscriptionId) {
-        return winkHub.unsubscribe(deviceType, deviceId, subscriptionId);
+    unsubscribe(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 
     getSubscriptions() {
-        return winkHub.getSubscriptions(deviceType, deviceId);
+        return winkHub._getSubscriptions(deviceType, deviceId);
     }
 }
 
