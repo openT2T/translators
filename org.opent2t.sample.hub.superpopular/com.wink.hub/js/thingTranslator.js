@@ -115,10 +115,10 @@ class Translator {
      * @param {HttpResponse} verificationResponseContent - Content that should be provided in the response to the
      *      verification request as {'Content-Type': 'text/plain'}.  All responses should use code 200 unless an
      *      error is caught.
-     * @returns {number} Subscription expiration time.
+     * @returns {number} Object containing the subscription expiration time, and any content that
+     *      needs to be included in a response to the original request.
      */
-    _subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponseContent) {
-        var expiration = 0;
+    _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
 
         if (callbackUrl) {
             // Subscribe to notifications
@@ -140,7 +140,10 @@ class Translator {
 
             return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
                 // Return the expiration time for the subscription
-                return response.data.expires_at;
+                return {
+                    expiration: response.data.expires_at,
+                    response: ""
+                };
             })
 
         } else if (verificationRequest) {
@@ -162,22 +165,18 @@ class Translator {
 
                     // Verify that this subscription is for the correct topic
                     if (params.query['hub.topic'].endsWith(deviceType + '/' + deviceId)) {
-                        verificationResponseContent = params.query['hub.challenge'];
-                        
-                        // Its at this point that the lease is given
-                        expiration = params.query['hub.lease_seconds'];
-
-                        return verificationResponseContent;
+                        return {
+                            expiration: params.query['hub.lease_seconds'],
+                            response: params.query['hub.challenge']
+                        }
                     } else {
                         // There is a mistmatch.  This subscription doesn't match this device.
                         throw new Error("Subscription cannot be verified");
                     }
-                    break;
                 default:
                     // Hub mode is unknown.
                     throw new Error("Unknown request");
             }
-            return expiration;
         }
     }
 

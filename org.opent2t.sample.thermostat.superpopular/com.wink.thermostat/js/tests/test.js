@@ -205,12 +205,9 @@ test.serial('Notifications - Subscribe', t => {
         switch(request.method) {
             case "GET":
                 console.log("Subscription part 2");
-                var responseContent2 = new Object();
-                // TODO: I want subscribe to always return the subscription expiration
-                // and responseContent should be an argument to the function that can be modified.
-                var responseContent = translator.subscribe(null, request, responseContent2);
+                var response = translator.subscribe(null, request);
                 response.writeHead(200, {'Content-Type': 'text/plain'});
-                response.end(responseContent);
+                response.end(response.response);
                 break;
             case "POST":
                 // POSTs represent realtime updates that need to be translated into the
@@ -255,8 +252,8 @@ test.serial('Notifications - Subscribe', t => {
     var callbackUrlParams = config.callback_url + "?schema=" + deviceInfo.openT2T.schema + "&deviceId=" + deviceInfo.id;
 
     console.log("Subscription part 1");
-    translator.subscribe(callbackUrlParams).then((expiration) => {
-        console.log("Subscription expires at %d", expiration);
+    translator.subscribe(callbackUrlParams).then((response) => {
+        console.log("Subscription expires at %d", response.expiration);
 
         // Validation of the subscription will not happen unless it's already expired.
         translator.getSubscriptions().then((subscriptions) => {
