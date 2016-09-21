@@ -262,6 +262,8 @@ test.serial('Notifications - Subscribe', t => {
         translator.getSubscriptions().then((subscriptions) => {
                     console.log(subscriptions);
                 });
+
+        translator.setTargetTemperatureHigh(75);
     });
 
     // Once the notification has been received, unsubscribe and end the test
