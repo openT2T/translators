@@ -143,7 +143,7 @@ class Translator {
                 return response.data.expires_at;
             })
 
-        } else if (verificationPayload) {
+        } else if (verificationRequest) {
             // Verify a subscription request by constructing the appropriate response
 
             var params = require('url').parse(verificationRequest.url, true, true);
@@ -162,11 +162,12 @@ class Translator {
 
                     // Verify that this subscription is for the correct topic
                     if (params.query['hub.topic'].endsWith(deviceType + '/' + deviceId)) {
-
                         verificationResponseContent = params.query['hub.challenge'];
-
+                        
                         // Its at this point that the lease is given
                         expiration = params.query['hub.lease_seconds'];
+
+                        return verificationResponseContent;
                     } else {
                         // There is a mistmatch.  This subscription doesn't match this device.
                         throw new Error("Subscription cannot be verified");

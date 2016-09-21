@@ -124,11 +124,15 @@ class Translator {
 
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-    getThermostatResURI() {
+    getThermostatResURI(payload) {
+        if (payload) {
+            return deviceSchemaToTranslatorSchema(payload);
+        } else {
             return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
                 .then((response) => {
                     return deviceSchemaToTranslatorSchema(response.data);
                 });
+        }
     }
 
     // Updates the current state of the thermostat with the contents of postPayload
