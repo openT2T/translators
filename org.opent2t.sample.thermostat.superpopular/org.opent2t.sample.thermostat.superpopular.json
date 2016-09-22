@@ -91,18 +91,6 @@
       "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
     },
     {
-      "$ref": "oic.r.mode.json#/definitions/oic.r.mode"
-    },
-    {
-      "$ref": "oic.r.clock.json#/definitions/oic.r.clock"
-    },
-    {
-      "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"
-    },
-    {
-      "$ref": "oic.r.humidity.json#/definitions/oic.r.humidity"
-    },
-    {
       "$ref": "#/definitions/org.opent2t.sample.thermostat.superpopular"
     }
   ]
