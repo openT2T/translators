@@ -149,6 +149,14 @@ class Translator {
                 return response.power.value;
             });
     }
+
+    subscribe(callbackUrl, verificationRequest, verificationResponse) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    }
+
+    unsubscribe(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+    }
 }
 
 // Export the translator from the module.

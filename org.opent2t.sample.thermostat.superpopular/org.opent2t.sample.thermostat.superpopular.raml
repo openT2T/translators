@@ -21,6 +21,11 @@ traits:
   get:
     description: |
         Retrieves the current resource representation
+    queryParameters:
+      payload:
+        displayName: payload
+        description: Device Schema in need of translation
+        required: false
     responses:
       200:
         body:
@@ -73,3 +78,51 @@ traits:
                         "units": "F"
                     }
                 }
+
+/SubscribeThermostatResURI:
+  description: |
+   This resource manages subscriptions to changes on this device.
+  displayName: ThermostatSubscription
+  is: [ interface ]
+    
+  post:
+    description: Creates or refreshes a subscription to this Thermostat.
+    queryParameters:
+      callbackUrl:
+        displayName: Callback URL
+        type: string
+        description: The URL for POST backs
+        example: http://myserver.com?uuid=534cfd&schema=org.opent2t.sample.thermostat.superpopular&deviceId=123456
+        required: false
+      verificationRequest:
+        displayName: Request for verification
+        type: json
+        description: Contents of a GET request to the callback
+        required: false
+    responses:
+       200:
+        body:
+          application/json:
+            example: |
+                {
+                    "expiration": "123456678",
+                    "response": { "plain text response" }
+                }
+  delete:
+    description: Unsubscribes to notifications on this device
+    queryParameters:
+      callbackUrl:
+        displayName: Callback URL
+        type: string
+        description: The URL that was previously set up for a subscription
+        example: http://myserver.com?uuid=534cfd&schema=org.opent2t.sample.thermostat.superpopular&deviceId=123456
+        required: true
+    responses:
+      200:
+        body:
+          application/json:
+          example: {}
+        
+
+        
+
