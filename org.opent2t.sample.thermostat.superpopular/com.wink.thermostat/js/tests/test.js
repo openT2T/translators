@@ -29,7 +29,7 @@ function getThermostat(devices) {
 }
 
 // setup the translator before all the tests run
-test.before(async t => {
+test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', {'accessToken': config.accessToken});
     var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
     deviceInfo = getThermostat(hubInfo.devices);
@@ -205,9 +205,9 @@ test.serial('Notifications - Subscribe', t => {
         switch(request.method) {
             case "GET":
                 console.log("Subscription part 2");
-                var response = translator.subscribe(null, request);
+                var subscription = translator.subscribe(null, request);
                 response.writeHead(200, {'Content-Type': 'text/plain'});
-                response.end(response.response);
+                response.end(subscription.response);
                 break;
             case "POST":
                 // POSTs represent realtime updates that need to be translated into the
@@ -234,6 +234,7 @@ test.serial('Notifications - Subscribe', t => {
                     var translatedData = translator.getThermostatResURI(JSON.parse(body));
                     console.log(translatedData);
                     deferred.resolve("Recieved the expected notification");
+                    t.not(translatedData, null);
                 });
 
                 // Return no-content response (though it is ignored)
@@ -258,6 +259,7 @@ test.serial('Notifications - Subscribe', t => {
         // Validation of the subscription will not happen unless it's already expired.
         translator.getSubscriptions().then((subscriptions) => {
                     console.log(subscriptions);
+                    t.true(subscriptions.length > 0);
                 });
 
         translator.setTargetTemperatureHigh(75);
@@ -265,7 +267,9 @@ test.serial('Notifications - Subscribe', t => {
 
     // Once the notification has been received, unsubscribe and end the test
     return deferred.promise.then(() => {
-        console.log("Unsubscribing")
-        return translator.unsubscribe(callbackUrlParams);
+        console.log("Unsubscribing");
+        return translator.unsubscribe(callbackUrlParams).then(() => {
+            t.pass("Unsubscribed successfully");
+        });
     });
 });

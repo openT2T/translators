@@ -206,7 +206,7 @@ class Translator {
                     var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions/' + sub.subscription_id;
 
                     // Do the actual unsubscribe
-                    return this._makeRequest(requestPath, 'DELETE').then((response) => {
+                    return this._makeRequest(requestPath, 'DELETE').then(() => {
                         return {};
                     })
                 }
