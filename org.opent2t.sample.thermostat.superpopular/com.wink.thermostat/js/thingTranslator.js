@@ -35,30 +35,24 @@ class StateReader {
     }
 }
 
-function deviceHvacModeToTranslatorHvacMode(mode) {
-    switch (mode) {
-        case 'cool_only':
-            return 'coolOnly';
-        case 'heat_only':
-            return 'heatOnly';
-        case 'auto':
-            return 'auto';
-    }
+var deviceHvacModeToTranslatorHvacModeMap = {
+    'cool_only': 'coolOnly',
+    'heat_only': 'heatOnly',
+    'auto': 'auto'
+}
 
-    return undefined;
+var translatorHvacModeToDeviceHvacModeMap = {
+    'coolOnly': 'cool_only',
+    'heatOnly': 'heat_only',
+    'auto': 'auto'
+}
+
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    return deviceHvacModeToTranslatorHvacModeMap[mode];
 }
 
 function translatorHvacModeToDeviceHvacMode(mode) {
-    switch (mode) {
-        case 'coolOnly':
-            return 'cool_only';
-        case 'heatOnly':
-            return 'heat_only';
-        case 'auto':
-            return 'auto';
-    }
-
-    return undefined;
+    return translatorHvacModeToDeviceHvacModeMap[mode];
 }
 
 function readHvacMode(stateReader) {

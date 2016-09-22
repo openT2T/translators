@@ -15,34 +15,26 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
-function deviceHvacModeToTranslatorHvacMode(mode) {
-    switch (mode) {
-        case 'cool':
-            return 'coolOnly';
-        case 'heat':
-            return 'heatOnly';
-        case 'heat-cool':
-            return 'auto';
-        case 'off':
-            return 'off';
-    }
+var deviceHvacModeToTranslatorHvacModeMap = {
+    'cool': 'coolOnly',
+    'heat': 'heatOnly',
+    'heat-cool': 'auto',
+    'off': 'off'
+}
 
-    return undefined;
+var translatorHvacModeToDeviceHvacModeMap = {
+    'coolOnly': 'cool',
+    'heatOnly': 'heat',
+    'auto': 'heat-cool',
+    'off': 'off'
+}
+
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    return deviceHvacModeToTranslatorHvacModeMap[mode];
 }
 
 function translatorHvacModeToDeviceHvacMode(mode) {
-    switch (mode) {
-        case 'coolOnly':
-            return 'cool';
-        case 'heatOnly':
-            return 'heat';
-        case 'auto':
-            return 'heat-cool';
-        case 'off':
-            return 'off';
-    }
-
-    return undefined;
+    return translatorHvacModeToDeviceHvacModeMap[mode];
 }
 
 function readHvacMode(deviceSchema) {
