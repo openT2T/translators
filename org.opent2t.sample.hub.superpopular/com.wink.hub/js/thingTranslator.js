@@ -194,7 +194,6 @@ class Translator {
      * @param {string} callbackUrl - URL that will be unsubscribed
      * @returns {request} Promise that supplies the server response
      * 
-     * This is just a helper for tests and verification
      */
     _unsubscribe(deviceType, deviceId, callbackUrl)
     {
