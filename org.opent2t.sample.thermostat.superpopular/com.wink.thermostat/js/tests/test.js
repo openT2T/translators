@@ -1,6 +1,7 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
+var q = require('q');
 
 console.log("Config:");
 console.log(JSON.stringify(config, null, 2));
@@ -9,6 +10,8 @@ var translatorPath = require('path').join(__dirname, '..');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
 
 var translator = undefined;
+var hubTranslator = undefined;
+var deviceInfo;
 
 function getThermostat(devices) {
     for (var i = 0; i < devices.length; i++) {
@@ -24,9 +27,9 @@ function getThermostat(devices) {
 
 // setup the translator before all the tests run
 test.before(async () => {
-    var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
+    hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
     var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
-    var deviceInfo = getThermostat(hubInfo.devices);
+    deviceInfo = getThermostat(hubInfo.devices);
 
     translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
 });
@@ -173,5 +176,43 @@ test.serial('PostThermostatResURI_Set_HvacMode', t => {
             t.is(response.hvacMode.modes[0], 'auto');
 
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+        });
+});
+
+/**
+ * Registers a listener to device changes on the hub/provider and verifies that the test receives the event on changing
+ */
+test.serial('Thermostat_Eventing', t => {
+    var value = {};
+    value['awayMode'] = true;
+    var deferred = q.defer();
+    var notifications = 0;
+
+    function callback(device) {
+        console.log("Received change event for " + device.id);
+
+        // Filter for only this device
+        if (device.id == 'thermostat.' + deviceInfo.id) {
+            notifications = notifications + 1;
+            deferred.resolve("Property changed.");
+        }
+    }
+
+    // Subscribe to device notifications on the hub
+    return OpenT2T.invokeMethodAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'subscribe', [callback])
+        .then(() => {
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value])
+                .then((response) => {
+                    t.truthy(response.awayMode);
+
+                    // Wait some amount of time for the change to arrive, otherwise fail the test
+                    setTimeout(function() {
+                        deferred.reject("Timed out before receiving a notification from the device");
+                    }, 10000);
+
+                    return deferred.promise.then(() => {
+                        t.true(notifications > 0);
+                    });
+                });
         });
 });

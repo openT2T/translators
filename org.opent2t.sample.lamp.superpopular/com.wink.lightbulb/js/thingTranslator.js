@@ -45,43 +45,6 @@ function scaleTranslatorBrightnessToDeviceBrightness(dimmingValue) {
     return dimmingValue / 100;
 }
 
-// Helper method to convert the device schema to the translator schema.
-function deviceSchemaToTranslatorSchema(deviceSchema) {
-    var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
-
-    var powered = stateReader.get('powered');
-    var brightness = stateReader.get('brightness');
-
-    return {
-        id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
-        n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.lamp.superpopular',
-        power: { 'value': powered },
-        dim: { 'dimmingSetting': scaleDeviceBrightnessToTranslatorBrightness(brightness), 'range': [0, 100] }
-    };
-}
-
-// Helper method to convert the translator schema to the device schema.
-function translatorSchemaToDeviceSchema(translatorSchema) {
-
-    // build the object with desired state
-    var result = { 'desired_state': {} };
-    var desired_state = result.desired_state;
-
-    if (translatorSchema.n) {
-        result['name'] = translatorSchema.n;
-    }
-
-    if (translatorSchema.power) {
-        desired_state['powered'] = translatorSchema.power.value;
-    }
-
-    if (translatorSchema.dim) {
-        desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(translatorSchema.dim.dimmingSetting);
-    }
-
-    return result;
-}
 
 var deviceId;
 var deviceType = 'light_bulbs';
@@ -108,7 +71,7 @@ class Translator {
     getLampResURI() {
         return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
+                return this.deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -120,10 +83,10 @@ class Translator {
 
         console.log('postLampResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
+        var putPayload = this.translatorSchemaToDeviceSchema(postPayload);
         return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
+                return this.deviceSchemaToTranslatorSchema(response.data);
             });
     }
 
@@ -149,6 +112,43 @@ class Translator {
                 return response.power.value;
             });
     }
+
+    // Helper method to convert the device schema to the translator schema.
+    deviceSchemaToTranslatorSchema(deviceSchema) {
+        var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
+
+        var powered = stateReader.get('powered');
+        var brightness = stateReader.get('brightness');
+
+        return {
+            id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
+            n: deviceSchema['name'],
+            rt: 'org.opent2t.sample.lamp.superpopular',
+            power: { 'value': powered },
+            dim: { 'dimmingSetting': scaleDeviceBrightnessToTranslatorBrightness(brightness), 'range': [0, 100] }
+        };
+    }
+
+    // Helper method to convert the translator schema to the device schema.
+    translatorSchemaToDeviceSchema(translatorSchema) {
+        // build the object with desired state
+        var result = { 'desired_state': {} };
+        var desired_state = result.desired_state;
+
+        if (translatorSchema.n) {
+            result['name'] = translatorSchema.n;
+        }
+
+        if (translatorSchema.power) {
+            desired_state['powered'] = translatorSchema.power.value;
+        }
+
+        if (translatorSchema.dim) {
+            desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(translatorSchema.dim.dimmingSetting);
+        }
+
+        return result;
+    } 
 }
 
 // Export the translator from the module.
