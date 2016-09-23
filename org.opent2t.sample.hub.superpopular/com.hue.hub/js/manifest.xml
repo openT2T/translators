@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <schemas>
+      <schema id="org.opent2t.sample.hub.superpopular" main="true" type="OCF" />
+      <schema id="oic.core" type="OCF" />
+      <schema id="oic.baseResource" type="OCF" />
+  </schemas>
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.huehub">
+    <onboardflow name="getUserInput">
+      <flow type="input">
+        <arg name="bridge_id" />
+        <description language="en">Type in your Hue remote bridge ID </description>
+        <description language="fr">Entrez for remote bridge ID pour Hue </description>
+      </flow>
+      <flow type="input">
+        <arg name="whitelist_id"  />
+        <description language="en">Type in your Hue bridge whitelist ID </description>
+        <description language="fr">Entrez for whitelist ID pour Hue bridge</description>
+      </flow>
+    </method>
+
+    <onboardflow name="getDeveloperInput">
+      <flow>
+        <arg name="client_id" />
+        <description language="en"> Ask for Client ID </description>
+        <description language="fr"> Demandez Client ID </description>
+      </flow>
+      <flow>
+        <arg name="client_secret" />
+        <description language="en"> Ask for Client Secret </description>
+        <description language="fr"> Demandez Client Secret </description>
+      </flow>
+    </onboardflow>
+
+  </onboarding>
+</manifest>
