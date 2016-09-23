@@ -1,5 +1,5 @@
 # Hue Hub translator
-Translator for Hue hub (https://hue.com)
+Translator for Hue hub (https://www.meethue.com)
 
 ## Setup Your Hardware
 Follow instructions in the Hue app to set up your Hue account. This is a pre-requisite
