@@ -205,7 +205,7 @@ test.serial('Notifications - Subscribe', t => {
         switch(request.method) {
             case "GET":
                 console.log("Subscription part 2");
-                var subscription = translator.subscribe(null, request);
+                var subscription = translator.postSubscribeThermostatResURI(null, request);
                 response.writeHead(200, {'Content-Type': 'text/plain'});
                 response.end(subscription.response);
                 break;
@@ -253,7 +253,7 @@ test.serial('Notifications - Subscribe', t => {
     var callbackUrlParams = config.callback_url + "?schema=" + deviceInfo.openT2T.schema + "&deviceId=" + deviceInfo.id;
 
     console.log("Subscription part 1");
-    translator.subscribe(callbackUrlParams).then((response) => {
+    translator.postSubscribeThermostatResURI(callbackUrlParams).then((response) => {
         console.log("Subscription expires at %d", response.expiration);
 
         // Validation of the subscription will not happen unless it's already expired.
@@ -268,7 +268,7 @@ test.serial('Notifications - Subscribe', t => {
     // Once the notification has been received, unsubscribe and end the test
     return deferred.promise.then(() => {
         console.log("Unsubscribing");
-        return translator.unsubscribe(callbackUrlParams).then(() => {
+        return translator.deleteSubscribeThermostatResURI(callbackUrlParams).then(() => {
             t.pass("Unsubscribed successfully");
         });
     });

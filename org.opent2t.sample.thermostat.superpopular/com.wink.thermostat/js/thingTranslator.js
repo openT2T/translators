@@ -213,11 +213,11 @@ class Translator {
             });
     }
 
-    subscribe(callbackUrl, verificationRequest, verificationResponse) {
+    postSubscribeThermostatResURI(callbackUrl, verificationRequest, verificationResponse) {
         return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
     }
 
-    unsubscribe(callbackUrl) {
+    deleteSubscribeThermostatResURI(callbackUrl) {
         return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 
