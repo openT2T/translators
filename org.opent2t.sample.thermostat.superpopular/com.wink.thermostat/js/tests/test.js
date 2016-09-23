@@ -182,6 +182,24 @@ test.serial('PostThermostatResURI_Set_HvacMode', t => {
         });
 });
 
+test.serial('PostThermostatResURI_Set_HvacMode_Off_Then_HeatOnly', async t => {
+
+    var value = {};
+    value['hvacMode'] = { 'modes': ['off'] };
+
+    var offResponse = await OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]);
+    t.is(offResponse.hvacMode.modes[0], 'off');
+
+    console.log('*** offResponse: \n' + JSON.stringify(offResponse, null, 2));
+
+    value['hvacMode'] = { 'modes': ['heatOnly'] };
+
+    var heatOnlyResponse = await OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]);
+    t.is(heatOnlyResponse.hvacMode.modes[0], 'heatOnly');
+
+    console.log('*** heatOnlyresponse: \n' + JSON.stringify(heatOnlyResponse, null, 2));
+});
+
 /**
  * Verifies that realtime notifications can be subscribed to for the device.
  * This test requires that this machine be accesible on an external IP address and port that 
