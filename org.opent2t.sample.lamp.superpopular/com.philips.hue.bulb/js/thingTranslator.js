@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const HueHelper = require('opent2t-translator-helper-hue');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -21,11 +20,11 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     var deviceState = deviceSchema.state;
     var result = {
-        id:  'lights.' + deviceId,
+        id:  deviceId,
         rt: 'org.opent2t.sample.lamp.superpopular'
     };
     
-    if(typeof deviceState != 'undefined'){
+    if(typeof deviceState !== 'undefined'){
         result.n = deviceSchema['name'] ;
         result.power = { value: deviceState['on'] };
         result.dim = { dimmingSetting: deviceState['bri'], range: [1, 254]};
@@ -46,6 +45,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
             }
         }
     }
+
     return result;
 }
 
@@ -72,27 +72,20 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
 var deviceId;
 var deviceType = 'lights';
-var hueHelper;
+var hueHub;
 
-// This translator class implements the 'org.opent2t.sample.light.superpopular' schema.
+// This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(device) {
-        console.log('Initializing device.');
+    constructor(deviceInfo) {
+        console.log('Hue Lightbulb initializing...');
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.device_id, 'device.props.device_id', 'string');
-        validateArgumentType(device.props.bridge_id, 'device.props.bridge_id', 'string');
-        validateArgumentType(device.props.whitelist_id, 'device.props.whitelist_id', 'string');
+        deviceId = deviceInfo.deviceInfo.id;
+        hueHub = deviceInfo.hub;
 
-        deviceId = device.props.device_id;
-
-        // Initialize Hue Helper
-        hueHelper = new HueHelper(device.props.access_token, device.props.bridge_id, device.props.whitelist_id);
-        console.log('Javascript and Hue Helper initialized.');
+        console.log('Hue Lightbulb initializing...Done');
     }
 
     // exports for the entire schema object
@@ -100,7 +93,7 @@ class Translator {
     // Queries the entire state of the lamp
     // and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
     getLampResURI() {
-        return hueHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return hueHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response);
             });
@@ -115,16 +108,17 @@ class Translator {
         console.log('postLampResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return hueHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return hueHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response);
-            });
+            })
     }
 
     // exports for individual properties
 
     getPower() {
         console.log('getPower called');
+
         return this.getLampResURI()
             .then(response => {
                 return response.power.value;
@@ -143,6 +137,8 @@ class Translator {
             });
     }
 }
+
+
 
 // Export the translator from the module.
 module.exports = Translator;

@@ -1,6 +1,9 @@
 # Hue Light Translator
-Translator for Hue Light (https://meethue.com)
+Translator for Hue Light (http://www.meethue.com)
 
+## Setup Your Hardware
+Follow instructions in the Hue app to set up your light with Hue. This is a pre-requisite
+before using this translator to interact with your light.
 
 ## Installing Dependencies
 To install dependencies for this translator, run:
@@ -12,40 +15,25 @@ npm install
 ## Running Test Automation
 This translator comes with some automated tests. Here's how you can run them:
 
-1. Create the `tests/testConfig.json` file
-This is where you can put credentials/config to drive this test (this file is added to .gitignore
-to prevent inadvertent check-in). Use the following contents to start this file:
+### 1. Run onboarding to get credentials
 
-   ```json
-    {
-        "Device" : {
-            "name": "Hue Light.",
-            "props": { 
-                "access_token": "<access-token>",
-                "device_type": "lights",
-                "device_id": "<light-device-id>",
-                "bridge_id": "<remote-bridge-id>",
-                "whitelist_id": "<whitelist-id>" 
-            }
-        }
-    }
-   ```
-
-### 2. Modify testConfig.json with Test Configuration
-Populate `<whitelist_id>` ,`<bridge_id>` ,`<device_id>` and `<access_token>` in `tests/testconfig.json`. Noted that <whitelist_id> is also known as the app_username of the bridge.
-
-### 3. Install Test Dependencies:
+Using the opent2t-cli, following its readme to setup and perform onboarding and enumerate devices, you perform onboarding with this commmand:
 
 ```bash
-npm install -g ava
+node index.js -o opent2t-translator-com-hue-hub
 ```
+The user will be asked for their Hue credentials (plus API key information) and then save the access_token to a json file.
 
-### 4. Run the tests
+### 2. Create the `tests/testConfig.json` file
+This is where you can put credentials/config to drive this test (this file is added to .gitignore
+to prevent inadvertent check-in). Copy the generated json file as the testconfig.json.
+
+### 3. Run the tests
 
 To run all the tests, run:
 
 ```bash
-npm test
+ava test.js
 ```
 
 To run a specific test, run:

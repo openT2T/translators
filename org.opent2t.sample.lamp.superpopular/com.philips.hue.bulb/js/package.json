@@ -1,5 +1,5 @@
 {
-    "name": "opent2t-translator-com-hue-lightbulb",
+    "name": "opent2t-translator-com-hue-bulb",
     "version": "0.1.0",
     "description": "Hue Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
@@ -18,7 +18,7 @@
         ]
     },
     "dependencies": {
-      "opent2t-translator-helper-hue": "*",
+      "opent2t-translator-com-hue-hub": "*",
       "opent2t": "*",
       "opent2t-onboarding-huehub": "*"
     },
