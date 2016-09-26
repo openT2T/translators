@@ -105,6 +105,18 @@ class Translator {
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
+        else if (winkDevice.light_bulb_id) {
+            return { 
+                "schema": 'org.opent2t.sample.lamp.superpopular',
+                "translator": "opent2t-translator-com-wink-lightbulb"
+            };
+        }
+        else if (winkDevice.binary_switch_id) {
+            return {
+                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                "translator": "opent2t-translator-com-wink-binaryswitch"
+            }
+        }
         
         return undefined;
     }

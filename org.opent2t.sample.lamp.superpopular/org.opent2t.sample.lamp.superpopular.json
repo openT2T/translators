@@ -16,7 +16,7 @@
                     "description": "Dimming status of the light."
                 },
                 "colour": {
-                    "$ref": "oic. r.colour.rgb #/definitions/oic.r.colour.rgb",
+                    "$ref": "oic.r.colour.rgb.json#/definitions/oic.r.colour.rgb",
                     "description": "RGB color emitted by the light."
                 }
             }
@@ -26,6 +26,15 @@
     "allOf": [
         {
             "$ref": "oic.core.json#/definitions/oic.core"
+        },
+        {
+            "$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary"
+        },
+        {
+            "$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming"
+        },
+        {
+            "$ref": "oic.r.colour.rgb.json#/definitions/oic.r.colour.rgb"
         },
         {
             "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"

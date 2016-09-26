@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const NestHelper = require('opent2t-translator-helper-nest');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -16,12 +15,55 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
+var deviceHvacModeToTranslatorHvacModeMap = {
+    'cool': 'coolOnly',
+    'heat': 'heatOnly',
+    'heat-cool': 'auto',
+    'off': 'off'
+}
+
+var translatorHvacModeToDeviceHvacModeMap = {
+    'coolOnly': 'cool',
+    'heatOnly': 'heat',
+    'auto': 'heat-cool',
+    'off': 'off'
+}
+
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    return deviceHvacModeToTranslatorHvacModeMap[mode];
+}
+
+function translatorHvacModeToDeviceHvacMode(mode) {
+    return translatorHvacModeToDeviceHvacModeMap[mode];
+}
+
+function readHvacMode(deviceSchema) {
+    // Assume 'auto' and 'off' are always supported
+    var supportedHvacModes = [
+        'auto',
+        'off'
+    ];
+
+    if (deviceSchema['can_cool']) {
+        supportedHvacModes.push('coolOnly');
+    }
+    if (deviceSchema['can_heat']) {
+        supportedHvacModes.push('heatOnly');
+    }
+
+    var hvacMode = deviceHvacModeToTranslatorHvacMode(deviceSchema['hvac_mode']);
+
+    return {
+        supportedModes: supportedHvacModes,
+        modes: [hvacMode]
+    };
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     // Quirks:
     // - Nest does not have an external temperature field, so that is left out.
-    // - HVAC Mode is not implemented at this time. Allowed modes may be inferred from the can_cool and can_heat properties per Nest documentation
     // - Away Mode is not implemented at this time.
 
     // return units in Celsius regardless of what the thermostat is set to
@@ -38,6 +80,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
         ambientTemperature: { temperature: deviceSchema['ambient_temperature_' + ts], units: tempScale },
         hasFan: deviceSchema['has_fan'],
         ecoMode: deviceSchema['has_leaf'],
+        hvacMode: readHvacMode(deviceSchema),
         fanTimerActive: deviceSchema['fan_timer_active']
     };
 }
@@ -46,7 +89,6 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 function translatorSchemaToDeviceSchema(translatorSchema) {
 
     // Quirks:
-    // - HVAC Mode is not implemented at this time.
     // - Away Mode is not implemented at this time.
 
     var result = {};
@@ -67,30 +109,33 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
         result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = translatorSchema.targetTemperatureLow.temperature;
     }
 
+    if (translatorSchema.hvacMode) {
+        result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(translatorSchema.hvacMode.modes[0]);
+    }
+
     return result;
 }
 
 var deviceId;
 var deviceType = 'thermostats';
-var nestHelper;
+var nestHub;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
-    constructor(device) {
+    constructor(deviceInfo) {
         console.log('Initializing device.');
+        console.log(JSON.stringify(deviceInfo, null, 2));
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(deviceInfo, 'deviceInfo', 'object');
+        validateArgumentType(deviceInfo.hub, 'deviceInfo.hub', 'object');
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.id, 'device.props.id', 'string');
+        validateArgumentType(deviceInfo.deviceInfo.id, 'deviceInfo.deviceInfo.id', 'string');
 
-        deviceId = device.props.id;
+        deviceId = deviceInfo.deviceInfo.id;
+        nestHub = deviceInfo.hub;
 
-        // Initialize Nest Helper
-        nestHelper = new NestHelper(device.props.access_token);
-        console.log('Javascript and Nest Helper initialized.');
+        console.log('Javascript and Nest Thermostat initialized.');
     }
 
     // exports for the entire schema object
@@ -98,7 +143,7 @@ class Translator {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return nestHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return nestHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response);
             });
@@ -113,7 +158,7 @@ class Translator {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return nestHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return nestHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response);
             });

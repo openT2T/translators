@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const WinkHelper = require('opent2t-translator-helper-wink');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -36,6 +35,42 @@ class StateReader {
     }
 }
 
+var deviceHvacModeToTranslatorHvacModeMap = {
+    'cool_only': 'coolOnly',
+    'heat_only': 'heatOnly',
+    'auto': 'auto'
+}
+
+var translatorHvacModeToDeviceHvacModeMap = {
+    'coolOnly': 'cool_only',
+    'heatOnly': 'heat_only',
+    'auto': 'auto'
+}
+
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    return deviceHvacModeToTranslatorHvacModeMap[mode];
+}
+
+function translatorHvacModeToDeviceHvacMode(mode) {
+    return translatorHvacModeToDeviceHvacModeMap[mode];
+}
+
+function readHvacMode(stateReader) {
+    var supportedHvacModes = stateReader.get('modes_allowed').map(deviceHvacModeToTranslatorHvacMode);
+    var hvacMode = deviceHvacModeToTranslatorHvacMode(stateReader.get('mode'));
+    var powered = stateReader.get('powered');
+
+    supportedHvacModes.push('off');
+    if (!powered) {
+        hvacMode = 'off';
+    }
+
+    return {
+        supportedModes: supportedHvacModes,
+        modes: [hvacMode]
+    };
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
@@ -43,6 +78,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     // Quirks:
     // - Wink does not have a target temperature field, so returning the average of min and max setpoint
+    // - Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
@@ -59,7 +95,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
         awayMode: stateReader.get('users_away'),
         hasFan: stateReader.get('has_fan'),
         ecoMode: stateReader.get('eco_target'),
-        hvacMode: { supportedModes: stateReader.get('modes_allowed'), modes: [stateReader.get('mode')] },
+        hvacMode: readHvacMode(stateReader),
         fanTimerActive: stateReader.get('fan_timer_active')
     };
 
@@ -81,6 +117,7 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
     // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     // Instead, we infer it from the max and min setpoint
+    // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
     if (translatorSchema.n !== undefined) {
         result['name'] = translatorSchema.n;
@@ -99,7 +136,15 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     }
 
     if (translatorSchema.hvacMode !== undefined) {
-        desired_state['mode'] = translatorSchema.hvacMode.modes[0];
+        var mode = translatorSchema.hvacMode.modes[0];
+
+        if (mode === 'off') {
+            desired_state['powered'] = false;
+        }
+        else {
+            desired_state['powered'] = true;
+            desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+        }
     }
 
     return result;
@@ -107,25 +152,20 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
 var deviceId;
 var deviceType = 'thermostats';
-var winkHelper;
+var winkHub;
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(device) {
+    constructor(deviceInfo) {
         console.log('Initializing device.');
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.id, 'device.props.id', 'string');
+        deviceId = deviceInfo.deviceInfo.id;
+        winkHub = deviceInfo.hub;
 
-        deviceId = device.props.id;
-
-        // Initialize Wink Helper
-        winkHelper = new WinkHelper(device.props.access_token);
-        console.log('Javascript and Wink Helper initialized.');
+        console.log('Wink Thermostat Translator initialized.');
     }
 
     // exports for the entire schema object
@@ -133,7 +173,7 @@ class Translator {
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
     getThermostatResURI() {
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
@@ -147,7 +187,7 @@ class Translator {
         console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
