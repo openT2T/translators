@@ -61,4 +61,53 @@ traits:
                   "value": false
                 }
               }
-                
+
+/SubscribeBinarySwitchResURI:
+  description: |
+   This resource manages subscriptions to changes on this device.
+  displayName: SubscribeBinarySwitch
+  is: [ interface ]
+    
+  post:
+    description: Creates or refreshes a subscription to this binaryswitch.  This method should be called twice, first with
+    a callback URL (verificationRequest will be ignored), and the second time with the parameters of an http GET to the
+    callback Url server for verification of the subscription (in which case callback Url will be ignored). The second call
+    will construct a response that should be returned to the notifications server.
+    body:
+      application/json:
+        example: |
+          {
+            "callbackUrl": "http://myserver.com?uuid=534cfd&schema=org.opent2t.sample.binaryswitch.superpopular&deviceId=123456",
+            "verificationRequest": { ... }
+          }    
+    responses:
+       200:
+        body:
+          application/json:
+            example: |
+                {
+                    "expiration": "123456678",
+                    "response": { "plain text response" }
+                }
+       400:
+          body:
+            application/json:
+              example: { "message": "Bad request" }
+       403:
+          body:
+            application/json:
+              example: { "message": "Subscription is denied" }
+
+  delete:
+    description: Unsubscribes to notifications to a callback Url
+    body:
+      application/json:
+        example: |
+          {
+            "callbackUrl": "http://myserver.com?uuid=534cfd&schema=org.opent2t.sample.binaryswitch.superpopular&deviceId=123456",
+          } 
+    responses:
+      200:
+        body:
+          application/json:
+          example: {}              

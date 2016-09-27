@@ -35,6 +35,42 @@ class StateReader {
     }
 }
 
+var deviceHvacModeToTranslatorHvacModeMap = {
+    'cool_only': 'coolOnly',
+    'heat_only': 'heatOnly',
+    'auto': 'auto'
+}
+
+var translatorHvacModeToDeviceHvacModeMap = {
+    'coolOnly': 'cool_only',
+    'heatOnly': 'heat_only',
+    'auto': 'auto'
+}
+
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    return deviceHvacModeToTranslatorHvacModeMap[mode];
+}
+
+function translatorHvacModeToDeviceHvacMode(mode) {
+    return translatorHvacModeToDeviceHvacModeMap[mode];
+}
+
+function readHvacMode(stateReader) {
+    var supportedHvacModes = stateReader.get('modes_allowed').map(deviceHvacModeToTranslatorHvacMode);
+    var hvacMode = deviceHvacModeToTranslatorHvacMode(stateReader.get('mode'));
+    var powered = stateReader.get('powered');
+
+    supportedHvacModes.push('off');
+    if (!powered) {
+        hvacMode = 'off';
+    }
+
+    return {
+        supportedModes: supportedHvacModes,
+        modes: [hvacMode]
+    };
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
@@ -42,6 +78,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     // Quirks:
     // - Wink does not have a target temperature field, so returning the average of min and max setpoint
+    // - Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
@@ -58,7 +95,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
         awayMode: stateReader.get('users_away'),
         hasFan: stateReader.get('has_fan'),
         ecoMode: stateReader.get('eco_target'),
-        hvacMode: { supportedModes: stateReader.get('modes_allowed'), modes: [stateReader.get('mode')] },
+        hvacMode: readHvacMode(stateReader),
         fanTimerActive: stateReader.get('fan_timer_active')
     };
 
@@ -80,6 +117,7 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
     // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     // Instead, we infer it from the max and min setpoint
+    // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
     if (translatorSchema.n !== undefined) {
         result['name'] = translatorSchema.n;
@@ -98,7 +136,15 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     }
 
     if (translatorSchema.hvacMode !== undefined) {
-        desired_state['mode'] = translatorSchema.hvacMode.modes[0];
+        var mode = translatorSchema.hvacMode.modes[0];
+
+        if (mode === 'off') {
+            desired_state['powered'] = false;
+        }
+        else {
+            desired_state['powered'] = true;
+            desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+        }
     }
 
     return result;
@@ -126,11 +172,15 @@ class Translator {
 
     // Queries the entire state of the thermostat
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-    getThermostatResURI() {
-        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
-            });
+    getThermostatResURI(payload) {
+        if (payload) {
+            return deviceSchemaToTranslatorSchema(payload);
+        } else {
+            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+                .then((response) => {
+                    return deviceSchemaToTranslatorSchema(response.data);
+                });
+        }
     }
 
     // Updates the current state of the thermostat with the contents of postPayload
@@ -207,6 +257,18 @@ class Translator {
             .then(response => {
                 return response.targetTemperatureLow.temperature;
             });
+    }
+
+    postSubscribeThermostatResURI(callbackUrl, verificationRequest, verificationResponse) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    }
+
+    deleteSubscribeThermostatResURI(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+    }
+
+    getSubscriptions() {
+        return winkHub._getSubscriptions(deviceType, deviceId);
     }
 }
 
