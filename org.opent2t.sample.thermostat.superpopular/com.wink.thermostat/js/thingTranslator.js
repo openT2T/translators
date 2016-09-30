@@ -73,6 +73,7 @@ function readHvacMode(stateReader) {
 
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
+
     var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
 
     // Quirks:
@@ -187,6 +188,8 @@ class Translator {
     //
     // In addition, returns the updated state (see sample in RAML)
     postThermostatResURI(postPayload) {
+        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
+
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
         return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
@@ -197,6 +200,8 @@ class Translator {
     // exports for individual properties
 
     getAmbientTemperature() {
+        console.log('getAmbientTemperature called');
+
         return this.getThermostatResURI()
             .then(response => {
                 return response.ambientTemperature.temperature;
@@ -204,6 +209,8 @@ class Translator {
     }
 
     getTargetTemperature() {
+        console.log('getTargetTemperature called');
+
         return this.getThermostatResURI()
             .then(response => {
                 return response.targetTemperature.temperature;
@@ -211,6 +218,8 @@ class Translator {
     }
 
     getTargetTemperatureHigh() {
+        console.log('getTargetTemperatureHigh called');
+
         return this.getThermostatResURI()
             .then(response => {
                 return response.targetTemperatureHigh.temperature;
@@ -218,6 +227,8 @@ class Translator {
     }
 
     setTargetTemperatureHigh(value) {
+        console.log('setTargetTemperatureHigh called with value: ' + value);
+
         var postPayload = {};
         postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
 
@@ -228,6 +239,8 @@ class Translator {
     }
 
     getTargetTemperatureLow() {
+        console.log('getTargetTemperatureLow called');
+
         return this.getThermostatResURI()
             .then(response => {
                 return response.targetTemperatureLow.temperature;
@@ -235,6 +248,8 @@ class Translator {
     }
 
     setTargetTemperatureLow(value) {
+        console.log('setTargetTemperatureLow called with value: ' + value);
+        
         var postPayload = {};
         postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
 
