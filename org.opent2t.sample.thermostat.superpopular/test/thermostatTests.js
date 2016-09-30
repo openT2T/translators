@@ -15,8 +15,8 @@ function runThermostatTests(translatorPath, mockDevice, test, testData) {
     test.serial('TargetTemperatureHigh', t => {
         mockDevice.setTestData(testData.TargetTemperatureHigh, t);
         return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', mockDevice).then(translator => {
-            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh').then((targetTemperatureHighBefore) => {
-                return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 22).then((targetTemperatureHighSet) => {
+            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh').then(() => {
+                return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh', 22).then(() => {
                     return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'targetTemperatureHigh').then((targetTemperatureHigh) => {
 
                         // TEST: approximately the same value was returned that was set
@@ -51,7 +51,7 @@ function runThermostatTests(translatorPath, mockDevice, test, testData) {
             value['targetTemperatureHigh'] = { temperature: 22, units: 'C' };
             value['targetTemperatureLow'] = { temperature: 19, units: 'C' };
 
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]).then((response1) => {
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]).then(() => {
                 return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', []).then((response2) => {
 
                     // TEST: The same values were returned that were set
