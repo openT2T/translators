@@ -1,0 +1,13 @@
+{
+    "device_id" : "Mock Id",
+    "name" : "Mock Name",
+    "target_temperature_c": 50,
+    "target_temperature_high_c": 100,
+    "target_temperature_low_c": 2,
+    "ambient_temperature_c": 75,
+    "has_fan": true,
+    "has_leaf": false,
+    "fan_timer_active": true,
+    "can_heat": true,
+    "can_cool": false
+}

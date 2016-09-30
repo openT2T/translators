@@ -11,7 +11,8 @@
   "license": "MIT",
   "scripts": {
     "test": "ava",
-    "lint": "eslint"
+    "lint": "eslint",
+    "unittest": "ava tests/unitTests.js"
   },
   "ava": {
     "files": [
