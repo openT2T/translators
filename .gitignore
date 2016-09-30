@@ -2,9 +2,11 @@
 node_modules
 # miscellaneous
 .tmp
+.sass-cache 
 *.DS_Store
 logs
 *.log
+testconfig.json
 *.vscode
 
 # Temporary package.json at the root for packaging translators
