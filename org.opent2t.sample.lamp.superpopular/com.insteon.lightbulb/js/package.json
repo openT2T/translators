@@ -1,0 +1,31 @@
+{
+    "name": "opent2t-translator-com-insteon-lightbulb",
+    "version": "0.1.0",
+    "description": "Insteon Light Bulb",
+    "homepage": "http://opentranslatorstothings.org",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opent2t/translators.git"
+    },
+    "main": "thingTranslator.js",
+    "license": "MIT",
+    "scripts": {
+        "test": "ava"
+    },
+    "ava": {
+        "files": [
+            "tests/*.js"
+        ]
+    },
+    "dependencies": {
+        "opent2t-translator-com-insteon-hub": "*"
+    },
+    "devDependencies": {
+        "optimist": "*",
+        "opent2t": "*",
+        "opent2t-translator-com-insteon-hub": "*",
+        "jshint": "^2.9.2",
+        "ava": "^0.15.2",
+        "es6-sleep": "*"
+    }
+}
