@@ -18,11 +18,11 @@
         ]
     },
     "dependencies": {
+      "opent2t": "*",
       "opent2t-translator-com-hue-hub": "*"
     },
     "devDependencies": {
       "optimist": "*",
-      "opent2t": "*",
       "opent2t-translator-com-hue-hub": "*",
       "jshint": "^2.9.2",
       "ava": "^0.15.2",
