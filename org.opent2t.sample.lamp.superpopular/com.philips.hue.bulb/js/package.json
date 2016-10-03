@@ -18,7 +18,7 @@
         ]
     },
     "dependencies": {
-      "opent2t-translator-com-hue-hub": "*",
+      "opent2t-translator-com-hue-hub": "*"
     },
     "devDependencies": {
       "optimist": "*",
