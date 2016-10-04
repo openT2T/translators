@@ -214,8 +214,6 @@ class Translator {
             default:
                 return undefined;
         }
-        
-        return undefined;
     }
     
     _isDeviceStatus(propertyName){
