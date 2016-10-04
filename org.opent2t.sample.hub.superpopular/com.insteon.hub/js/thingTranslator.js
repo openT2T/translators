@@ -168,6 +168,7 @@ class Translator {
         // Merge Responses
         var device = {};
         return Promise.all(promises).then(function (responses) {
+            
             for (var i = 0; i < responses.length ; i++) {
                 if ( responses[i] !== undefined && responses[i].status == 'succeeded') {
                     if (responses[i].command !== undefined)
@@ -188,6 +189,8 @@ class Translator {
                     }
                 }
             }
+            
+            if(device.length == 0 ) return Promise.resolve(undefined);
             return Promise.resolve(device);
         });
 
@@ -207,6 +210,7 @@ class Translator {
                         "translator": "opent2t-translator-com-insteon-lightbulb"
                     };
                 }
+                return defined;
             default:
                 return undefined;
         }
