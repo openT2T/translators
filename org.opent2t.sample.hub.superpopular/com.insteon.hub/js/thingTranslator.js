@@ -210,7 +210,7 @@ class Translator {
                         "translator": "opent2t-translator-com-insteon-lightbulb"
                     };
                 }
-                return defined;
+                return undefined;
             default:
                 return undefined;
         }
