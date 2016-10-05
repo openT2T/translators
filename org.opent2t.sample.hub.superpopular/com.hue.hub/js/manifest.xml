@@ -6,7 +6,7 @@
       <schema id="oic.baseResource" type="OCF" />
   </schemas>
   <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.huehub">
+  <onboarding id="org.opent2t.onboarding.hue">
     <onboardflow name="getDeveloperInput">
       <flow>
         <arg name="client_id" />
@@ -18,11 +18,26 @@
         <description language="en">Ask for Client Secret</description>
         <description language="fr">Demandez Client Secret</description>
       </flow>
+      <flow>
+        <arg name="app_id" />
+        <description language="en">Ask for App ID</description>
+        <description language="fr">Demandez App ID</description>
+      </flow>
+      <flow>
+        <arg name="app_name" />
+        <description language="en">Ask for App Name</description>
+        <description language="fr">Demandez App Name</description>
+      </flow>
+      <flow>
+        <arg name="device_id" />
+        <description language="en">Ask for Device ID</description>
+        <description language="fr">Demandez Device ID</description>
+      </flow>
     </onboardflow>
     <onboardflow name="askUserPermission">
       <flow>
         <arg name="url" />
-        <description language="en">https://api.meethue.com/oauth2/auth?clientid={client_id}&appid={app_id}&deviceid={device_id}&devicename={device_name}&state={state}&response_type=code</description>
+        <description language="en">https://api.meethue.com/oauth2/auth?clientid={client_id}&amp;appid={app_id}&amp;deviceid={device_id}&amp;devicename={app_name} on {device_id}&amp;state={state}&amp;response_type=code</description>
       </flow>
     </onboardflow>
   </onboarding>

@@ -22,7 +22,7 @@ Using the opent2t-cli, following its readme to setup and perform onboarding, you
 ```bash
 node index.js -o opent2t-translator-com-hue-hub
 ```
-The user will be asked for their Hue API key information, and will navigate to the Hue page to opt in to the app created above and then save the access_token to a json file.
+The user will be asked for their Hue API Client ID and Client Secret, and will navigate to the Hue page to opt in to the app created above and then save the access_token to a json file.
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
 for this translator to be org.opent2t.onboarding.huehub. This basically just describes what sort of setup, pairing or
@@ -31,7 +31,8 @@ an access token. These parameters are provided to the translator for it to work.
 
 ### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
-to prevent inadvertent check-in). Copy the generated json file as the testconfig.json.
+to prevent inadvertent check-in). Copy the generated json file as the testConfig.json.
+
 
 ### 3. Run the tests
 
