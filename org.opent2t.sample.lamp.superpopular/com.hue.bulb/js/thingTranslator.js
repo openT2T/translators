@@ -27,7 +27,8 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
     if(typeof deviceState !== 'undefined'){
         result.n = deviceSchema['name'] ;
         result.power = { value: deviceState['on'] };
-        result.dim = { dimmingSetting: deviceState['bri'], range: [1, 254]};
+        var briPercent = Math.round((deviceState['bri'] - 1) * 100 / 253);
+        result.dim = { dimmingSetting: briPercent, range: [0, 100]};
     } else {
         for (var i = 0; i < deviceSchema.length; i++){
             var changeResult = deviceSchema[i].success;
@@ -38,7 +39,8 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
                 if( attribute == 'on'){
                     result.power = { value: changeResult[key] };
                 } else if ( attribute == 'bri'){
-                    result.dim = { dimmingSetting: changeResult[key], range: [1, 254]};
+                    var briPercent = Math.round((changeResult[key] - 1) * 100 / 253);
+                    result.dim = { dimmingSetting: briPercent, range: [0, 100]};
                 } else if ( attribute == 'name'){
                     result.n = changeResult[key];
                 }
@@ -64,7 +66,8 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     }
 
     if (translatorSchema.dim!== undefined) {
-        result['bri'] = translatorSchema.dim.dimmingSetting;
+        var bri = Math.round((translatorSchema.dim.dimmingSetting * 2.53) + 1);
+        result['bri'] = bri;
     }
 
     return result;
