@@ -22,7 +22,9 @@ Using the opent2t-cli, following its readme to setup and perform onboarding, you
 ```bash
 node index.js -o opent2t-translator-com-hue-hub
 ```
-The user will be asked for their Hue API Client ID and Client Secret, and will navigate to the Hue page to opt in to the app created above and then save the access_token to a json file.
+The user will be asked for their Hue API client ID, client Secret and app id as well as the name of their app and 
+the name of the device running the app. Then, the user will be navigated to the Hue page to opt in to the app created 
+above and then save the access_token and other credentials to a json file.
 
 Let's step through what's going on here. The manifest.xml for this translator documents the onboarding type
 for this translator to be org.opent2t.onboarding.huehub. This basically just describes what sort of setup, pairing or

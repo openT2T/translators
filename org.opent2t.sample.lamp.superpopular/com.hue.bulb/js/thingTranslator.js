@@ -19,6 +19,7 @@ function validateArgumentType(arg, argName, expectedType) {
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
     var deviceState = deviceSchema.state;
+    var briPercent = 0;
     var result = {
         id:  deviceId,
         rt: 'org.opent2t.sample.lamp.superpopular'
@@ -27,7 +28,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
     if(typeof deviceState !== 'undefined'){
         result.n = deviceSchema['name'] ;
         result.power = { value: deviceState['on'] };
-        var briPercent = Math.round((deviceState['bri'] - 1) * 100 / 253);
+        briPercent = Math.round((deviceState['bri'] - 1) * 100 / 253);
         result.dim = { dimmingSetting: briPercent, range: [0, 100]};
     } else {
         for (var i = 0; i < deviceSchema.length; i++){
@@ -39,7 +40,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
                 if( attribute == 'on'){
                     result.power = { value: changeResult[key] };
                 } else if ( attribute == 'bri'){
-                    var briPercent = Math.round((changeResult[key] - 1) * 100 / 253);
+                    briPercent = Math.round((changeResult[key] - 1) * 100 / 253);
                     result.dim = { dimmingSetting: briPercent, range: [0, 100]};
                 } else if ( attribute == 'name'){
                     result.n = changeResult[key];
