@@ -134,26 +134,26 @@ test.serial('TargetTemperatureHigh_TargetTemperatureLow_Post_Get', t => {
 
 // Get the entire Thermostat schema object
 test.serial('GetThermostatResURI', t => {
-    // TEST: translator is valid
-    t.is(typeof translator, 'object') && t.truthy(translator);
+        // TEST: translator is valid
+        t.is(typeof translator, 'object') && t.truthy(translator);
 
-    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', [])
-        .then((response) => {
+        return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'getThermostatResURI', [])
+            .then((response) => {
 
-            t.not(response.id, undefined);
-            t.is(response.rt, 'org.opent2t.sample.thermostat.superpopular');
-            t.not(response.targetTemperature, undefined);
-            t.not(response.targetTemperatureHigh, undefined);
-            t.not(response.targetTemperatureLow, undefined);
-            t.not(response.ambientTemperature, undefined);
-            t.not(response.awayMode, undefined);
-            t.not(response.hasFan, undefined);
-            t.not(response.ecoMode, undefined);
-            t.not(response.hvacMode, undefined);
-            t.not(response.fanTimerActive, undefined);
+                t.not(response.id, undefined);
+                t.is(response.rt, 'org.opent2t.sample.thermostat.superpopular');
+                t.not(response.targetTemperature, undefined);
+                t.not(response.targetTemperatureHigh, undefined);
+                t.not(response.targetTemperatureLow, undefined);
+                t.not(response.ambientTemperature, undefined);
+                t.not(response.awayMode, undefined);
+                t.not(response.hasFan, undefined);
+                t.not(response.ecoMode, undefined);
+                t.not(response.hvacMode, undefined);
+                t.not(response.fanTimerActive, undefined);
 
-            console.log('*** response: \n' + JSON.stringify(response, null, 2));
-        });
+                console.log('*** response: \n' + JSON.stringify(response, null, 2));
+            });
 });
 
 test.serial('PostThermostatResURI_Set_AwayMode', t => {
@@ -185,19 +185,19 @@ test.serial('PostThermostatResURI_Set_HvacMode', t => {
 test.serial('PostThermostatResURI_Set_HvacMode_Off_Then_HeatOnly', async t => {
 
     var value = {};
-value['hvacMode'] = { 'modes': ['off'] };
+    value['hvacMode'] = { 'modes': ['off'] };
 
-var offResponse = await OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]);
-t.is(offResponse.hvacMode.modes[0], 'off');
+    var offResponse = await OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]);
+    t.is(offResponse.hvacMode.modes[0], 'off');
 
-console.log('*** offResponse: \n' + JSON.stringify(offResponse, null, 2));
+    console.log('*** offResponse: \n' + JSON.stringify(offResponse, null, 2));
 
-value['hvacMode'] = { 'modes': ['heatOnly'] };
+    value['hvacMode'] = { 'modes': ['heatOnly'] };
 
-var heatOnlyResponse = await OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]);
-t.is(heatOnlyResponse.hvacMode.modes[0], 'heatOnly');
+    var heatOnlyResponse = await OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postThermostatResURI', [value]);
+    t.is(heatOnlyResponse.hvacMode.modes[0], 'heatOnly');
 
-console.log('*** heatOnlyresponse: \n' + JSON.stringify(heatOnlyResponse, null, 2));
+    console.log('*** heatOnlyresponse: \n' + JSON.stringify(heatOnlyResponse, null, 2));
 });
 
 /**
@@ -276,9 +276,9 @@ test.serial('Notifications - Subscribe', t => {
 
         // Validation of the subscription will not happen unless it's already expired.
         translator.getSubscriptions().then((subscriptions) => {
-            console.log(subscriptions);
-            t.true(subscriptions.length > 0);
-        });
+                    console.log(subscriptions);
+                    t.true(subscriptions.length > 0);
+                });
 
         translator.setTargetTemperatureHigh(75);
     });
