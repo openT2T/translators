@@ -33,7 +33,6 @@ an access token. These parameters are provided to the translator for it to work.
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
 to prevent inadvertent check-in). Copy the generated json file as the testConfig.json.
 
-
 ### 3. Run the tests
 
 To run all the tests, run:
