@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-com-hue-bulb",
-    "version": "0.1.0",
+    "version": "0.0.3",
     "description": "Hue Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
