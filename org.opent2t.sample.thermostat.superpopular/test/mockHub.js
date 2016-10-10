@@ -7,7 +7,7 @@ var stateModifier = undefined;
 var payloadVerifier = undefined;
 var t = undefined;
 
-class MockDevice {
+class MockHub {
 
     constructor(initialState, modifier, verifier) {
         deviceState = initialState;
@@ -40,4 +40,4 @@ class MockDevice {
     }
 }
 
-module.exports = MockDevice;
+module.exports = MockHub;
