@@ -4,7 +4,4 @@ node_js:
 before_script:
   - npm install
 script:
-  - npm run-script js-lint
-  - npm run-script json-lint
-  #- npm run-script raml-lint
-  - npm run-script xml-lint
+  - npm run ci-checks

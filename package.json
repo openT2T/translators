@@ -3,7 +3,8 @@
     "js-lint": "eslint **/*.js",
     "raml-lint": "eslint **/*.raml",
     "json-lint": "eslint **/*.json",
-    "xml-lint": "gulp xml-lint"
+    "xml-lint": "gulp xml-lint",
+    "ci-checks": "npm run js-lint && npm run json-lint && npm run xml-lint"
   },
   "devDependencies": {
     "babel-eslint": "^7.0.0",
