@@ -8,6 +8,3 @@ logs
 *.log
 testconfig.json
 *.vscode
-
-# Temporary package.json at the root for packaging translators
-/package.json
