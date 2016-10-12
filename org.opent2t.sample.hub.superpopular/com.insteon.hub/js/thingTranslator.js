@@ -190,7 +190,7 @@ class Translator {
                 }
             }
             
-            if(device.length == 0 ) return Promise.resolve(undefined);
+            if(device.length === 0 ) return Promise.resolve(undefined);
             return Promise.resolve(device);
         });
 
@@ -198,6 +198,10 @@ class Translator {
 
     /** 
      * Given the hub specific device, returns the opent2t schema and translator
+     * devCat: Insteon device category
+     * subCat: Insteon device sub-category.
+     * We can identify the device using those two value based on the table at
+     * https://insteon.atlassian.net/wiki/display/IKB/Insteon+Device+Categories+and+Sub-Categories#InsteonDeviceCategoriesandSub-Categories-devcat-subcat
      */
 
     _getOpent2tInfo(devCat, subCat) {

@@ -1,6 +1,3 @@
-// var schema = require("c:/githome/translators/org.opent2t.sample.thermostat.superpopular/org.opent2t.sample.thermostat.superpopular");
-// console.log(schema);
-
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');

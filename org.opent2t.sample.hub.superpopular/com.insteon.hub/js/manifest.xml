@@ -6,7 +6,7 @@
     <schema id="oic.baseResource" type="OCF" />
   </schemas>
   <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.Insteon">
+  <onboarding id="org.opent2t.onboarding.insteon">
     <onboardflow name="getUserInput">
       <flow type="input">
         <arg name="username" />

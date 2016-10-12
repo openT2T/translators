@@ -1,8 +1,8 @@
 #Insteon Light Translator
-Translator forInsteon Light (http://www.insteon.com)
+Translator for Insteon Light (http://www.insteon.com)
 
 ## Setup Your Hardware
-Follow instructions in theInsteon app to set up your light withInsteon. This is a pre-requisite
+Follow instructions in the Insteon app to set up your light with Insteon. This is a pre-requisite
 before using this translator to interact with your light.
 
 ## Installing Dependencies
@@ -25,7 +25,7 @@ node index.js -o opent2t-translator-com-insteon-hub
 The user will be asked for their Insteon credentials (plus API key information) and then save the access_token to a json file.
 
 ### 2. Create the `tests/testConfig.json` file
-This is where you can put credentials/config to drive this test (this file is added to .gitignore to prevent inadvertent check-in).
+This is where you can put credentials/config to drive this test (this file is added to .gitignore to prevent in advertent check-in).
 Copy the generated json file as the testConfig.json.
 
 ### 3. Run the tests

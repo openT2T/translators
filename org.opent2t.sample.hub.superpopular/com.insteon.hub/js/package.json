@@ -7,8 +7,8 @@
   "files": [
     "thingTranslator.js",
     "package.json",
-	  "manifest.xml",
-	  "common.js"
+    "manifest.xml",
+    "common.js"
   ],
   "repository": {
     "type": "git",
@@ -27,5 +27,13 @@
   },
   "devDependencies": {
     "ava": "^0.15.2"
+  },
+  "scripts": {
+    "test": "ava"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
   }
 }
