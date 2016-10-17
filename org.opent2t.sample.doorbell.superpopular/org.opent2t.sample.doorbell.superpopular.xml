@@ -8,7 +8,7 @@
       <arg name="pressedEvent" type="b" direction="out" />
     </method>
     <!-- Gets the doorbell battery level -->
-    <method name="getBatteryLevel" />
+    <method name="getBatteryLevel">
         <arg name="batteryLevel" type="d" direction="out" />
     </method>
     <!-- Called when there is an error during usage of this translator -->
