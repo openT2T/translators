@@ -16,7 +16,7 @@ class Translator {
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
-        this._name = "SmartThings hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on hub hub.
+        this._name = "SmartThings hub"; // TODO: Can be pulled from OpenT2T global constants.
     }
 
     /**
@@ -91,8 +91,6 @@ class Translator {
             if(isValid == false) return undefined;
             
             var putPayloadString = JSON.stringify(putPayload);
-            console.log("Updateing device:")
-            console.log(putPayloadString);
             return this._makeRequest(this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
                 .then((result) => {
                     if(result === "succeed")
