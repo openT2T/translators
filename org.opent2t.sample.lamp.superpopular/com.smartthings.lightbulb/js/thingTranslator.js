@@ -44,10 +44,6 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
     var result = {};
     var attributes = result.attributes;
 
-    if (translatorSchema.n) {
-        result['name'] = translatorSchema.n;
-    }
-
     if (translatorSchema.power) {
         result['switch'] = translatorSchema.power.value? 'on' : 'off';
     }
