@@ -15,7 +15,7 @@ class Translator {
         this._accessToken = accessTokenInfo;
         this._baseUrl = 'https://api.meethue.com/v2/bridges/' + accessTokenInfo.bridgeId + '/' + accessTokenInfo.whitelistId;
         this._devicesPath = '/lights';
-        this._name = "Hue Bridge"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on hub hub.
+        this._name = "Hue Bridge"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on hue hub.
     }
 
     /**
