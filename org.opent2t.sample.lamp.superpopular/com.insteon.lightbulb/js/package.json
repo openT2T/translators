@@ -23,7 +23,6 @@
    },
     "devDependencies": {
         "opent2t-translator-com-insteon-hub": "*",
-        "jshint": "^2.9.2",
         "ava": "^0.15.2",
         "es6-sleep": "*"
     }

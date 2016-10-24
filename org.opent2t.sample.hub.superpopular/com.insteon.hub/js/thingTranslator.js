@@ -1,7 +1,4 @@
-﻿/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
-// This code uses ES2015 syntax that requires at least Node.js v4.
+﻿// This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
