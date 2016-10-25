@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-com-smartthings-lightbulb",
-    "version": "1.0.0",
+    "version": "0.1.7",
     "description": "SmartThings Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
@@ -23,6 +23,7 @@
     },
     "devDependencies": {
         "optimist": "*",
+        "jshint": "^2.9.2",
         "ava": "^0.15.2",
         "es6-sleep": "*"
     }
