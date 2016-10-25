@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
 'use strict';
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -13,16 +11,6 @@ function validateArgumentType(arg, argName, expectedType) {
         throw new Error('Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
-}
-
-// Helper method to convert SmartThings's 0.0-1.0 brightness scale to a 0-100 scale
-function scaleDeviceBrightnessToTranslatorBrightness(brightnessValue) {
-    return Math.floor(brightnessValue * 100);
-}
-
-// Helper method to convert a 0-100 scale to SmartThings's 0.0-1.0 brightness scale
-function scaleTranslatorBrightnessToDeviceBrightness(dimmingValue) {
-    return dimmingValue / 100;
 }
 
 // Helper method to convert the device schema to the translator schema.
