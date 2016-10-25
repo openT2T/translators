@@ -9,6 +9,7 @@
     "eslint-plugin-raml": "^0.2.6",
     "gulp": "^3.9.1",
     "gulp-eslint": "^3.0.1",
+    "gulp-util": "^3.0.7",
     "gulp-xml-validator": "^0.1.2",
     "through2": "^2.0.1"
   }
