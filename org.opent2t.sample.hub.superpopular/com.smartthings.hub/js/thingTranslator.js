@@ -1,6 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
@@ -111,6 +108,11 @@ class Translator {
                 return { 
                     "schema": 'org.opent2t.sample.lamp.superpopular',
                     "translator": 'opent2t-translator-com-smartthings-lightbulb'
+                };
+            case "switch":
+                return {
+                    "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                    "translator": 'opent2t-translator-com-smartthings-binaryswitch'
                 };
             default:
                 return undefined;
