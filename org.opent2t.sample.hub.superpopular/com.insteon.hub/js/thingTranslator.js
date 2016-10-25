@@ -116,7 +116,7 @@ class Translator {
 
     /**
      * Puts device details (all fields) payload formatted per http://docs.insteon.apiary.io/#reference/devices
-    */
+     */
     putDeviceDetailsAsync(deviceId, putPayload) {
 
         // build request path and body
@@ -131,13 +131,12 @@ class Translator {
             }
         }
 
-        var translatorCopy = new Translator(this._accessToken);
         var promises = [];
 
         if (Object.keys(statusChanges).length > 0) {
             var statePromise = this._makeRequest(this._commandPath, 'POST', JSON.stringify(statusChanges))
-                    .then(function (response) {
-                        return translatorCopy._getCommandResponse(response.id, 3) // get command status
+                    .then((response) => {
+                        return this._getCommandResponse(response.id, 3) // get command status
                             .then((commandResult) => {
                                 return Promise.resolve(commandResult);
                             });
@@ -227,8 +226,15 @@ class Translator {
         }
     }
 
-    _getCommandResponse(commandId, count){
-
+    /**
+     *  Internal helper method which get the results of an Insteon commands.
+     *  Count specifies the number of time we try to retrieve the command result before we identify the result as timeout.
+     *  
+     *  Per Insteon's recommendation at http://docs.insteon.apiary.io/#reference/commands/commands-collection, in Usage, 
+     *  it suggested us to wait for 1 second for the call to complete its roundtrip from the client to the hub, to the 
+     *  device and back to the client.
+     */
+    _getCommandResponse(commandId, count) {
         return sleep(1000).then(() => {
             return this._makeRequest(this._commandPath + '/' + commandId, 'GET')
                 .then( (response) => {
@@ -237,7 +243,11 @@ class Translator {
                         if(count > 1){
                             return this._getCommandResponse(commandId, --count)
                         } else {
-                            return undefined;
+                            var errMsg = {
+                                statusCode: "500",
+                                response: { statusMessage: 'Internal Error - Insteon command timeout.' }
+                            };
+                            throw errMsg;
                         }
                     }
                     else return response;
