@@ -1,6 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
@@ -23,10 +20,10 @@ class Translator {
      * Get the list of devices discovered through the hub.
      */
     getHubResURI() {
-        
+
         return this._hasValidEndpoint().then((isValid) => {
-            if(isValid == false) return undefined;
-            
+            if (isValid == false) return undefined;
+
             var toReturn = {};
             var filteredDevices = [];
 
@@ -35,7 +32,7 @@ class Translator {
 
                     for (var i = 0; i < devices.length ; i++) {
                         var smartThingsDevice = devices[i];
-                        
+
                         // get the opent2t schema and translator for the SmartThings device
                         var opent2tInfo = this._getOpent2tInfo(smartThingsDevice.deviceType);
 
@@ -74,9 +71,9 @@ class Translator {
     getDeviceDetailsAsync(deviceId) {
 
         return this._hasValidEndpoint().then((isValid) => {
-            if(isValid == false) return undefined;
-            
-            return this._makeRequest(this._devicesPath + '/' + deviceId , 'GET')
+            if (isValid == false) return undefined;
+
+            return this._makeRequest(this._devicesPath + '/' + deviceId, 'GET')
                 .then((device) => {
                     return device;
                 });
@@ -88,13 +85,12 @@ class Translator {
      */
     putDeviceDetailsAsync(deviceId, putPayload) {
         return this._hasValidEndpoint().then((isValid) => {
-            if(isValid == false) return undefined;
-            
+            if (isValid == false) return undefined;
+
             var putPayloadString = JSON.stringify(putPayload);
             return this._makeRequest(this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
                 .then((result) => {
-                    if(result === "succeed")
-                    {
+                    if (result === "succeed") {
                         return this.getDeviceDetailsAsync(deviceId);
                     }
                     return undefined;
@@ -106,11 +102,16 @@ class Translator {
      * Given the hub specific device, returns the opent2t schema and translator
      */
     _getOpent2tInfo(deviceType) {
-        switch(deviceType){
+        switch (deviceType) {
             case "light":
-                return { 
+                return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
                     "translator": 'opent2t-translator-com-smartthings-lightbulb'
+                };
+            case "switch":
+                return {
+                    "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                    "translator": 'opent2t-translator-com-smartthings-binaryswitch'
                 };
             default:
                 return undefined;
@@ -137,7 +138,7 @@ class Translator {
     _hasValidEndpoint() {
         if (this._baseUrl === '') {
             return this._getEndpoint().then((endpointURI) => {
-                if(endpointURI === undefined) return Promise.resolve(false);
+                if (endpointURI === undefined) return Promise.resolve(false);
                 this._baseUrl = endpointURI;
                 return Promise.resolve(true)
             });
@@ -145,7 +146,7 @@ class Translator {
             return Promise.resolve(true);
         }
     }
-    
+
     /**
      * Internal helper method which makes the actual request to the hue service
      */
@@ -179,8 +180,8 @@ class Translator {
         // Start the async request
         return request(options)
             .then(function (body) {
-                if(method === 'PUT'){
-                    if(body.length === 0) return "succeed";
+                if (method === 'PUT') {
+                    if (body.length === 0) return "succeed";
                     return "Unkown error";
                 }
                 return JSON.parse(body);
