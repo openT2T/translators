@@ -29,8 +29,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
 function translatorSchemaToDeviceSchema(translatorSchema) {
 
     // build the object with desired state
-    var result = {};
-    var attributes = result.attributes;
+    var result = {};  
 
     if (translatorSchema.power) {
         result['switch'] = translatorSchema.power.value? 'on' : 'off';
