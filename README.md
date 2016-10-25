@@ -30,6 +30,30 @@ Follow our getting started guide at http://www.opentranslatorstothings.org. Note
 Here is some background reading for those who are curious:
 1. Node package name requirements/rules: https://docs.npmjs.com/files/package.json.
 2. Issue #50 includes a discussion and some context behind this naming guidance.
+
+## Run Integration Tests
+
+1. Install gulp globally.
+```bash
+npm install -g gulp
+```
+
+2. Install dependencies.
+```bash
+npm install
+```
+
+3. Run integration tests.
+```bash
+gulp ci-checks
+```
+
+Notes:
+1. Other gulp tasks can be run as well, see gulpfile.js for available tasks.
+2. By default all files under the translators repo will be tested.  use the --cwd option to only test files under a specified directory:
+```bash
+gulp --cwd .\org.opent2t.sample.windowshade.superpopular\ ci-checks
+```
  
 ## Create a Pull Request
 Made any changes we should consider? Send us a pull request! Check out [this article](https://help.github.com/articles/creating-a-pull-request/)
