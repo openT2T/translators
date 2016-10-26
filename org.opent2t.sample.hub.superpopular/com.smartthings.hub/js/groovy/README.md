@@ -55,7 +55,9 @@ Set up your developer account at  to create your SmartApp. This is a pre-requisi
 This SmartApp exposes several REST APIs for you to interact with.
 ### List all device details
 Method: `GET`
+
 URL: `/devices`
+
 Response:
 ```
   [ 
@@ -102,7 +104,9 @@ Response:
  ``` 
 ### Retrieve a specific device 
 Method: `GET`
+
 URL: `/devices/<device_id>`
+
 Response:
 ```
   { 
@@ -120,8 +124,10 @@ Response:
 ```
 ### Update a device
 Method: `PUT`
+
 URL: `/update/<device_id>`
-body
+
+Body
 ```
   {
     "<attribute>": "<desired_value>
@@ -131,5 +137,7 @@ Response: No Response.
 
 ### Update notification callback 
 Method: `PUT`
+
 URL: `/subscriptionURL/<callback_url>`
+
 Response: No Response.
