@@ -5,10 +5,12 @@ The SmartApp for the OpenT2T SmartThings hub translator https://github.com/openT
 Set up your developer account at  to create your SmartApp. This is a pre-requisite before using this translator to interact with your hub.
 
 **If you do NOT have the SmartThings account**
-:   You can register for an account by visiting https://graph.api.smartthings.com/register and access the SmartThings developer tools at https://graph.api.smartthings.com.
+
+You can register for an account by visiting https://graph.api.smartthings.com/register and access the SmartThings developer tools at https://graph.api.smartthings.com.
 
 **If you already have the SmartThings account**
-:   You can access your developer account at https://graph.api.smartthings.com, using the same email and password.
+
+You can access your developer account at https://graph.api.smartthings.com, using the same email and password.
 
 ## Setup Your SmartApp
 
@@ -130,7 +132,7 @@ URL: `/update/<device_id>`
 Body
 ```
   {
-    "<attribute>": "<desired_value>
+    "<attribute>": "<desired_value>"
   }
 ```
 Response: No Response.
