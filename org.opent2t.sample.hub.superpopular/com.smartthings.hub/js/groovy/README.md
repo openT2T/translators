@@ -18,19 +18,19 @@ You can access your developer account at https://graph.api.smartthings.com, usin
 1. Log into SmartThings developer portal through https://graph.api.smartthings.com and click on **My SmartApps** on the navigation bar on the top.
 2. Click on the green **New SmartApp** button on the top-right corner of the page. This will bring you a new app setup page.
 3. Under the **Definition** section in the **From Form** tab, fill out the information of your SmartApp.
-[SmartApp Setup Form](/img/SmartAppSetup.png)
-3. Scroll down to the **OAuth** section and click on the **Enable OAuth in Smart App** button.
-[SmartApp Enable OAuth Button](/img/SmartAppOauthSetup1.png)
-4. A new table will appaer with the OAuth information (**Client ID** and **Client Secret**) of your own app.
-[SmartApp OAuth Properties](/img/SmartAppOauthSetup2.png)
-5. You may fill other optional fiels like Display Name. We recommend to leave Redirect URL blank if your want it to be dynamic.
-6. Click on **Create** button ar the button of the page to create your SmartApp.
-[SmartApp Create Button](/img/SmartAppCreate.png)
-7. You should be automatically redirected your SmartApp IDE. Please follow the next section to continue.
+![SmartApp Setup Form](./img/SmartAppSetup.PNG)
+4. Scroll down to the **OAuth** section and click on the **Enable OAuth in Smart App** button.
+![SmartApp Enable OAuth Button](./img/SmartAppOauthSetup1.PNG)
+5. A new table will appaer with the OAuth information (**Client ID** and **Client Secret**) of your own app.
+![SmartApp OAuth Properties](./img/SmartAppOauthSetup2.PNG)
+6. You may fill other optional fiels like Display Name. We recommend to leave Redirect URL blank if your want it to be dynamic.
+7. Click on **Create** button ar the button of the page to create your SmartApp.
+![SmartApp Create Button](./img/SmartAppCreate.PNG)
+8. You should be automatically redirected your SmartApp IDE. Please follow the next section to continue.
 
 ### 2. Get your SmartApp Definitions
 1. In your SmartApp IDE, you will see some existing code including the definition of the App.
-[SmartApp Definition](/img/SmartAppDefinition.png)
+![SmartApp Definition](./img/SmartAppDefinition.PNG)
 2. Save your SmartApp definition in separate text file.
 3. Copy and paste the code from SmartApp.groovy to replace the existing code in your SmartApp IDE.
 4. Replace the SmartApp definition with that of your own.
