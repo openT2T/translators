@@ -1,9 +1,15 @@
 # SmartThings Hub translator
-Translator for SmartThings hub (https://www.meetsmartthings.com)
+Translator for SmartThings hub (https://smartthings.com)
 
 ## Setup Your Hardware
 Follow instructions in the SmartThings app to set up your SmartThings account. This is a pre-requisite
 before using this translator to interact with your hub.
+
+## SmartApp
+This SmartThings translator is impletemented based the REST API exposed by a specific SmartApp. You may copy the source code
+at SmartApp.groovy under the "groovy" folder to create your matching SmartApp. Remember to replace the place holder values 
+to those of your own developer account. You may search for the "PLACEHOLDER" keyword to find the values you need to replace.
+Please see the README under the "groovy" folder for details.
 
 ## Installing Dependencies
 To install dependencies for this translator, run:
