@@ -133,6 +133,14 @@ class Translator {
                 return response.power.value;
             });
     }
+
+    postSubscribeBinarySwitchResURI(callbackUrl, verificationRequest, verificationResponse) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    }
+
+    deleteSubscribeBinarySwitchResURI(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+    }
 }
 
 // Export the translator from the module.
