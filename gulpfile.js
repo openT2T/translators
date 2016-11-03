@@ -6,7 +6,11 @@ var eslint = require('gulp-eslint');
 var gutil = require('gulp-util');
 var through = require('through2');
 var path = require('path');
+const NO_MODULES = '!**/node_modules/**';
 
+// The namingValidator validates that the name of the translator is consistent
+// between the translator folder and the package.json file.  It also validates
+// that the name of the translator is correctly prepended in the package.json file.
 var namingValidator = function() {
   const PLUGIN_NAME = 'Naming Validator';
   const NAME_PREFIX = 'opent2t-translator-';
@@ -45,31 +49,31 @@ var namingValidator = function() {
 }
 
 gulp.task('validate-naming', function () {
-  return gulp.src(['**/js/package.json', '!**/node_modules/**', '!**/Helpers/**'])
+  return gulp.src(['**/js/package.json', NO_MODULES, '!**/Helpers/**'])
     .pipe(namingValidator())
 });
 
 gulp.task('xml-lint', function () {
-  return gulp.src(['**/*.xml', '!**/node_modules/**'])
+  return gulp.src(['**/*.xml', NO_MODULES])
     .pipe(xmlValidator())
 });
 
 gulp.task('js-lint', () => { 
-    return gulp.src(['**/*.js','!**/node_modules/**'])
+    return gulp.src(['**/*.js', NO_MODULES])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
 
 gulp.task('json-lint', () => { 
-    return gulp.src(['**/*.json','!**/node_modules/**'])
+    return gulp.src(['**/*.json', NO_MODULES])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 });
 
 gulp.task('raml-lint', () => { 
-    return gulp.src(['**/*.raml','!**/node_modules/**'])
+    return gulp.src(['**/*.raml', NO_MODULES])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
