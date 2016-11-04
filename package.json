@@ -1,11 +1,6 @@
 {
-  "scripts": {
-    "js-lint": "eslint **/*.js",
-    "raml-lint": "eslint **/*.raml",
-    "json-lint": "eslint **/*.json",
-    "xml-lint": "gulp xml-lint",
-    "ci-checks": "npm run js-lint && npm run json-lint && npm run xml-lint"
-  },
+  "name": "opent2t-translators",
+  "version": "0.0.1",
   "devDependencies": {
     "babel-eslint": "^7.0.0",
     "eslint": "^3.7.1",
@@ -13,6 +8,9 @@
     "eslint-plugin-json": "^1.2.0",
     "eslint-plugin-raml": "^0.2.6",
     "gulp": "^3.9.1",
-    "gulp-xml-validator": "^0.1.2"
+    "gulp-eslint": "^3.0.1",
+    "gulp-util": "^3.0.7",
+    "gulp-xml-validator": "^0.1.2",
+    "through2": "^2.0.1"
   }
 }
