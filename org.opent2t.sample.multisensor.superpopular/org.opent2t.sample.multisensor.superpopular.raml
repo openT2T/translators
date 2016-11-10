@@ -1,0 +1,84 @@
+#%RAML 0.8
+title: org.opent2t.sample.multisensor.superpopular
+version: v1.0
+
+schemas:
+  - Multisensor: !include org.opent2t.sample.multisensor.superpopular.json
+
+traits:
+  - interface:
+      queryParameters:
+        if:
+          enum: ["oic.if.a"]
+
+/MultisensorResURI:
+  description: |
+   This resource describes the properties associated with Multisensor.
+   The resource is a composite resource.
+  displayName: Multisensor
+  is: [ interface ]
+
+  get:
+    description: |
+        Retrieves the current resource representation
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Multisensor
+            example: |
+              {
+                  "rt": "org.opent2t.sample.Multisensor.superpopular",
+                  "id": "unique_example_id",
+                  "sensors": [
+                      {
+                          "id": "motion",
+                          "rt": "oic.r.sensor.motion",
+                          "value": false
+                      },
+                      {
+                          "id": "contact",
+                          "rt": "oic.r.sensor.contact",
+                          "value": true
+                      }
+                  ]
+              }
+    
+  post:
+    body:
+      application/json:
+        schema: Multisensor
+        example: |
+            {
+                "id": "unique_example_id",
+                "n": "new name"
+            }
+
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Multisensor
+            example: |
+                {
+                    "id": "unique_example_id",
+                    "n": "new name",
+                    "sensors": [
+                        {
+                            "id": "motion",
+                            "rt": "oic.r.sensor.motion",
+                            "value": false
+                        },
+                        {
+                            "id": "contact",
+                            "rt": "oic.r.sensor.contact",
+                            "value": true
+                        },
+                        {
+                            "id": "temperature",
+                            "rt": "oic.r.temperature",
+                            "temperature": 20,
+                            "units": "C"
+                        }
+                    ]
+                }

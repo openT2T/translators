@@ -270,6 +270,12 @@ class Translator {
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             }
         }
+        else if (winkDevice.sensor_pod_id) {
+            return { 
+                "schema": 'org.opent2t.sample.multisensor.superpopular',
+                "translator": "opent2t-translator-com-wink-multisensor"
+            };
+        }
         
         return undefined;
     }
