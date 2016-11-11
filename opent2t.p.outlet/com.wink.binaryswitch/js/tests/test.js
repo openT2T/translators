@@ -54,6 +54,11 @@ test.serial('GetPlatformExpanded', t => {
         .then((response) => {
             t.is(response.rt[0], 'opent2t.p.outlet');
 
+            var resource = response.entities[0].resources[0];
+            t.is(resource.id, 'power');
+            t.is(resource.rt[0], 'oic.r.switch.binary');
+            t.true(resource.value !== undefined);
+
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
         });
 });
