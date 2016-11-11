@@ -59,7 +59,7 @@ test.serial('GetPlatformExpanded', t => {
 });
 
 test.serial('GetPower', t => {
-    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'getDeviceResource', ['F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8', 'power'])
+    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'getDevicesPower', ['F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8'])
         .then((response) => {
             t.is(response.rt[0], 'oic.r.switch.binary');
 
@@ -70,7 +70,7 @@ test.serial('GetPower', t => {
 test.serial('SetPower', t => {
     var power = { 'value': true };
 
-    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'postDeviceResource', ['F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8', 'power', power])
+    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'postDevicesPower', ['F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8', power])
         .then((response) => {
             t.is(response.rt[0], 'oic.r.switch.binary');
             

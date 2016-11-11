@@ -101,6 +101,26 @@ function findResource(schema, di, resourceId) {
     return resource;
 }
 
+function getDeviceResource(translator, di, resourceId) {
+    return translator.get(true)
+        .then(response => {
+            return findResource(response, di, resourceId);
+        });
+}
+
+function postDeviceResource(di, resourceId, payload) {
+    if (di === lightDeviceDi) {
+        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+            .then((response) => {
+                var schema = providerSchemaToPlatformSchema(response.data, true);
+
+                return findResource(schema, di, resourceId);
+            });
+    }
+}
+
 var deviceId;
 var deviceType = 'binary_switches';
 var winkHub;
@@ -133,24 +153,12 @@ class Translator {
             });
     }
 
-    getDeviceResource(di, resourceId) {
-        return this.get(true)
-            .then(response => {
-                return findResource(response, di, resourceId);
-            });
+    getDevicesPower(di) {
+        return getDeviceResource(this, di, 'power');
     }
 
-    postDeviceResource(di, resourceId, payload) {
-        if (di === lightDeviceDi) {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response.data, true);
-
-                    return findResource(schema, di, resourceId);
-                });
-        }
+    postDevicesPower(di, payload) {
+        return postDeviceResource(di, 'power', payload);
     }
 }
 
