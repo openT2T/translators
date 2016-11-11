@@ -79,7 +79,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         default:
             // Error case
-            console.log("oops");
+            throw new Error("Invalid resourceId");
     }
 
     return result;
@@ -92,14 +92,14 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
     // Build the oic.r.switch.binary resource
-    var binarySwitch = {
+    var power = {
         "href": "/power",
         "rt": ["oic.r.switch.binary"],
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
     // Build the oic.r.dimming resource
-    var dimming = {
+    var dim = {
          "href": "/dim",
          "rt": ["oic.r.light.dimming"],
          "if": ["oic.if.a", "oic.if.baseline"]
@@ -107,19 +107,19 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     // Include the values is expand is specified
     if (expand) {
-        binarySwitch.id = 'power';
-        binarySwitch.value = stateReader.get('powered');
+        power.id = 'power';
+        power.value = stateReader.get('powered');
 
-        dimming.id = 'dim';
-        dimming.dimmingSetting = scaleDeviceBrightnessToTranslatorBrightness(stateReader.get('brightness'));
-        dimming.range = [0,100];
+        dim.id = 'dim';
+        dim.dimmingSetting = scaleDeviceBrightnessToTranslatorBrightness(stateReader.get('brightness'));
+        dim.range = [0,100];
     }
 
     return {
         opent2t: {
             schema: 'opent2t.p.light',
             translator: 'opent2t-translator-com-wink-lightbulb',
-            control_id: providerSchema['object_type'] + '.' + providerSchema['object_id']
+            control_id: providerSchema['object_id']
         },
         pi: providerSchema['uuid'],
         mnmn: providerSchema['device_manufacturer'],
@@ -133,8 +133,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
-                    binarySwitch,
-                    dimming
+                    power,
+                    dim
                 ]
             }
         ]
@@ -192,6 +192,42 @@ class Translator {
 
                 return findResource(schema, di, resourceId);
             });
+    }
+
+    getLDevicesPower(deviceId) {
+        return this.getDeviceResource(deviceId, "oic.r.switch.binary");
+    }
+
+    postDevicesPower(deviceId, payload) {
+        return this.postDeviceResource(deviceId, "oic.r.switch.binary", payload)
+    }
+
+    getDevicesColourMode(deviceid) {
+        return this.getDeviceResource(deviceId, "oic.r.mode");
+    }
+
+    getDevicesColourRgb(deviceId) {
+        return this.getDeviceResource(deviceId, "oic.r.colour.rgb");
+    }
+
+    postDevicesColourRgb(deviceId) {
+        return this.postDeviceResource(deviceId, "oic.r.colour.rgb", payload);
+    }
+
+    getDevicesDim(deviceId) {
+        return this.getDeviceResource(deviceId, "oic.r.light.dimming");
+    }
+
+    postDevicesDim(deviceId, payload) {
+        return this.postDeviceResource(deviceId, "oic.r.light.dimming", payload);
+    }
+
+    getDevicesColourChroma(deviceId) {
+        return this.getDeviceResource(deviceId, "oic.r.colour.chroma");
+    }
+
+    postDevicesColourChroma(deviceId, payload) {
+        return this.postDeviceResource(deviceId, "oic.r.colour.chroma", payload);
     }
 
     postSubscribeLampResURI (callbackUrl, verificationRequest, verificationResponse) {

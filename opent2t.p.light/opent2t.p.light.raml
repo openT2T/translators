@@ -3,10 +3,12 @@ title: org.opent2t.sample.lamp.superpopular
 version: v1.0
 
 schemas:
-  - Lamp: !include org.opent2t.sample.lamp.superpopular.json
   - BinarySwitch: !include oic.r.switch.binary.json
-  - Dimming: !include oic.r.dimming.json
-  - ColourRgb: !include oic.r.coulour.rgb.json
+  - Dimming: !include oic.r.light.dimming.json
+  - Mode: !include oic.r.mode.json
+  - ColourRGB: !include oic.r.colour.rgb.json
+  - ColourChroma: !include oic.r.colour.chroma.json
+  - LightPlatform: !include opent2t.p.light.json
   - Subscription: |
       {
         "type": "object",
@@ -19,10 +21,15 @@ schemas:
     
 
 traits:
-  - interface:
+    - interface-actuator:
       queryParameters:
         if:
           enum: ["oic.if.a", "oic.if.baseline"]
+
+  - interface-sensor:
+      queryParameters:
+        if:
+          enum: ["oic.if.s", "oic.if.baseline"]
 
 /:
   displayName: Platform
@@ -56,16 +63,26 @@ traits:
                         "rt": ["oic.r.switch.binary"],
                         "if": ["oic.if.a", "oic.if.baseline"]
                       },
-                      {
-                        "href": "/colourrgb",
-                        "rt": ["oic.r.colourrgb"],
+                     {
+                        "href": "/dim",
+                        "rt": ["oic.r.light.dimming"],
+                        "if": ["oic.if.a", "oic.if.baseline"]
+                      },
+                     {
+                        "href": "/colourMode",
+                        "rt": ["oic.r.mode"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                     {
+                        "href": "/colourRGB",
+                        "rt": ["oic.r.colour.rgb"],
                         "if": ["oic.if.a", "oic.if.baseline"]
                       },
                       {
-                        "href": "/dimming",
-                        "rt": ["oic.r.dimming"],
+                        "href": "/colourChroma",
+                        "rt": ["oic.r.colour.chroma"],
                         "if": ["oic.if.a", "oic.if.baseline"]
-                      }
+                      },
                     ]
                   }
                 ]
@@ -127,124 +144,193 @@ traits:
                 ]
               }
 
-/device/{deviceid]/power:
-  displayName: Power
-  is: [ interface ]
+/devices/{deviceid}:
+  /power
+    displayName: Power
+    is: [ interface-actuator ]
 
-displayName: Power
-  is: [ interface]
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: BinarySwitch
+              example: |
+                {
+                  "rt": ["oic.r.switch.binary"],
+                  "id": "unique_example_id",
+                  "value": false
+                }
+    post:
+      body:
+        application/json:
+          schema: BinarySwitch
+          example: |
+            {
+              "id": "unique_example_id",
+              "value": true
+            }
+      responses:
+        200:
+          body:
+            application/json:
+              schema: BinarySwitch
+              example: |
+                {
+                  "id": "unique_example_id",
+                  "value": true
+                }
 
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: BinarySwitch
-            example: |
-              {
-                "rt": ["oic.r.switch.binary"],
-                "id": "unique_example_id",
-                "value": false
-              }
-  post:
-    body:
-      application/json:
-        schema: BinarySwitch
-        example: |
-          {
-            "id": "unique_example_id",
-            "value": true
-          }
-    responses:
-      200:
-        body:
-          application/json:
-            schema: BinarySwitch
-            example: |
-              {
-                "id": "unique_example_id",
-                "value": true
-              }
+  /colourMode:
+    displayName: Colour Mode
+    is: [ interface-sensor ]
 
-/device/{deviceid]/colourrgb:
-  displayName: Colour
-  is: [ interface ]
+    get:
+      queryParameters:
+           page:
+             type: integer
 
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: ColourRgb
-            example: |
-              {
-                "rt": ["oic.r.colour.rgb"],
-                "id": "unique_example_id",
-                "rgbValue": [255,255,255]
-              }
-  post:
-    body:
-      application/json:
-        schema: ColourRgb
-        example: |
-          {
-            "id": "unique_example_id",
-            "rgbValue": [0,0,0]
-          }
-    responses:
-      200:
-        body:
-          application/json:
-            schema: ColourRgb
-            example: |
-              {
-                "id": "unique_example_id",
-                "rgbValue": [0,0,0]
-              }
+      responses:
+        200:
+          body:
+            application/json:
+              schema: Mode
+              example: |
+                {
+                  "rt": ["oic.r.mode"],
+                  "id": "unique_example_id",
+                  "modes": ["rgb"],
+                  "supportedModes": ["rgb","chroma"]
+                }
 
-/device/{deviceid]/dimming:
-  displayName: Dimming
-  is: [ interface ]
+  /colourRGB:
+    displayName: Colour RGB
+    is: [ interface-actuator ]
 
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: Dimming
-            example: |
-              {
-                "rt": ["oic.r.colour.rgb"],
-                "id": "unique_example_id",
-                "dimmingSetting": 30,
-                "step": 5,
-                "range": [0,100]
-              }
-  post:
-    body:
-      application/json:
-        schema: Dimming
-        example: |
-          {
-            "id": "unique_example_id",
-            "dimmingSetting": 50
-          }
-    responses:
-      200:
-        body:
-          application/json:
-            schema: Dimming
-            example: |
-              {
-                "id": "unique_example_id",
-                "dimmingSetting": 50
-              }
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: ColourRgb
+              example: |
+                {
+                  "rt": ["oic.r.colour.rgb"],
+                  "id": "unique_example_id",
+                  "rgbValue": [255,255,255]
+                }
+    post:
+      body:
+        application/json:
+          schema: ColourRgb
+          example: |
+            {
+              "id": "unique_example_id",
+              "rgbValue": [0,0,0]
+            }
+      responses:
+        200:
+          body:
+            application/json:
+              schema: ColourRgb
+              example: |
+                {
+                  "id": "unique_example_id",
+                  "rgbValue": [0,0,0]
+                }
+
+  /dim:
+    displayName: Dim
+    is: [ interface-actuator ]
+
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: Dimming
+              example: |
+                {
+                  "rt": ["oic.r.light.dimming"],
+                  "id": "unique_example_id",
+                  "dimmingSetting": 30,
+                  "step": 5,
+                  "range": [0,100]
+                }
+    post:
+      body:
+        application/json:
+          schema: Dimming
+          example: |
+            {
+              "id": "unique_example_id",
+              "dimmingSetting": 50
+            }
+      responses:
+        200:
+          body:
+            application/json:
+              schema: Dimming
+              example: |
+                {
+                  "id": "unique_example_id",
+                  "dimmingSetting": 50
+                }
+
+  /colourChroma:
+    displayName: Colour Chroma
+    is: [ interface-actuator ]
+
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: ColourChroma
+              example: |
+                {
+                  "rt":         ["oic.r.colour.chroma"],
+                  "id":         "unique_example_id",
+                  "hue":        13088,
+                  "saturation": 212,
+                  "csc":        [0.41,0.51],
+                  "ct":         457
+                }
+
+    post:
+      body:
+        application/json:
+          schema: ColourChroma
+          example: |
+            {
+              "id":         "unique_example_id",
+              "hue":        13088,
+              "saturation": 212,
+              "csc":        [0.41,0.51],
+              "ct":         457
+            }
+      responses:
+        200:
+          body:
+            application/json:
+              schema: ColourChroma
+              example: |
+                {
+                  "id":          "unique_example_id",
+                  "hue":         13088,
+                  "saturation":  212,
+                  "csc":         [0.41,0.51],
+                  "ct":          467
+                }
+
+#
+# Notification subscription URIs
+#
 
 /SubscribeLampResURI:
   description: |
-   This resource manages subscriptions to changes on this device.
+    This resource manages subscriptions to changes on this device.
   displayName: SubscribeLamp
-  is: [ interface ]
     
   post:
     description: |
