@@ -254,7 +254,7 @@ class Translator {
         }
         else if (winkDevice.binary_switch_id) {
             return { 
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                "schema": 'opent2t.p.outlet',
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
@@ -263,12 +263,6 @@ class Translator {
                 "schema": 'org.opent2t.sample.lamp.superpopular',
                 "translator": "opent2t-translator-com-wink-lightbulb"
             };
-        }
-        else if (winkDevice.binary_switch_id) {
-            return {
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                "translator": "opent2t-translator-com-wink-binaryswitch"
-            }
         }
         
         return undefined;

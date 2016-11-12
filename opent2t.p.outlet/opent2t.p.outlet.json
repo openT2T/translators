@@ -1,0 +1,65 @@
+{
+  "id": "http://schemas.microsoft.com/opent2t.p.outlet#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "opent2t outlet",
+  "definitions": {
+
+    "power":{
+      "description": "outlet on/off.",
+      "type": "object",
+      "default": {
+        "id": "power",
+        "href": "/power",
+        "rt": ["oic.r.switch.binary"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+       },
+      "allOf": [
+        {"$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "oic.d.smartplug": {
+      "description": "The OCF Smarthome defined smartplug",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/power"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+     ]
+    },
+
+    "opent2t.p.outlet": {
+      "description": "The opent2t outlet platform",
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/oic.d.smartplug"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.platform"}
+      ]
+    }
+  },
+
+  "type": "object",
+  "allOf": [
+    {"$ref": "oic.core.json#/definitions/oic.core"},
+    {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
+    {"$ref": "#/definitions/opent2t.p.outlet"}
+  ]
+}
