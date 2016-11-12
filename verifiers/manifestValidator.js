@@ -45,7 +45,7 @@ function validateUrlTokens(onboardingNode, log, filepath) {
     }
 
     urlTokens.forEach((value) => {
-        var valueNode = xpath.select("onboardflow[@name='getDeveloperInput']/flow[arg[@name='" + value + "']]", onboardingNode, true);
+        var valueNode = xpath.select("onboardflow[@name='getDeveloperInput' or @name='getUserInput']/flow[arg[@name='" + value + "']]", onboardingNode, true);
         
         if(valueNode === undefined) {
             log.error(filepath, 'Undefined Url token: ' + value);
