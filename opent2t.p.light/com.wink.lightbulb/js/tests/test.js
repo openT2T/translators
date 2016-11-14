@@ -7,14 +7,14 @@ console.log("Config:");
 console.log(JSON.stringify(config, null, 2));
 
 var translatorPath = require('path').join(__dirname, '..');
-var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
+var hubPath = require('path').join(__dirname, '../../../../opent2t.p.hub/com.wink.hub/js');
 var translator = undefined;
 
-function getLamp(devices) {
-    for (var i = 0; i < devices.length; i++) {
-        var d = devices[i];
+function getLamp(platforms) {
+    for (var i = 0; i < platforms.length; i++) {
+        var d = platforms[i];
 
-        if (d.openT2T.translator === 'opent2t-translator-com-wink-lightbulb') {
+        if (d.opent2t.translator === 'opent2t-translator-com-wink-lightbulb') {
             return d;
         }
     }
@@ -25,8 +25,10 @@ function getLamp(devices) {
 // setup the translator before all the tests run
 test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
-    var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
-    var deviceInfo = getLamp(hubInfo.devices);
+    var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'opent2t.p.hub', 'getPlatforms', []);
+    var platformInfo = getLamp(hubInfo.platforms);
+    var deviceInfo = {};
+    deviceInfo.id = platformInfo.opent2t.controlId;
 
     translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
 });
@@ -54,6 +56,8 @@ test.serial('GetPlatformExpanded', t => {
     return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'get', [true])
         .then((response) => {
             t.is(response.rt[0], 'opent2t.p.light');
+            
+            // TODO: Pull power from the deep get 
 
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
         });

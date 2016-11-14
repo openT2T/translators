@@ -1,5 +1,5 @@
 #%RAML 0.8
-title: org.opent2t.sample.lamp.superpopular
+title: opent2t.p.light
 version: v1.0
 
 schemas:
@@ -38,7 +38,7 @@ traits:
       200:
         body:
           application/json:
-            schema: Lamp
+            schema: LightPlatform
             example: |
               {
                 "opent2t": {
@@ -95,7 +95,7 @@ traits:
       200:
         body:
           application/json:
-            schema: Lamp
+            schema: LightPlatform
             example: |
               {
                 "opent2t": {
@@ -212,7 +212,7 @@ traits:
         200:
           body:
             application/json:
-              schema: ColourRgb
+              schema: ColourRGB
               example: |
                 {
                   "rt": ["oic.r.colour.rgb"],
@@ -222,7 +222,7 @@ traits:
     post:
       body:
         application/json:
-          schema: ColourRgb
+          schema: ColourRGB
           example: |
             {
               "id": "unique_example_id",

@@ -5,6 +5,9 @@
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Validates an argument matches the expected type.
+ */
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
         throw new Error('Missing argument: ' + argName + '. ' +
@@ -15,10 +18,12 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
-// Wink does not always populate every desired_state property, but last_reading doesn't necessarily
-// update as soon as we send our PUT request. Instead of relying just on one state or the other,
-// we use this StateReader class to read from desired_state if it is there, and fall back to last_reading
-// if it is not.
+/**
+ * Wink does not always populate every desired_state property, but last_reading doesn't necessarily
+ * update as soon as we send our PUT request. Instead of relying just on one state or the other,
+ * we use this StateReader class to read from desired_state if it is there, and fall back to last_reading
+ * if it is not.
+ */
 class StateReader {
     constructor(desired_state, last_reading) {
         this.desired_state = desired_state;
@@ -35,12 +40,16 @@ class StateReader {
     }
 }
 
-// Helper method to convert Wink's 0.0-1.0 brightness scale to a 0-100 scale
+/**
+ * Helper method to convert Wink's 0.0-1.0 brightness scale to a 0-100 scale  
+ */ 
 function scaleDeviceBrightnessToTranslatorBrightness(brightnessValue) {
     return Math.floor(brightnessValue * 100);
 }
 
-// Helper method to convert a 0-100 scale to Wink's 0.0-1.0 brightness scale
+/**
+ * Helper method to convert a 0-100 scale to Wink's 0.0-1.0 brightness scale
+ */
 function scaleTranslatorBrightnessToDeviceBrightness(dimmingValue) {
     return dimmingValue / 100;
 }
@@ -63,7 +72,7 @@ function findResource(schema, di, resourceId) {
 }
 
 /***
- * 
+ * Converts an OCF platform/resource schema for calls to the Wink API
  */
 function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     // build the object with desired state
@@ -86,7 +95,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 }
 
 /**
- * 
+ * Converts a representation of a platform from the Wink API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
@@ -119,7 +128,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'opent2t.p.light',
             translator: 'opent2t-translator-com-wink-lightbulb',
-            control_id: providerSchema['object_id']
+            controlId: providerSchema['object_id']
         },
         pi: providerSchema['uuid'],
         mnmn: providerSchema['device_manufacturer'],
@@ -152,7 +161,8 @@ class Translator {
         console.log('Wink Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
-        
+       
+        console.log("info: " + JSON.stringify(deviceInfo));
         deviceId = deviceInfo.deviceInfo.id;
         winkHub = deviceInfo.hub;
 
@@ -161,11 +171,11 @@ class Translator {
 
     // exports for the entire schema object
 
-    // Queries the entire state of the lamp
-    // and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+    /**
+     * Queries the entire state of the lamp
+     * and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+     */
     get(expand) {
-
-        console.log('Getting from Wink');
 
         return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
@@ -173,6 +183,9 @@ class Translator {
             });
     }
 
+    /**
+     * Finds a resource on a platform by the id
+     */
     getDeviceResource(di, resourceId) {
         return this.get(true)
             .then(response => {
@@ -194,47 +207,47 @@ class Translator {
             });
     }
 
-    getLDevicesPower(deviceId) {
-        return this.getDeviceResource(deviceId, "oic.r.switch.binary");
+    getDevicesPower(deviceId) {
+        return this.getDeviceResource(deviceId, "power");
     }
 
     postDevicesPower(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "oic.r.switch.binary", payload)
+        return this.postDeviceResource(deviceId, "power", payload)
     }
 
     getDevicesColourMode(deviceid) {
-        return this.getDeviceResource(deviceId, "oic.r.mode");
+        return this.getDeviceResource(deviceId, "colourMode");
     }
 
     getDevicesColourRgb(deviceId) {
-        return this.getDeviceResource(deviceId, "oic.r.colour.rgb");
+        return this.getDeviceResource(deviceId, "colourRgb");
     }
 
     postDevicesColourRgb(deviceId) {
-        return this.postDeviceResource(deviceId, "oic.r.colour.rgb", payload);
+        return this.postDeviceResource(deviceId, "colourRgb", payload);
     }
 
     getDevicesDim(deviceId) {
-        return this.getDeviceResource(deviceId, "oic.r.light.dimming");
+        return this.getDeviceResource(deviceId, "dim");
     }
 
     postDevicesDim(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "oic.r.light.dimming", payload);
+        return this.postDeviceResource(deviceId, "dim", payload);
     }
 
     getDevicesColourChroma(deviceId) {
-        return this.getDeviceResource(deviceId, "oic.r.colour.chroma");
+        return this.getDeviceResource(deviceId, "colourChroma");
     }
 
     postDevicesColourChroma(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "oic.r.colour.chroma", payload);
+        return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
-    postSubscribeLampResURI (callbackUrl, verificationRequest, verificationResponse) {
+    postSubscribeLight(callbackUrl, verificationRequest, verificationResponse) {
         return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
     }
 
-    deleteSubscribeLampResURI(callbackUrl) {
+    deleteSubscribeLight(callbackUrl) {
         return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 }
