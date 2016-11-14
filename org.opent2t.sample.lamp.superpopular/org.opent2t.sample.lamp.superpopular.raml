@@ -4,6 +4,15 @@ version: v1.0
 
 schemas:
   - Lamp: !include org.opent2t.sample.lamp.superpopular.json
+  - Subscription: |
+      {
+        "type": "object",
+        "properties": {
+          "callbackUrl": { "type": "string" },
+          "expiration": { "type": "number" },
+          "response": { "type": "string"}
+        }
+      }
 
 traits:
   - interface:
@@ -75,3 +84,57 @@ traits:
                   "rgbValue": [0,255,255]
                 }
               }
+
+/SubscribeLampResURI:
+  description: |
+   This resource manages subscriptions to changes on this device.
+  displayName: SubscribeLamp
+  is: [ interface ]
+    
+  post:
+    description: |
+        Creates or refreshes a subscription to this lamp.  This method should be called twice, first with
+        a callback URL (verificationRequest will be ignored), and the second time with the parameters of an http GET to the
+        callback Url server for verification of the subscription (in which case callback Url will be ignored). The second call
+        will construct a response that should be returned to the notifications server.
+    body:
+      application/json:
+        schema: Subscription
+        example: |
+          {
+            "callbackUrl": "http://myserver.com",
+          }    
+    responses:
+       200:
+        body:
+          application/json:
+            schema: Subscription
+            example: |
+                {
+                  "callbackUrl":"http://myserver.com",
+                  "expiration": "123456678",
+                  "response": { "plain text response" }
+                }
+       400:
+          body:
+            application/json:
+              example: { "message": "Bad request" }
+       403:
+          body:
+            application/json:
+              example: { "message": "Subscription is denied" }
+
+  delete:
+    description: Unsubscribes to notifications to a callback Url
+    body:
+      application/json:
+        schema: Subscription
+        example: |
+          {
+            "callbackUrl": "http://myserver.com",
+          } 
+    responses:
+      200:
+        body:
+          application/json:
+          example: {}

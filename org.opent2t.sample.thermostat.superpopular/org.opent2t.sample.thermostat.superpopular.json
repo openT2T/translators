@@ -49,7 +49,7 @@
         },
         "hvacMode": {
           "$ref": "oic.r.mode.json#/definitions/oic.r.mode",
-          "description": "Active & Supported heating/Cooling modes supported the device."
+          "description": "Active & Supported heating/Cooling modes supported the device. Should be one of ['coolOnly', 'heatOnly', 'auto', 'off']"
         },
         "heatingFuelSource": {
           "type": "string",

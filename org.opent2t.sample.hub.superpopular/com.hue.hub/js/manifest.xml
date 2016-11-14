@@ -6,32 +6,39 @@
       <schema id="oic.baseResource" type="OCF" />
   </schemas>
   <!-- associated onboarding module -->
-  <onboarding id="org.opent2t.onboarding.huehub">
-    <onboardflow name="getUserInput">
-      <flow type="input">
-        <arg name="bridge_id" />
-        <description language="en">Type in your Hue remote bridge ID </description>
-        <description language="fr">Entrez for remote bridge ID pour Hue </description>
-      </flow>
-      <flow type="input">
-        <arg name="whitelist_id"  />
-        <description language="en">Type in your Hue bridge whitelist ID </description>
-        <description language="fr">Entrez for whitelist ID pour Hue bridge</description>
-      </flow>
-    </method>
-
+  <onboarding id="org.opent2t.onboarding.hue">
     <onboardflow name="getDeveloperInput">
       <flow>
         <arg name="client_id" />
-        <description language="en"> Ask for Client ID </description>
-        <description language="fr"> Demandez Client ID </description>
+        <description language="en">Ask for Client ID</description>
+        <description language="fr">Demandez Client ID</description>
       </flow>
       <flow>
         <arg name="client_secret" />
-        <description language="en"> Ask for Client Secret </description>
-        <description language="fr"> Demandez Client Secret </description>
+        <description language="en">Ask for Client Secret</description>
+        <description language="fr">Demandez Client Secret</description>
+      </flow>
+      <flow>
+        <arg name="app_id" />
+        <description language="en">Ask for App ID</description>
+        <description language="fr">Demandez App ID</description>
+      </flow>
+      <flow>
+        <arg name="app_name" />
+        <description language="en">Ask for App Name</description>
+        <description language="fr">Demandez App Name</description>
+      </flow>
+      <flow>
+        <arg name="device_id" />
+        <description language="en">Ask for Device ID</description>
+        <description language="fr">Demandez Device ID</description>
       </flow>
     </onboardflow>
-
+    <onboardflow name="askUserPermission">
+      <flow>
+        <arg name="url" />
+        <description language="en">https://api.meethue.com/oauth2/auth?clientid={client_id}&amp;appid={app_id}&amp;deviceid={device_id}&amp;devicename={app_name} on {device_id}&amp;state={state}&amp;response_type=code</description>
+      </flow>
+    </onboardflow>
   </onboarding>
 </manifest>

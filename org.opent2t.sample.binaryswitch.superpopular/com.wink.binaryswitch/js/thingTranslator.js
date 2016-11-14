@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-const WinkHelper = require('opent2t-translator-helper-wink');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -45,7 +44,7 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
     return {
         id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
         n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.thermostat.superpopular',
+        rt: 'org.opent2t.sample.binaryswitch.superpopular',
         power: { 'value': powered }
     };
 }
@@ -70,25 +69,20 @@ function translatorSchemaToDeviceSchema(translatorSchema) {
 
 var deviceId;
 var deviceType = 'binary_switches';
-var winkHelper;
+var winkHub;
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(device) {
-        console.log('Initializing device.');
+    constructor(deviceInfo) {
+        console.log('Wink Binary Switch initializing...');
 
-        validateArgumentType(device, 'device', 'object');
-        validateArgumentType(device.props, 'device.props', 'object');
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+        
+        deviceId = deviceInfo.deviceInfo.id;
+        winkHub = deviceInfo.hub;
 
-        validateArgumentType(device.props.access_token, 'device.props.access_token', 'string');
-        validateArgumentType(device.props.id, 'device.props.id', 'string');
-
-        deviceId = device.props.id;
-
-        // Initialize Wink Helper
-        winkHelper = new WinkHelper(device.props.access_token);
-        console.log('Javascript and Wink Helper initialized.');
+        console.log('Wink Binary Switch initializing...Done');
     }
 
     // exports for the entire schema object
@@ -96,7 +90,7 @@ class Translator {
     // Queries the entire state of the binary switch
     // and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
     getBinarySwitchResURI() {
-        return winkHelper.getDeviceDetailsAsync(deviceType, deviceId)
+        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
@@ -111,7 +105,7 @@ class Translator {
         console.log('postBinarySwitchResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
 
         var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHelper.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
             .then((response) => {
                 return deviceSchemaToTranslatorSchema(response.data);
             });
@@ -138,6 +132,14 @@ class Translator {
             .then(response => {
                 return response.power.value;
             });
+    }
+
+    postSubscribeBinarySwitchResURI(callbackUrl, verificationRequest, verificationResponse) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    }
+
+    deleteSubscribeBinarySwitchResURI(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 }
 

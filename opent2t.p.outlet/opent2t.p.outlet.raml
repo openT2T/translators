@@ -1,0 +1,128 @@
+#%RAML 0.8
+title: opent2t.p.outlet
+version: v1.0
+
+schemas:
+  - BinarySwitch: !include oic.r.switch.binary.json
+  - OutletPlatform: !include opent2t.p.outlet.json
+
+traits:
+  - interface-actuator:
+      queryParameters:
+        if:
+          enum: ["oic.if.a", "oic.if.baseline"]
+
+#
+# Device relative URIs
+#
+/devices/{deviceid}/power:
+  displayName: Power
+  is: [ interface-actuator ]
+
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: BinarySwitch
+            example: |
+              {
+                "rt": ["oic.r.switch.binary"],
+                "id": "unique_example_id",
+                "value": false
+              }
+  post:
+    body:
+      application/json:
+        schema: BinarySwitch
+        example: |
+          {
+            "id": "unique_example_id",
+            "value": true
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            schema: BinarySwitch
+            example: |
+              {
+                "id": "unique_example_id",
+                "value": true
+              }
+
+#
+# Platform Level URIs
+#
+/:
+  displayName: Platform
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: OutletPlatform
+            example: |
+              {
+                "opent2t": {
+                  "schema": "opent2t.p.outlet",
+                  "translator": "opent2t-translator-com-opent2t-p-outlet@0.1.1"
+                },
+                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
+                "mnmn": "Contoso",
+                "n": "Bedroom Outlet",
+                "rt": ["opent2t.p.outlet"],
+                "entities": [
+                  {
+                    "rt": ["oic.d.smartplug"],
+                    "n": "Device 1",
+                    "di": "0DFDA91C-F864-4718-8108-919E3106D0A1",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/power",
+                        "rt": ["oic.r.switch.binary"],
+                        "if": ["oic.if.a", "oic.if.baseline"]
+                      }
+                    ]
+                  }
+                ]
+              }
+
+/?$expand:
+  displayName: Platform
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: OutletPlatform
+            example: |
+              {
+                "opent2t": {
+                  "schema": "opent2t.p.outlet",
+                  "translator": "opent2t-translator-com-opent2t-p-outlet@0.1.1"
+                },
+                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
+                "mnmn": "Contoso",
+                "n": "Bedroom Outlet",
+                "rt": ["opent2t.p.outlet"],
+                "entities": [
+                  {
+                    "rt": ["oic.d.smartplug"],
+                    "n": "Device 1",
+                    "di": "0DFDA91C-F864-4718-8108-919E3106D0A1",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/power",
+                        "id": "power",
+                        "rt": ["oic.r.switch.binary"],
+                        "value": true
+                      }
+                    ]
+                  }
+                ]
+              }

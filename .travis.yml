@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - "node"
 before_script:
-  - npm install -g eslint
-  - npm install -g babel-eslint
-  - npm install -g eslint-config-opent2t
-script: eslint .
+  - npm install -g gulp
+  - npm install
+script:
+  - gulp ci-checks

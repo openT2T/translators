@@ -12,8 +12,15 @@ To install dependencies for this translator, run:
 npm install
 ```
 
-## Running Test Automation
-This translator comes with some automated tests. Here's how you can run them:
+## Running Automated Unit tests
+Unit tests do not require a physical or simulated device.
+Once dependencies have been installed simply run:
+
+```bash
+npm run-script unittest
+```
+
+## Running Automated Integration tests
 
 ### 1. Run onboarding to get credentials
 
