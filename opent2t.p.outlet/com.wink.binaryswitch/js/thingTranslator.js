@@ -66,7 +66,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['oic.d.smartplug'],
-                di: lightDeviceDi,
+                di: smartplugDeviceDi,
                 resources: [
                     power
                 ]
@@ -109,7 +109,7 @@ function getDeviceResource(translator, di, resourceId) {
 }
 
 function postDeviceResource(di, resourceId, payload) {
-    if (di === lightDeviceDi) {
+    if (di === smartplugDeviceDi) {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
         return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
@@ -126,7 +126,7 @@ var deviceType = 'binary_switches';
 var winkHub;
 
 // Each device in the platform has its own static identifier
-const lightDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
+const smartplugDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
 
 // This translator class implements the 'opent2t.p.outlet' interface.
 class Translator {
