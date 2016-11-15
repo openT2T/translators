@@ -8,29 +8,26 @@ console.log("Config:");
 console.log(JSON.stringify(config, null, 2));
 
 var translatorPath = require('path').join(__dirname, '..');
-var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
+var hubPath = require('path').join(__dirname, '../../../../opent2t.p.hub/com.wink.hub/js');
 
 var translator = undefined;
-var deviceInfo = {};
 
-function getThermostat(devices) {
-    for (var i = 0; i < devices.length; i++) {
-        var d = devices[i];
-
-        if (d.openT2T.translator === 'opent2t-translator-com-wink-thermostat') {
-            return d;
-        }
-    }
-
-    return undefined;
+function getThermostat(platforms) {
+    return platforms.find((p) => {
+        return p.opent2t.translator === 'opent2t-translator-com-wink-thermostat';
+    });
 }
 
 // setup the translator before all the tests run
 test.before(async () => {
-    var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', {'accessToken': config.accessToken});
-    var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
-    deviceInfo = getThermostat(hubInfo.devices);
+    var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
+    var hubInfo = await OpenT2T.invokeMethodAsync(hubTranslator, 'opent2t.p.hub', 'getPlatforms', []);
+    var platformInfo = getThermostat(hubInfo.devices);
     console.log(deviceInfo);
+
+    var deviceInfo = {
+        id: platformInfo.opent2t.controlId
+    };
 
     translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
 });

@@ -299,11 +299,15 @@ class Translator {
 
     // Queries the entire state of the binary switch
     // and returns an object that maps to the json schema opent2t.p.thermostat
-    get(expand) {
-        return winkHub.getDeviceDetailsAsync(deviceType, controlId)
-            .then((response) => {
-                return providerSchemaToPlatformSchema(response.data, expand);
-            });
+    get(expand, payload) {
+        if (payload) {
+            return providerSchemaToPlatformSchema(payload, expand);
+        } else {
+            return winkHub.getDeviceDetailsAsync(deviceType, controlId)
+                .then((response) => {
+                    return providerSchemaToPlatformSchema(response.data, expand);
+                });
+        }
     }
 
     getDevicesAmbientTemperature(di) {
