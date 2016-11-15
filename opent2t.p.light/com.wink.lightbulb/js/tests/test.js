@@ -1,4 +1,3 @@
-const sleep = require('es6-sleep').promise;
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
@@ -48,6 +47,12 @@ test.serial('GetPlatform', t => {
             t.is(response.rt[0], 'opent2t.p.light');
 
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+            
+            // Get the power resource and verify that it does not have a power value (shallow get)
+            var resource = response.entities[0].resources[0];
+            t.is(resource.rt[0], 'oic.r.switch.binary');
+            t.true(resource.value == undefined);
+            t.true(resource.id == undefined);
         });
 });
 
@@ -56,37 +61,50 @@ test.serial('GetPlatformExpanded', t => {
     return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'get', [true])
         .then((response) => {
             t.is(response.rt[0], 'opent2t.p.light');
-            
-            // TODO: Pull power from the deep get 
-
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+
+            // Get the power resource and verify that it has a power value (deep get)
+            var resource = response.entities[0].resources[0];
+            t.is(resource.id, 'power');
+            t.is(resource.rt[0], 'oic.r.switch.binary');
+            t.true(resource.value !== undefined);
         });
 });
 
-test.serial('GetPowerResource', t => {
-    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'getDeviceResource', ['F8CFB903-58BB-4753-97E0-72BD7DBC7933', 'power'])
+test.serial('GetPower', t => {
+    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'getDevicesPower', ['F8CFB903-58BB-4753-97E0-72BD7DBC7933'])
         .then((response) => {
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+
+            t.is(response.rt[0], 'oic.r.switch.binary');
+            t.true(response.value !== undefined);
         });
 });
 
-test.serial('SetPowerResource', t => {
+test.serial('SetPower', t => {
     return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'postDeviceResource', ['F8CFB903-58BB-4753-97E0-72BD7DBC7933', 'power', {'value': true }])
         .then((response) => {
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+
+            t.is(response.rt[0], 'oic.r.switch.binary');
         });
 });
 
-test.serial('GetDimmingResource', t => {
+test.serial('GetDimming', t => {
     return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'getDeviceResource', ['F8CFB903-58BB-4753-97E0-72BD7DBC7933', 'dim'])
         .then((response) => {
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+
+            t.is(response.rt[0], 'oic.r.light.dimming');
+            t.true(response.dimmingSetting !== undefined);
         });
 });
 
-test.serial('SetDimmingResource', t => {
+test.serial('SetDimming', t => {
     return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.light', 'postDeviceResource', ['F8CFB903-58BB-4753-97E0-72BD7DBC7933', 'dim', {'dimmingSetting': 10}])
         .then((response) => {
             console.log('*** response: \n' + JSON.stringify(response, null, 2));
+
+            t.is(response.rt[0], 'oic.r.light.dimming');
         });
 });

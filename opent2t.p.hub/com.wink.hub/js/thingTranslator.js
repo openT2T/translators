@@ -28,7 +28,6 @@ class Translator {
         return this._makeRequest(this._devicesPath, 'GET').then((response) => {
             var devices = response.data;
 
-            var filteredPlatforms = [];
             var platformPromises = [];
             devices.forEach((winkDevice) => {
                 // get the opent2t schema and translator for the wink device

@@ -138,7 +138,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.light'],
-                di: 'F8CFB903-58BB-4753-97E0-72BD7DBC7933',
+                di: lightDeviceDi,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -153,6 +153,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 var deviceId;
 var deviceType = 'light_bulbs';
 var winkHub;
+
+// Each device in the platform has is own unique static identifier
+const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
 
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
@@ -214,7 +217,7 @@ class Translator {
         return this.postDeviceResource(deviceId, "power", payload)
     }
 
-    getDevicesColourMode(deviceid) {
+    getDevicesColourMode(deviceId) {
         return this.getDeviceResource(deviceId, "colourMode");
     }
 
@@ -222,7 +225,7 @@ class Translator {
         return this.getDeviceResource(deviceId, "colourRgb");
     }
 
-    postDevicesColourRgb(deviceId) {
+    postDevicesColourRgb(deviceId, payload) {
         return this.postDeviceResource(deviceId, "colourRgb", payload);
     }
 
