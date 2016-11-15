@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "opent2t": "*",
-    "ava": "^0.15.2"
+    "ava": "^0.15.2",
+    "q": "*"
   }
 }
