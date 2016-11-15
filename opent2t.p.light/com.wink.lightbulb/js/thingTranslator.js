@@ -162,7 +162,6 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
-        console.log("info: " + JSON.stringify(deviceInfo));
         deviceId = deviceInfo.deviceInfo.id;
         winkHub = deviceInfo.hub;
 

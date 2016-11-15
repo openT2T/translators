@@ -25,8 +25,8 @@ function getLamp(platforms) {
 // setup the translator before all the tests run
 test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
-    var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'opent2t.p.hub', 'getPlatforms', []);
-    var platformInfo = getLamp(hubInfo.platforms);
+    var platforms = await OpenT2T.invokeMethodAsync(hubTranslator, 'opent2t.p.hub', 'getPlatforms', []);
+    var platformInfo = getLamp(platforms.platforms);
     var deviceInfo = {};
     deviceInfo.id = platformInfo.opent2t.controlId;
 
