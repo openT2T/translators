@@ -253,14 +253,13 @@ class Translator {
         //         "translator": "opent2t-translator-com-wink-thermostat"
         //     };
         // }
-        // else if (winkDevice.binary_switch_id) {
-        //     return { 
-        //         "schema": 'opent2t.p.switch.binary',
-        //         "translator": "opent2t-translator-com-wink-binaryswitch"
-        //     };
-        // }
-        // else 
-        if (winkDevice.light_bulb_id) {
+        if (winkDevice.binary_switch_id) {
+            return { 
+                "schema": 'opent2t.p.switch.binary',
+                "translator": "opent2t-translator-com-wink-binaryswitch"
+            };
+        }
+        else if (winkDevice.light_bulb_id) {
             return { 
                 "schema": 'opent2t.p.light',
                 "translator": "opent2t-translator-com-wink-lightbulb"
