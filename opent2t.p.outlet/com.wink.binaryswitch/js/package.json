@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-wink-binaryswitch",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Wink Binary Switch",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
@@ -18,7 +18,7 @@
     ]
   },
   "dependencies": {
-    "opent2t-translator-com-wink-hub": "*"
+    "opent2t-translator-com-wink-hub": "^1.2.0"
   },
   "devDependencies": {
     "optimist": "*",

@@ -24,8 +24,8 @@
     "opent2t": "^1.0.1",
     "opent2t-onboarding-org-opent2t-onboarding-winkhub": "^0.0.1",
     "opent2t-translator-com-wink-lightbulb": "^0.2.0",
-    "opent2t-translator-com-wink-binaryswitch": "*",
-    "opent2t-translator-com-wink-thermostat": "*"
+    "opent2t-translator-com-wink-binaryswitch": "^0.2.0"
+    //"opent2t-translator-com-wink-thermostat": "^0.2.0"
   },
   "devDependencies": {
     "ava": "^0.15.2"
