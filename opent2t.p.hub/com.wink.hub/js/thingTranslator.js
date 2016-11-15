@@ -25,7 +25,7 @@ class Translator {
      * Get the hub definition and devices
      */
     get(expand) {
-        return getPlatforms(expand);
+        return this.getPlatforms(expand);
     }
 
     /**
