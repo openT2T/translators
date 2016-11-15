@@ -1,7 +1,7 @@
 {
-  "name": "opent2t-translators",
+  "name": "opent2t-translators-verifiers",
   "version": "0.0.1",
-  "devDependencies": {
+  "dependencies": {
     "acorn": "^4.0.3",
     "babel-eslint": "^7.0.0",
     "eslint": "^3.7.1",
