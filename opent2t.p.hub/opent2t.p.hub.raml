@@ -11,6 +11,50 @@ traits:
         if:
           enum: ["oic.if.s", "oic.if.baseline"]
 
+/:
+  description: |
+   Gets a list of platforms connected to a hub.
+  displayName: Platforms
+  is: [ interface-sensor ]
+
+  get:
+    description: |
+        Retrieves the platform and their current state.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Hub
+            example: |
+              {
+                "schema": "opent2t.p.hub",
+                "id": "unique_example_id",
+                "platforms": {
+                }
+             }
+
+/?$expand
+  description: |
+    Gets a list of platforms connected to a hub along with their current state.
+  displayName: Platform
+  is: [interface-sensor]
+
+  get:
+    description: |
+      Retrieves the platforms and their current state.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Platform
+            example: |
+              {
+                "schema": "opent2t.p.hub",
+                "id": "unique_example_id",
+                "platforms": {
+                }
+             }
+
 /platforms:
   description: |
    Gets a list of platforms connected to a hub.
@@ -29,7 +73,7 @@ traits:
               {
                 "schema": "opent2t.p.hub",
                 "id": "unique_example_id",
-                "devices": {
+                "platforms": {
                 }
              }
 
@@ -51,7 +95,7 @@ traits:
               {
                 "schema": "opent2t.p.hub",
                 "id": "unique_example_id",
-                "devices": {
+                "platforms": {
                 }
              }
     

@@ -44,7 +44,7 @@ traits:
                 "opent2t": {
                   "schema": "opent2t.p.outlet",
                   "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
-                  "control_id": "123"
+                  "controlId": "123"
                 },
                 "pi": "8045C566-B44B-462F-A4AB-FA7FC968CE71",
                 "mnmn": "Contoso",
@@ -101,7 +101,7 @@ traits:
                 "opent2t": {
                   "schema": "opent2t.p.outlet",
                   "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
-                  "control_id": "123"
+                  "controlId": "123"
                 },
                 "pi": "8045C566-B44B-462F-A4AB-FA7FC968CE71",
                 "mnmn": "Contoso",
@@ -200,7 +200,7 @@ traits:
                   "rt": ["oic.r.mode"],
                   "id": "unique_example_id",
                   "modes": ["rgb"],
-                  "supportedModes": ["rgb","chroma"]
+                  "supportedModes": ["rgb","hs", "xy", "ct"]
                 }
 
   /colourRGB:
@@ -327,7 +327,7 @@ traits:
 # Notification subscription URIs
 #
 
-/SubscribeLampResURI:
+/SubscribeLight:
   description: |
     This resource manages subscriptions to changes on this device.
   displayName: SubscribeLamp

@@ -22,6 +22,13 @@ class Translator {
     }
 
     /**
+     * Get the hub definition and devices
+     */
+    get(expand) {
+        return getPlatforms(expand);
+    }
+
+    /**
      * Get the list of devices discovered through the hub.
      */
     getPlatforms(expand) {
@@ -59,6 +66,7 @@ class Translator {
              return Promise.all(platformPromises)
                     .then((platforms) => {
                         var toReturn = {};
+                        toReturn.schema = "opent2t.p.hub";
                         toReturn.platforms = platforms;
                         return toReturn;
                     });
