@@ -55,7 +55,10 @@ class Translator {
                     // Create a translator for this device and get the platform information, possibly expanded
                     platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
                                     .then((translator) => {
-                                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand])
+
+                                        // Use get to translate the Wink formatted device that we already got in the previous request.
+                                        // We already have this data, so no need to make an unnecesary request over the wire.
+                                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
                                             .then((platformResponse) => {
                                                 return platformResponse; 
                                             });
