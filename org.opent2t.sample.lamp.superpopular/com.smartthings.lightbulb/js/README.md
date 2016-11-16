@@ -26,7 +26,7 @@ The user will be asked for their SmartThings credentials (plus API key informati
 
 ### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
-to prevent inadvertent check-in). Copy the generated json file as the testconfig.json.
+to prevent inadvertent check-in). Copy the generated json blob from Step 1 to the testConfig.json file.
 
 ### 3. Run the tests
 
