@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated voice handler -->
+  <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
+  <!-- associated schemas -->
+  <schemas>
+      <schema id="org.opent2t.sample.binaryswitch.superpopular" main="true" type="OCF" />
+      <schema id="oic.core" type="OCF" />
+      <schema id="oic.baseresource" type="OCF" />
+      <schema id="oic.r.switch.binary" type="OCF" />
+  </schemas>
+</manifest>

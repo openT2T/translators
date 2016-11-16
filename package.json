@@ -1,0 +1,21 @@
+{
+  "name": "opent2t-translators",
+  "version": "0.0.1",
+  "devDependencies": {
+    "acorn": "^4.0.3",
+    "babel-eslint": "^7.0.0",
+    "eslint": "^3.7.1",
+    "eslint-config-opent2t": "^1.0.2",
+    "eslint-plugin-json": "^1.2.0",
+    "eslint-plugin-raml": "^0.2.6",
+    "glob": "^7.1.1",
+    "gulp": "^3.9.1",
+    "gulp-eslint": "^3.0.1",
+    "gulp-util": "^3.0.7",
+    "gulp-xml-validator": "^0.1.2",
+    "raml-1-parser": "^1.1.8",
+    "through2": "^2.0.1",
+    "xmldom": "^0.1.22",
+    "xpath": "0.0.23"
+  }
+}

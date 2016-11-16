@@ -10,7 +10,8 @@
   "main": "thingTranslator.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "unittest": "ava tests/unitTests.js"
   },
   "ava": {
     "files": [
@@ -22,10 +23,8 @@
     "opent2t-translator-com-wink-hub": "*"
   },
   "devDependencies": {
-    "optimist": "*",
     "opent2t": "*",
     "opent2t-translator-com-wink-hub": "*",
-    "jshint": "^2.9.2",
     "ava": "^0.15.2"
   }
 }

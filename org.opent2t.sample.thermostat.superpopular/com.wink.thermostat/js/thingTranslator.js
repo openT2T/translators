@@ -249,7 +249,7 @@ class Translator {
 
     setTargetTemperatureLow(value) {
         console.log('setTargetTemperatureLow called with value: ' + value);
-
+        
         var postPayload = {};
         postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
 

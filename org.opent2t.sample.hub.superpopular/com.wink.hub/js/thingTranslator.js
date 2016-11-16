@@ -34,9 +34,16 @@ class Translator {
                 // get the opent2t schema and translator for the wink device
                 var opent2tInfo = this._getOpent2tInfo(winkDevice);
 
-                if ((winkDevice.model_name !== 'HUB')  &&  // Skip hub itself. (WINK specific check, of course!)
-                    opent2tInfo != undefined) // we support the device
+                // Do not return the physical hub device, nor any devices for which there are not translators.
+                // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
+                // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
+                // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
+                if ((winkDevice.model_name !== 'HUB')  && 
+                    opent2tInfo != undefined &&
+                    (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
                 {
+                    // &&
+                    // isNaN(winkDevice.hidden_at)
                     // we only need to return certain properties back
                     var device = {};
                     device.name = winkDevice.name;
@@ -247,7 +254,7 @@ class Translator {
         }
         else if (winkDevice.binary_switch_id) {
             return { 
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                "schema": 'opent2t.p.outlet',
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
@@ -256,12 +263,6 @@ class Translator {
                 "schema": 'org.opent2t.sample.lamp.superpopular',
                 "translator": "opent2t-translator-com-wink-lightbulb"
             };
-        }
-        else if (winkDevice.binary_switch_id) {
-            return {
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                "translator": "opent2t-translator-com-wink-binaryswitch"
-            }
         }
         
         return undefined;
