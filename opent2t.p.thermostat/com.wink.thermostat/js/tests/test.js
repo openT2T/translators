@@ -11,6 +11,7 @@ var translatorPath = require('path').join(__dirname, '..');
 var hubPath = require('path').join(__dirname, '../../../../opent2t.p.hub/com.wink.hub/js');
 
 var translator = undefined;
+var deviceInfo = {};
 
 function getThermostat(platforms) {
     return platforms.find((p) => {
@@ -23,9 +24,9 @@ test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
     var hubInfo = await OpenT2T.invokeMethodAsync(hubTranslator, 'opent2t.p.hub', 'getPlatforms', []);
     var platformInfo = getThermostat(hubInfo.devices);
-    console.log(deviceInfo);
+    console.log(JSON.stringify(platformInfo, null, 2));
 
-    var deviceInfo = {
+    deviceInfo = {
         id: platformInfo.opent2t.controlId
     };
 
