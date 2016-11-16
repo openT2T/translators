@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <schemas>
+      <schema id="opent2t.p.hub" main="true" type="OCF" />
+      <schema id="oic.core" type="OCF" />
+      <schema id="oic.baseResource" type="OCF" />
+  </schemas>
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.smartthings">
+    <onboardflow name="getDeveloperInput">
+      <flow>
+        <arg name="client_id" />
+        <description language="en">Ask for Client ID</description>
+        <description language="fr">Demandez Client ID</description>
+      </flow>
+      <flow>
+        <arg name="client_secret" />
+        <description language="en">Ask for Client Secret</description>
+        <description language="fr">Demandez Client Secret</description>
+      </flow>
+      <flow>
+        <arg name="redirect_url" />
+        <description language="en">Ask for redirect URL</description>
+        <description language="fr">Demandez redirect URL</description>
+      </flow>
+    </onboardflow>
+    <onboardflow name="askUserPermission">
+      <flow>
+        <arg name="url" />
+        <description language="en">https://graph.api.smartthings.com/oauth/authorize?response_type=code&amp;client_id={client_id}&amp;redirect_uri={redirect_url}&amp;scope=app</description>
+      </flow>
+    </onboardflow>
+  </onboarding>
+</manifest>
