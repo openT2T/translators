@@ -6,6 +6,7 @@
 
 "use strict";
 var request = require('request-promise');
+var OpenT2T = require('opent2t').OpenT2T;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -21,15 +22,20 @@ class Translator {
     }
 
     /**
+     * Get the hub definition and devices
+     */
+    get(expand) {
+        return this.getPlatforms(expand);
+    }
+
+    /**
      * Get the list of devices discovered through the hub.
      */
-    getHubResURI() {
+    getPlatforms(expand) {
         return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-
-            var toReturn = {};
             var devices = response.data;
 
-            var filteredDevices = [];
+            var platformPromises = [];
             devices.forEach((winkDevice) => {
                 // get the opent2t schema and translator for the wink device
                 var opent2tInfo = this._getOpent2tInfo(winkDevice);
@@ -39,28 +45,34 @@ class Translator {
                 // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
                 // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
                 if ((winkDevice.model_name !== 'HUB')  && 
-                    opent2tInfo != undefined &&
+                    typeof opent2tInfo !== 'undefined' &&
                     (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
                 {
-                    // &&
-                    // isNaN(winkDevice.hidden_at)
-                    // we only need to return certain properties back
-                    var device = {};
-                    device.name = winkDevice.name;
-
-                    // set the specific device object id to be the id
-                    device.id = this._getDeviceId(winkDevice);
-
                     // set the opent2t info for the wink device
-                    device.openT2T = opent2tInfo;
+                    var deviceInfo = {};
+                    deviceInfo.id = this._getDeviceId(winkDevice);
                     
-                    filteredDevices.push(device);
+                    // Create a translator for this device and get the platform information, possibly expanded
+                    platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                                    .then((translator) => {
+
+                                        // Use get to translate the Wink formatted device that we already got in the previous request.
+                                        // We already have this data, so no need to make an unnecesary request over the wire.
+                                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
+                                            .then((platformResponse) => {
+                                                return platformResponse; 
+                                            });
+                                    }));
                 }
             });
-
-            toReturn.devices = filteredDevices;
-
-            return toReturn;
+        
+             return Promise.all(platformPromises)
+                    .then((platforms) => {
+                        var toReturn = {};
+                        toReturn.schema = "opent2t.p.hub";
+                        toReturn.platforms = platforms;
+                        return toReturn;
+                    });
         });
     }
 
@@ -246,21 +258,21 @@ class Translator {
      * Given the hub specific device, returns the opent2t schema and translator
     */
     _getOpent2tInfo(winkDevice) {
-        if (winkDevice.thermostat_id) {
+        // if (winkDevice.thermostat_id) {
+        //     return { 
+        //         "schema": 'opent2t.p.thermostat',
+        //         "translator": "opent2t-translator-com-wink-thermostat"
+        //     };
+        // }
+        if (winkDevice.binary_switch_id) {
             return { 
-                "schema": 'org.opent2t.sample.thermostat.superpopular',
-                "translator": "opent2t-translator-com-wink-thermostat"
-            };
-        }
-        else if (winkDevice.binary_switch_id) {
-            return { 
-                "schema": 'opent2t.p.outlet',
+                "schema": 'opent2t.p.switch.binary',
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
         else if (winkDevice.light_bulb_id) {
             return { 
-                "schema": 'org.opent2t.sample.lamp.superpopular',
+                "schema": 'opent2t.p.light',
                 "translator": "opent2t-translator-com-wink-lightbulb"
             };
         }
