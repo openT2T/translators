@@ -8,7 +8,7 @@ console.log(JSON.stringify(config, null, 2));
 var translatorPath = require('path').join(__dirname, '..');
 var hubPath = require('path').join(__dirname, '../../../../opent2t.p.hub/com.smartthings.hub/js');
 var translator = undefined;
-var device = undefined;
+var controllId = undefined;
 
 function getBinarySwitch(devices) {
     for (var i = 0; i < devices.length; i++) {
@@ -25,9 +25,9 @@ function getBinarySwitch(devices) {
 test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
     var hubInfo = await OpenT2T.invokeMethodAsync(hubTranslator, 'opent2t.p.hub', 'get', [false]);
-    device = getBinarySwitch(hubInfo.platforms);
-
-    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': device, 'hub': hubTranslator});
+    var deviceInfo = getBinarySwitch(hubInfo.platforms);
+    controllId = deviceInfo.opent2t.controlId;
+    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
 });
 
 test.serial("Valid Binary Switch Translator", t => {
@@ -64,7 +64,7 @@ test.serial('GetPlatformExpanded', t => {
 });
 
 test.serial('GetPower', t => {
-    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'getDevicesPower', [device.pi])
+    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'getDevicesPower', [controllId])
         .then((response) => {
             t.is(response.rt[0], 'oic.r.switch.binary');
 
@@ -75,7 +75,7 @@ test.serial('GetPower', t => {
 test.serial('SetPower', t => {
     var power = { 'value': true };
 
-    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'postDevicesPower', [device.pi, power])
+    return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.outlet', 'postDevicesPower', [controllId, power])
         .then((response) => {
             t.is(response.rt[0], 'oic.r.switch.binary');
             t.true(response.value);
