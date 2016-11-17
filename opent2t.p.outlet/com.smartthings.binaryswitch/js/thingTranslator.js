@@ -103,7 +103,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.pi;
+        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
         smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Binary Switch initializing...Done');

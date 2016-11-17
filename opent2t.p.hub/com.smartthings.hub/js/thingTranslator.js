@@ -45,7 +45,8 @@ class Translator {
                         {
                             /// set the opent2t info for the SmartThings device
                             var deviceInfo = {};
-                            deviceInfo.id = smartThingsDevice.id;
+                            deviceInfo.opent2t = {};
+                            deviceInfo.opent2t.controlId = smartThingsDevice.id;
 
                             // Create a translator for this device and get the platform information, possibly expanded
                             platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
