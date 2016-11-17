@@ -50,7 +50,8 @@ class Translator {
                 {
                     // set the opent2t info for the wink device
                     var deviceInfo = {};
-                    deviceInfo.id = this._getDeviceId(winkDevice);
+                    deviceInfo.opent2t = {};
+                    deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
                     
                     // Create a translator for this device and get the platform information, possibly expanded
                     platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
