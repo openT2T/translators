@@ -127,11 +127,16 @@ class Translator {
 
         return this._makeRequest(requestPath, "POST", postPayloadString, false).then((body)=>
         {
+            // _makeRequest() already returns a JSON representation of the POST response body
+            // return the auth properties out in our own response back
              return new accessTokenInfo(
                     body.access_token,
                     body.refresh_token,
                     body.token_type,
-                    body.scopes
+                    body.scopes 
+                    // there isn't a 'scopes' property returned as a result of this request according to
+                    // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
+                    // so am assuming the caller of this API will expect nulls
                 );
         });
     }
