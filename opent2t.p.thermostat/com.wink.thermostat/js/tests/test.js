@@ -26,11 +26,7 @@ test.before(async () => {
     var platformInfo = getThermostat(hubInfo.devices);
     console.log(JSON.stringify(platformInfo, null, 2));
 
-    deviceInfo = {
-        deviceInfo: platforminfo
-    };
-
-    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
+    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': platforminfo, 'hub': hubTranslator});
 });
 
 test.serial("Valid Thermostat Translator", t => {
