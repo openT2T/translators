@@ -17,6 +17,7 @@ class Translator {
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
+        this._oAuthPath = 'oauth2/token';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
     }
@@ -107,6 +108,34 @@ class Translator {
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
+
+    /**
+     * Refreshes the OAuth token for the hub
+     */
+    refreshAuthToken(authInfo)
+    {
+        Console.log("In refreshAuthToken for WINK hub..");
+
+        // POST oauth2/token
+        var postPayloadString = JSON.stringify({
+            'client_id': authInfo[1].client_id,
+            'client_secret': authInfo[1].client_secret,
+            'grant_type': 'refresh_token',
+            'refresh_token': this._accessToken.refreshToken,
+
+        });
+
+        return this._makeRequest(requestPath, "POST", postPayloadString, false).then((body)=>
+        {
+             return new accessTokenInfo(
+                    body.access_token,
+                    body.refresh_token,
+                    body.token_type,
+                    body.scopes
+                );
+        });
+    }
+
     
     /**
      * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
@@ -283,14 +312,17 @@ class Translator {
     /**
      * Internal helper method which makes the actual request to the wink service
      */
-    _makeRequest(path, method, content) {
+    _makeRequest(path, method, content, includeBearerHeader = true) {
         // build request URI
         var requestUri = this._baseUrl + path;
 
+        var headers = [];
+
         // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + this._accessToken.accessToken,
-            'Accept': 'application/json'
+        if (includeBearerHeader)
+        {
+            headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
+            headers['Accept'] = 'application/json';
         }
 
         if (content) {
