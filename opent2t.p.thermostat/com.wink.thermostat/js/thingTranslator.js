@@ -291,7 +291,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.id;
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
         winkHub = deviceInfo.hub;
 
         console.log('Wink Thermostat Translator initialized.');

@@ -27,7 +27,7 @@ test.before(async () => {
     console.log(JSON.stringify(platformInfo, null, 2));
 
     deviceInfo = {
-        id: platformInfo.opent2t.controlId
+        deviceInfo: platforminfo
     };
 
     translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
