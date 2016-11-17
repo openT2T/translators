@@ -8,3 +8,4 @@ logs
 *.log
 testconfig.json
 *.vscode
+/package.json

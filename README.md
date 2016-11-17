@@ -40,7 +40,7 @@ npm install -g gulp
 
 2. Install dependencies.
 ```bash
-npm install
+npm install verifiers
 ```
 
 3. Run integration tests.
