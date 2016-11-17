@@ -1,4 +1,3 @@
-
 # SmartThings Hub translator
 Translator for SmartThings hub (https://smartthings.com)
 
@@ -40,7 +39,7 @@ an access token. These parameters are provided to the translator for it to work.
 
 **Running the Unit Test**
 
-Follow the instructon to run the unit test in the README for [Onboarding SmartThings](https://github.com/openT2T/onboarding/tree/master/org.opent2t.onboarding.smartthings/js/README.md#running-the-unit-test) to get the credentials to access to hub.
+Follow the instruction on runnning the unit test in the README for [Onboarding SmartThings](https://github.com/openT2T/onboarding/tree/master/org.opent2t.onboarding.smartthings/js/README.md#running-the-unit-test) to get the credentials to access to hub.
 
 ### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
