@@ -133,11 +133,11 @@ class Translator {
                     body.access_token,
                     body.refresh_token,
                     body.token_type,
-                    body.scopes 
-                    // there isn't a 'scopes' property returned as a result of this request according to
-                    // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
-                    // so am assuming the caller of this API will expect nulls
+                    body.scopes
                 );
+            // there isn't a 'scopes' property returned as a result of this request according to
+            // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
+            // so am assuming the caller of this API will expect nulls
         });
     }
 
