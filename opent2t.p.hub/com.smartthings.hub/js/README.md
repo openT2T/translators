@@ -1,3 +1,4 @@
+
 # SmartThings Hub translator
 Translator for SmartThings hub (https://smartthings.com)
 
@@ -24,6 +25,7 @@ This translator comes with some automated tests. Here's how you can run them:
 ### 1. Run onboarding to get credentials
 
 **Using OpenT2T CLI**
+
 Using the opent2t-cli, following its README to setup and perform onboarding, you perform onboarding with this commmand:
 
 ```bash
@@ -37,6 +39,7 @@ auth information is required to interact with the device. In the case of this on
 an access token. These parameters are provided to the translator for it to work.
 
 **Running the Unit Test**
+
 Follow the instructon to run the unit test in the README for [Onboarding SmartThings](https://github.com/openT2T/onboarding/tree/master/org.opent2t.onboarding.smartthings/js/README.md#running-the-unit-test) to get the credentials to access to hub.
 
 ### 2. Create the `tests/testConfig.json` file
