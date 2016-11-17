@@ -136,7 +136,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.id;
+        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
         winkHub = deviceInfo.hub;
 
         console.log('Wink Binary Switch initializing...Done');
