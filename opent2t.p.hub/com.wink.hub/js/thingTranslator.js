@@ -259,13 +259,13 @@ class Translator {
      * Given the hub specific device, returns the opent2t schema and translator
     */
     _getOpent2tInfo(winkDevice) {
-        // if (winkDevice.thermostat_id) {
-        //     return { 
-        //         "schema": 'opent2t.p.thermostat',
-        //         "translator": "opent2t-translator-com-wink-thermostat"
-        //     };
-        // }
-        if (winkDevice.binary_switch_id) {
+        if (winkDevice.thermostat_id) {
+            return { 
+                "schema": 'opent2t.p.thermostat',
+                "translator": "opent2t-translator-com-wink-thermostat"
+            };
+        }
+        else if (winkDevice.binary_switch_id) {
             return { 
                 "schema": 'opent2t.p.switch.binary',
                 "translator": "opent2t-translator-com-wink-binaryswitch"
