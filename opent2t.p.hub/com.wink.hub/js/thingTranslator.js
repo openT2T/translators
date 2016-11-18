@@ -324,8 +324,7 @@ class Translator {
         var headers = [];
 
         // Set the headers
-        if (includeBearerHeader)
-        {
+        if (includeBearerHeader) {
             headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
             headers['Accept'] = 'application/json';
         }
