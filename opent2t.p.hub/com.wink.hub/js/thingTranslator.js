@@ -7,6 +7,7 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -17,7 +18,7 @@ class Translator {
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
-        this._oAuthPath = 'oauth2/token';
+        this._oAuthPath = '/oauth2/token';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
     }
@@ -111,11 +112,15 @@ class Translator {
     }
 
     /**
-     * Refreshes the OAuth token for the hub
+     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
     refreshAuthToken(authInfo)
     {
-        Console.log("In refreshAuthToken for WINK hub..");
+        console.log("In refreshAuthToken for WINK hub..");
+
+        if (authInfo == undefined || authInfo == null){
+            throw new Error("Please provide the existing authInfo object to allow the oAuth token to be refreshed"); 
+        }
 
         // POST oauth2/token
         var postPayloadString = JSON.stringify({
@@ -125,7 +130,7 @@ class Translator {
             'refresh_token': this._accessToken.refreshToken,
         });
 
-        return this._makeRequest(requestPath, "POST", postPayloadString, false).then((body)=>
+        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
         {
             // _makeRequest() already returns a JSON representation of the POST response body
             // return the auth properties out in our own response back
