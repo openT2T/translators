@@ -249,11 +249,11 @@ class Translator {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
-    postSubscribeLight(callbackUrl, verificationRequest, verificationResponse) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    postSubscribe(callbackUrl, verificationRequest) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
     }
 
-    deleteSubscribeLight(callbackUrl) {
+    deleteSubscribe(callbackUrl) {
         return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 }
