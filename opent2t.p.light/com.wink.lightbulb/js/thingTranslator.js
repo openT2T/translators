@@ -225,11 +225,11 @@ class Translator {
         return this.getDeviceResource(deviceId, "colourMode");
     }
 
-    getDevicesColourRgb(deviceId) {
+    getDevicesColourRGB(deviceId) {
         return this.getDeviceResource(deviceId, "colourRgb");
     }
 
-    postDevicesColourRgb(deviceId, payload) {
+    postDevicesColourRGB(deviceId, payload) {
         return this.postDeviceResource(deviceId, "colourRgb", payload);
     }
 
