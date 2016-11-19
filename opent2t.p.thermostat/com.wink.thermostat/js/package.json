@@ -1,0 +1,29 @@
+{
+  "name": "opent2t-translator-com-wink-thermostat",
+  "version": "0.2.0",
+  "description": "Wink Thermostat",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "thingTranslator.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "ava",
+    "unittest": "ava tests/unitTests.js"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
+  },
+  "dependencies": {
+    "opent2t-translator-com-wink-hub": "^1.2.0"
+  },
+  "devDependencies": {
+    "opent2t": "*",
+    "ava": "^0.15.2",
+    "q": "*"
+  }
+}
