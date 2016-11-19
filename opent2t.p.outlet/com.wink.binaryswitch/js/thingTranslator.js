@@ -165,6 +165,14 @@ class Translator {
     postDevicesPower(di, payload) {
         return postDeviceResource(di, 'power', payload);
     }
+
+    postSubscribe(callbackUrl, verificationRequest) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
+    }
+
+    deleteSubscribe(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+    }
 }
 
 // Export the translator from the module.
