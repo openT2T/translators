@@ -122,7 +122,6 @@ class Translator {
             'client_secret': authInfo[1].client_secret,
             'grant_type': 'refresh_token',
             'refresh_token': this._accessToken.refreshToken,
-
         });
 
         return this._makeRequest(requestPath, "POST", postPayloadString, false).then((body)=>
@@ -317,14 +316,17 @@ class Translator {
     /**
      * Internal helper method which makes the actual request to the wink service
      */
-    _makeRequest(path, method, content, includeBearerHeader = true) {
+    _makeRequest(path, method, content, includeBearerHeader) {
+       
+        var addBearerHeader = (typeof includeBearerHeader !== 'undefined') ?  includeBearerHeader : true;
+
         // build request URI
         var requestUri = this._baseUrl + path;
 
         var headers = [];
 
         // Set the headers
-        if (includeBearerHeader) {
+        if (addBearerHeader) {
             headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
             headers['Accept'] = 'application/json';
         }
