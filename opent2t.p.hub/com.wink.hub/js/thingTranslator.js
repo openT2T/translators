@@ -116,10 +116,18 @@ class Translator {
      */
     refreshAuthToken(authInfo)
     {
-        console.log("In refreshAuthToken for WINK hub..");
-
+        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
+        
         if (authInfo == undefined || authInfo == null){
-            throw new Error("Please provide the existing authInfo object to allow the oAuth token to be refreshed"); 
+            throw new Error(invalidAuthErrorMessage); 
+        }
+
+        if (authInfo.length !== 2)
+        {
+            // We expect the original authInfo object used in the onboarding flow
+            // not defining a brand new type for the Refresh() contract and re-using
+            // what is defined for Onboarding()
+            throw new Error(invalidAuthErrorMessage);
         }
 
         // POST oauth2/token
@@ -361,7 +369,6 @@ class Translator {
             .catch(function (err) {
                 console.log("Request failed to: " + options.method + " - " + options.url);
                 console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
                 throw err;
             });
     }
