@@ -145,7 +145,7 @@ traits:
               }
 
 /devices/{deviceid}:
-  /power
+  /power:
     displayName: Power
     is: [ interface-actuator ]
 
@@ -327,14 +327,14 @@ traits:
 # Notification subscription URIs
 #
 
-/SubscribeLight:
+/subscribe:
   description: |
     This resource manages subscriptions to changes on this device.
-  displayName: SubscribeLamp
+  displayName: Subscribe
     
   post:
     description: |
-        Creates or refreshes a subscription to this lamp.  This method should be called twice, first with
+        Creates or refreshes a subscription to this lamp.  This method can be called twice, first with
         a callback URL (verificationRequest will be ignored), and the second time with the parameters of an http GET to the
         callback Url server for verification of the subscription (in which case callback Url will be ignored). The second call
         will construct a response that should be returned to the notifications server.

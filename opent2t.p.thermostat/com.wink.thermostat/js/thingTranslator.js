@@ -410,16 +410,12 @@ class Translator {
         return postDeviceResource(di, 'fanMode', payload);
     }
 
-    postSubscribeThermostatResURI(callbackUrl, verificationRequest, verificationResponse) {
-        return winkHub._subscribe(deviceType, controlId, callbackUrl, verificationRequest, verificationResponse);
+    postSubscribe(callbackUrl, verificationRequest) {
+        return winkHub._subscribe(deviceType, controlId, callbackUrl, verificationRequest);
     }
 
-    deleteSubscribeThermostatResURI(callbackUrl) {
+    deleteSubscribe(callbackUrl) {
         return winkHub._unsubscribe(deviceType, controlId, callbackUrl);
-    }
-
-    getSubscriptions() {
-        return winkHub._getSubscriptions(deviceType, controlId);
     }
 }
 
