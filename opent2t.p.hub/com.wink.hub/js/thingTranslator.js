@@ -7,6 +7,7 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -17,6 +18,7 @@ class Translator {
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
+        this._oAuthPath = '/oauth2/token';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
     }
@@ -108,6 +110,50 @@ class Translator {
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
+
+    /**
+     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
+     */
+    refreshAuthToken(authInfo)
+    {
+        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
+        
+        if (authInfo == undefined || authInfo == null){
+            throw new Error(invalidAuthErrorMessage); 
+        }
+
+        if (authInfo.length !== 2)
+        {
+            // We expect the original authInfo object used in the onboarding flow
+            // not defining a brand new type for the Refresh() contract and re-using
+            // what is defined for Onboarding()
+            throw new Error(invalidAuthErrorMessage);
+        }
+
+        // POST oauth2/token
+        var postPayloadString = JSON.stringify({
+            'client_id': authInfo[1].client_id,
+            'client_secret': authInfo[1].client_secret,
+            'grant_type': 'refresh_token',
+            'refresh_token': this._accessToken.refreshToken,
+        });
+
+        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
+        {
+            // _makeRequest() already returns a JSON representation of the POST response body
+            // return the auth properties out in our own response back
+             return new accessTokenInfo(
+                    body.access_token,
+                    body.refresh_token,
+                    body.token_type,
+                    body.scopes
+                );
+            // there isn't a 'scopes' property returned as a result of this request according to
+            // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
+            // so am assuming the caller of this API will expect nulls
+        });
+    }
+
     
     /**
      * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
@@ -284,14 +330,19 @@ class Translator {
     /**
      * Internal helper method which makes the actual request to the wink service
      */
-    _makeRequest(path, method, content) {
+    _makeRequest(path, method, content, includeBearerHeader) {
+       
+        var addBearerHeader = (typeof includeBearerHeader !== 'undefined') ?  includeBearerHeader : true;
+
         // build request URI
         var requestUri = this._baseUrl + path;
 
+        var headers = [];
+
         // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + this._accessToken.accessToken,
-            'Accept': 'application/json'
+        if (addBearerHeader) {
+            headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
+            headers['Accept'] = 'application/json';
         }
 
         if (content) {
@@ -318,7 +369,6 @@ class Translator {
             .catch(function (err) {
                 console.log("Request failed to: " + options.method + " - " + options.url);
                 console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
                 throw err;
             });
     }
