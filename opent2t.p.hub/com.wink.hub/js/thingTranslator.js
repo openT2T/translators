@@ -8,7 +8,6 @@
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 
-
 /**
  * Translates an array of provider schemas into an opent2t/OCF representations
  */
@@ -18,7 +17,7 @@ function providerSchemaToPlatformSchema(providerSchemas, expand) {
     // Ensure that we have an array of provider schemas, even if a single object was given.
     var winkDevices = [].concat(providerSchemas);
 
-    providerSchemas.forEach((winkDevice) => {
+    winkDevices.forEach((winkDevice) => {
         // get the opent2t schema and translator for the wink device
         var opent2tInfo = this._getOpent2tInfo(winkDevice);
 
