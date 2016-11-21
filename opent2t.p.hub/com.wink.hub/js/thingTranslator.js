@@ -10,6 +10,56 @@ var OpenT2T = require('opent2t').OpenT2T;
 var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
+ * Translates an array of provider schemas into an opent2t/OCF representations
+ */
+function providerSchemaToPlatformSchema(providerSchemas, expand) {
+    var platformPromises = [];
+
+    // Ensure that we have an array of provider schemas, even if a single object was given.
+    var winkDevices = [].concat(providerSchemas);
+
+    winkDevices.forEach((winkDevice) => {
+        // get the opent2t schema and translator for the wink device
+        var opent2tInfo = this._getOpent2tInfo(winkDevice);
+
+        // Do not return the physical hub device, nor any devices for which there are not translators.
+        // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
+        // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
+        // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
+        if ((winkDevice.model_name !== 'HUB')  && 
+            typeof opent2tInfo !== 'undefined' &&
+            (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
+        {
+            // set the opent2t info for the wink device
+            var deviceInfo = {};
+            deviceInfo.opent2t = {};
+            deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
+            
+            // Create a translator for this device and get the platform information, possibly expanded
+            platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                .then((translator) => {
+
+                    // Use get to translate the Wink formatted device that we already got in the previous request.
+                    // We already have this data, so no need to make an unnecesary request over the wire.
+                    return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
+                        .then((platformResponse) => {
+                            return platformResponse; 
+                        });
+                }));
+        }
+    });
+
+    // Return a promise for all platform translations.
+    return Promise.all(platformPromises)
+        .then((platforms) => {
+            var toReturn = {};
+            toReturn.schema = "opent2t.p.hub";
+            toReturn.platforms = platforms;
+            return toReturn;
+        });
+}
+
+/**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
@@ -26,56 +76,22 @@ class Translator {
     /**
      * Get the hub definition and devices
      */
-    get(expand) {
-        return this.getPlatforms(expand);
+    get(expand, payload) {
+        return this.getPlatforms(expand, payload);
     }
 
     /**
      * Get the list of devices discovered through the hub.
      */
-    getPlatforms(expand) {
+    getPlatforms(expand, payload) {
+
+        // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
+        // converted to the opent2t/ocf representation.
+        if (payload) {
+            return providerSchemaToPlatformSchema(payload);
+        }
         return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-            var devices = response.data;
-
-            var platformPromises = [];
-            devices.forEach((winkDevice) => {
-                // get the opent2t schema and translator for the wink device
-                var opent2tInfo = this._getOpent2tInfo(winkDevice);
-
-                // Do not return the physical hub device, nor any devices for which there are not translators.
-                // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
-                // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
-                // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
-                if ((winkDevice.model_name !== 'HUB')  && 
-                    typeof opent2tInfo !== 'undefined' &&
-                    (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
-                {
-                    // set the opent2t info for the wink device
-                    var deviceInfo = {};
-                    deviceInfo.opent2t = {};
-                    deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
-                    
-                    // Create a translator for this device and get the platform information, possibly expanded
-                    platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
-                                    .then((translator) => {
-
-                                        // Use get to translate the Wink formatted device that we already got in the previous request.
-                                        // We already have this data, so no need to make an unnecesary request over the wire.
-                                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
-                                            .then((platformResponse) => {
-                                                return platformResponse; 
-                                            });
-                                    }));
-                }
-            });
-        
-             return Promise.all(platformPromises)
-                    .then((platforms) => {
-                        var toReturn = {};
-                        toReturn.schema = "opent2t.p.hub";
-                        toReturn.platforms = platforms;
-                        return toReturn;
-                    });
+            providerSchemaToPlatformSchema(response.data);
         });
     }
 
@@ -178,11 +194,9 @@ class Translator {
      * @param {string} callbackUrl - Callback url for feed postbacks
      * @param {HttpRequest} verificationRequest - GET request received by the server at a previously subscribed
      *      callback URL.  This completes the verification half of the subscription.
-     * @param {HttpResponse} verificationResponseContent - Content that should be provided in the response to the
-     *      verification request as {'Content-Type': 'text/plain'}.  All responses should use code 200 unless an
-     *      error is caught.
      * @returns {number} Object containing the subscription expiration time, and any content that
-     *      needs to be included in a response to the original request.
+     *      needs to be included in a response to the original request. Content that should be provided in the response to the
+     *      verification request as {'Content-Type': 'text/plain'}.
      */
     _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
 
@@ -207,8 +221,7 @@ class Translator {
             return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
                 // Return the expiration time for the subscription
                 return {
-                    expiration: response.data.expires_at,
-                    response: ""
+                    expiration: response.data.expires_at
                 };
             })
 

@@ -225,11 +225,11 @@ class Translator {
         return this.getDeviceResource(deviceId, "colourMode");
     }
 
-    getDevicesColourRgb(deviceId) {
+    getDevicesColourRGB(deviceId) {
         return this.getDeviceResource(deviceId, "colourRgb");
     }
 
-    postDevicesColourRgb(deviceId, payload) {
+    postDevicesColourRGB(deviceId, payload) {
         return this.postDeviceResource(deviceId, "colourRgb", payload);
     }
 
@@ -249,11 +249,11 @@ class Translator {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
-    postSubscribeLight(callbackUrl, verificationRequest, verificationResponse) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    postSubscribe(callbackUrl, verificationRequest) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
     }
 
-    deleteSubscribeLight(callbackUrl) {
+    deleteSubscribe(callbackUrl) {
         return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 }
