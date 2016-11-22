@@ -345,7 +345,7 @@ class Translator {
      */
     _makeRequest(path, method, content, includeBearerHeader) {
        
-        includeBearerHeader = (typeof includeBearerHeader !== 'undefined') ?  includeBearerHeader : true;
+        includeBearerHeader = (includeBearerHeader !== undefined) ?  includeBearerHeader : true;
 
         // build request URI
         var requestUri = this._baseUrl + path;
