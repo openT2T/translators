@@ -345,7 +345,7 @@ class Translator {
      */
     _makeRequest(path, method, content, includeBearerHeader) {
        
-        var addBearerHeader = (typeof includeBearerHeader !== 'undefined') ?  includeBearerHeader : true;
+        includeBearerHeader = (includeBearerHeader !== undefined) ?  includeBearerHeader : true;
 
         // build request URI
         var requestUri = this._baseUrl + path;
@@ -353,7 +353,7 @@ class Translator {
         var headers = [];
 
         // Set the headers
-        if (addBearerHeader) {
+        if (includeBearerHeader) {
             headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
             headers['Accept'] = 'application/json';
         }
