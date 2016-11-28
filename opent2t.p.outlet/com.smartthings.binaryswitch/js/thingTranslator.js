@@ -111,8 +111,8 @@ class Translator {
 
     // exports for the entire schema object
 
-    // Queries the entire state of the lamp
-    // and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+    // Queries the entire state of the outlet
+    // and returns an object that maps to the json schema opent2t.p.outlet
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);

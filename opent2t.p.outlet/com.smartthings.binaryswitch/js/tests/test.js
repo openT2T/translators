@@ -24,10 +24,10 @@ function getBinarySwitch(devices) {
 // setup the translator before all the tests run
 test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
-    var hubInfo = await OpenT2T.invokeMethodAsync(hubTranslator, 'opent2t.p.hub', 'get', [false]);
-    var deviceInfo = getBinarySwitch(hubInfo.platforms);
-    controllId = deviceInfo.opent2t.controlId;
-    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
+    var platforms = await OpenT2T.invokeMethodAsync(hubTranslator, 'opent2t.p.hub', 'getPlatforms', []);
+    var platformInfo = getBinarySwitch(platforms.platforms);
+    controllId = platformInfo.opent2t.controlId;
+    translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': platformInfo, 'hub': hubTranslator});
 });
 
 test.serial("Valid Binary Switch Translator", t => {

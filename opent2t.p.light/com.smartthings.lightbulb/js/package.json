@@ -1,0 +1,29 @@
+{
+    "name": "opent2t-translator-com-smartthings-lightbulb",
+    "version": "0.2.0",
+    "description": "SmartThings Light Bulb",
+    "homepage": "http://opentranslatorstothings.org",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opent2t/translators.git"
+    },
+    "main": "thingTranslator.js",
+    "license": "MIT",
+    "scripts": {
+        "test": "ava"
+    },
+    "ava": {
+        "files": [
+            "tests/*.js"
+        ]
+    },
+    "dependencies": {
+      "opent2t": "*",
+      "opent2t-translator-com-smartthings-hub": "*"
+    },
+    "devDependencies": {
+        "optimist": "*",
+        "ava": "^0.15.2",
+        "es6-sleep": "*"
+    }
+}
