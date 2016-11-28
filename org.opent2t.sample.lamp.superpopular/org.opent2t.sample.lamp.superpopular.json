@@ -101,7 +101,7 @@
     },
 
 
-    "org.opent2t.sample.lamp.superpopular": {
+    "opent2t.d.light": {
       "description": "The opent2t light; extends oic.d.light",
       "type": "object",
       "properties": {

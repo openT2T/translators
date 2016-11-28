@@ -148,7 +148,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         mnmn: providerSchema['device_manufacturer'],
         mnmo: providerSchema['manufacturer_device_model'],
         n: providerSchema['name'],
-        rt: ['org.opent2t.sample.thermostat.superpopular],
+        rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
                 rt: ['opent2t.d.thermostat'],
