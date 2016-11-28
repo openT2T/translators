@@ -35,41 +35,98 @@ class StateReader {
     }
 }
 
-// Helper method to convert the device schema to the translator schema.
-function deviceSchemaToTranslatorSchema(deviceSchema) {
-    var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
+// Helper method to convert the provider schema to the platform schema.
+function providerSchemaToPlatformSchema(providerSchema, expand) {
+    var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
     var powered = stateReader.get('powered');
 
+    var power = {
+        href: '/power',
+        rt: ['oic.r.switch.binary'],
+        if: ['oic.if.a', 'oic.if.baseline']
+    };
+    
+    if (expand) {
+        power.id = 'power';
+        power.value = powered;
+    }
+
     return {
-        id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
-        n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.binaryswitch.superpopular',
-        power: { 'value': powered }
+        opent2t: {
+            schema: 'org.opent2t.sample.binaryswitch.superpopular',
+            translator: 'opent2t-translator-com-wink-binaryswitch',
+            controlId: deviceId
+        },
+        pi: providerSchema['uuid'],
+        mnmn: providerSchema['device_manufacturer'],
+        mnmo: providerSchema['manufacturer_device_model'],
+        n: providerSchema['name'],
+        rt: ['org.opent2t.sample.binaryswitch.superpopular'],
+        entities: [
+            {
+                rt: ['oic.d.smartplug'],
+                di: smartplugDeviceDi,
+                resources: [
+                    power
+                ]
+            }
+        ]
     };
 }
 
 // Helper method to convert the translator schema to the device schema.
-function translatorSchemaToDeviceSchema(translatorSchema) {
+function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     // build the object with desired state
     var result = { 'desired_state': {} };
     var desired_state = result.desired_state;
 
-    if (translatorSchema.n) {
-        result['name'] = translatorSchema.n;
-    }
-
-    if (translatorSchema.power) {
-        desired_state['powered'] = translatorSchema.power.value;
+    if ('power' === resourceId) {
+        desired_state['powered'] = resourceSchema.value;
     }
 
     return result;
 }
 
+function findResource(schema, di, resourceId) {
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    return resource;
+}
+
+function getDeviceResource(translator, di, resourceId) {
+    return translator.get(true)
+        .then(response => {
+            return findResource(response, di, resourceId);
+        });
+}
+
+function postDeviceResource(di, resourceId, payload) {
+    if (di === smartplugDeviceDi) {
+        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+            .then((response) => {
+                var schema = providerSchemaToPlatformSchema(response.data, true);
+
+                return findResource(schema, di, resourceId);
+            });
+    }
+}
+
 var deviceId;
 var deviceType = 'binary_switches';
 var winkHub;
+
+// Each device in the platform has its own static identifier
+const smartplugDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -79,7 +136,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.id;
+        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
         winkHub = deviceInfo.hub;
 
         console.log('Wink Binary Switch initializing...Done');
@@ -89,56 +146,31 @@ class Translator {
 
     // Queries the entire state of the binary switch
     // and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
-    getBinarySwitchResURI() {
-        return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
-            });
+    get(expand, payload) {
+        if (payload) {
+            return  providerSchemaToPlatformSchema(payload, expand);
+        }
+        else {
+            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+                .then((response) => {
+                    return providerSchemaToPlatformSchema(response.data, expand);
+                });
+        }
     }
 
-    // Updates the current state of the binary switch with the contents of postPayload
-    // postPayload is an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
-    //
-    // In addition, returns the updated state (see sample in RAML)
-    postBinarySwitchResURI(postPayload) {
-
-        console.log('postBinarySwitchResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
-
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
-            });
+    getDevicesPower(di) {
+        return getDeviceResource(this, di, 'power');
     }
 
-    // exports for individual properties
-
-    getPower() {
-        console.log('getPower called');
-
-        return this.getBinarySwitchResURI()
-            .then(response => {
-                return response.power.value;
-            });
+    postDevicesPower(di, payload) {
+        return postDeviceResource(di, 'power', payload);
     }
 
-    setPower(value) {
-        console.log('setPower called with value: ' + value);
-
-        var postPayload = {};
-        postPayload.power = { value: value };
-
-        return this.postBinarySwitchResURI(postPayload)
-            .then(response => {
-                return response.power.value;
-            });
+    postSubscribe(callbackUrl, verificationRequest) {
+        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
     }
 
-    postSubscribeBinarySwitchResURI(callbackUrl, verificationRequest, verificationResponse) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
-    }
-
-    deleteSubscribeBinarySwitchResURI(callbackUrl) {
+    deleteSubscribe(callbackUrl) {
         return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
     }
 }
