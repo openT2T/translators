@@ -154,51 +154,49 @@ void updateConnectionId() {
     log.debug "Updated ConnectionID to ${state.connectionId}"
 }
 
-//Endpoints functions; return device data in json format
+//Endpoints functions; return data for all devices in json format
 def getDevices() {
 	def deviceData = [] 
     switches.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }     
     motionSensors.each  {
    		def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     } 
     contactSensors.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
     presenceSensors.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
     waterSensors.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
     locks.each  {  
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     } 
     garageDoors.each  {  
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     } 
 	cameras.each  {  
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     } 
-    log.debug "getDevices, return: ${deviceData}"
     return deviceData 
 }
 
-//Endpoints functions; update device data
+//Endpoints functions; get the data of a specific device
 def getDevice() {    
     def it = findDevice(params.id)
     def deviceType = getDeviceType(it)
-    def device = [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)]
-    log.debug "getDevice, return: ${device}"
+    def device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
     return device
 }
 

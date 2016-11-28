@@ -6,6 +6,8 @@
 
 "use strict";
 var request = require('request-promise');
+var OpenT2T = require('opent2t').OpenT2T;
+var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -16,52 +18,33 @@ class Translator {
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
+        this._oAuthPath = '/oauth2/token';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
     }
 
     /**
+     * Get the hub definition and devices
+     */
+    get(expand, payload) {
+        return this.getPlatforms(expand, payload);
+    }
+
+    /**
      * Get the list of devices discovered through the hub.
      */
-    getHubResURI() {
-        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+    getPlatforms(expand, payload) {
 
-            var toReturn = {};
-            var devices = response.data;
-
-            var filteredDevices = [];
-            devices.forEach((winkDevice) => {
-                // get the opent2t schema and translator for the wink device
-                var opent2tInfo = this._getOpent2tInfo(winkDevice);
-
-                // Do not return the physical hub device, nor any devices for which there are not translators.
-                // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
-                // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
-                // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
-                if ((winkDevice.model_name !== 'HUB')  && 
-                    opent2tInfo != undefined &&
-                    (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
-                {
-                    // &&
-                    // isNaN(winkDevice.hidden_at)
-                    // we only need to return certain properties back
-                    var device = {};
-                    device.name = winkDevice.name;
-
-                    // set the specific device object id to be the id
-                    device.id = this._getDeviceId(winkDevice);
-
-                    // set the opent2t info for the wink device
-                    device.openT2T = opent2tInfo;
-                    
-                    filteredDevices.push(device);
-                }
+        // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
+        // converted to the opent2t/ocf representation.
+        if (payload !== undefined) {
+            return this._providerSchemaToPlatformSchema(payload, expand);
+        }
+        else {
+            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+                return this._providerSchemaToPlatformSchema(response.data, expand);
             });
-
-            toReturn.devices = filteredDevices;
-
-            return toReturn;
-        });
+        }
     }
 
     /**
@@ -95,7 +78,100 @@ class Translator {
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
-    
+
+    /**
+     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
+     */
+    refreshAuthToken(authInfo)
+    {
+        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
+        
+        if (authInfo == undefined || authInfo == null){
+            throw new Error(invalidAuthErrorMessage); 
+        }
+
+        if (authInfo.length !== 2)
+        {
+            // We expect the original authInfo object used in the onboarding flow
+            // not defining a brand new type for the Refresh() contract and re-using
+            // what is defined for Onboarding()
+            throw new Error(invalidAuthErrorMessage);
+        }
+
+        // POST oauth2/token
+        var postPayloadString = JSON.stringify({
+            'client_id': authInfo[1].client_id,
+            'client_secret': authInfo[1].client_secret,
+            'grant_type': 'refresh_token',
+            'refresh_token': this._accessToken.refreshToken,
+        });
+
+        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
+        {
+            // _makeRequest() already returns a JSON representation of the POST response body
+            // return the auth properties out in our own response back
+             return new accessTokenInfo(
+                    body.access_token,
+                    body.refresh_token,
+                    body.token_type,
+                    body.scopes
+                );
+            // there isn't a 'scopes' property returned as a result of this request according to
+            // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
+            // so am assuming the caller of this API will expect nulls
+        });
+    }
+
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
+
+        // Ensure that we have an array of provider schemas, even if a single object was given.
+        var winkDevices = [].concat(providerSchemas);
+
+        winkDevices.forEach((winkDevice) => {
+            // get the opent2t schema and translator for the wink device
+            var opent2tInfo = this._getOpent2tInfo(winkDevice);
+            
+            // Do not return the physical hub device, nor any devices for which there are not translators.
+            // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
+            // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
+            // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
+            if ((winkDevice.model_name !== 'HUB')  && 
+                typeof opent2tInfo !== 'undefined' &&
+                (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
+            {
+                // set the opent2t info for the wink device
+                var deviceInfo = {};
+                deviceInfo.opent2t = {};
+                deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
+                
+                // Create a translator for this device and get the platform information, possibly expanded
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                    .then((translator) => {
+
+                        // Use get to translate the Wink formatted device that we already got in the previous request.
+                        // We already have this data, so no need to make an unnecesary request over the wire.
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
+                            .then((platformResponse) => {
+                                return platformResponse; 
+                            });
+                    }));
+            }
+        });
+
+        // Return a promise for all platform translations.
+        return Promise.all(platformPromises)
+            .then((platforms) => {
+                var toReturn = {};
+                toReturn.schema = "org.opent2t.sample.hub.superpopular";
+                toReturn.platforms = platforms;
+                return toReturn;
+            });
+    }
+
     /**
      * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
      * The first call will contain just the callbackUrl, which will be subscribed for postbacks
@@ -119,11 +195,9 @@ class Translator {
      * @param {string} callbackUrl - Callback url for feed postbacks
      * @param {HttpRequest} verificationRequest - GET request received by the server at a previously subscribed
      *      callback URL.  This completes the verification half of the subscription.
-     * @param {HttpResponse} verificationResponseContent - Content that should be provided in the response to the
-     *      verification request as {'Content-Type': 'text/plain'}.  All responses should use code 200 unless an
-     *      error is caught.
      * @returns {number} Object containing the subscription expiration time, and any content that
-     *      needs to be included in a response to the original request.
+     *      needs to be included in a response to the original request. Content that should be provided in the response to the
+     *      verification request as {'Content-Type': 'text/plain'}.
      */
     _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
 
@@ -148,8 +222,7 @@ class Translator {
             return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
                 // Return the expiration time for the subscription
                 return {
-                    expiration: response.data.expires_at,
-                    response: ""
+                    expiration: response.data.expires_at
                 };
             })
 
@@ -254,7 +327,7 @@ class Translator {
         }
         else if (winkDevice.binary_switch_id) {
             return { 
-                "schema": 'opent2t.p.outlet',
+                "schema": 'org.opent2t.sample.binaryswitch.superpopular'
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
@@ -271,14 +344,19 @@ class Translator {
     /**
      * Internal helper method which makes the actual request to the wink service
      */
-    _makeRequest(path, method, content) {
+    _makeRequest(path, method, content, includeBearerHeader) {
+       
+        includeBearerHeader = (includeBearerHeader !== undefined) ?  includeBearerHeader : true;
+
         // build request URI
         var requestUri = this._baseUrl + path;
 
+        var headers = [];
+
         // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + this._accessToken.accessToken,
-            'Accept': 'application/json'
+        if (includeBearerHeader) {
+            headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
+            headers['Accept'] = 'application/json';
         }
 
         if (content) {
@@ -305,7 +383,6 @@ class Translator {
             .catch(function (err) {
                 console.log("Request failed to: " + options.method + " - " + options.url);
                 console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
                 throw err;
             });
     }
