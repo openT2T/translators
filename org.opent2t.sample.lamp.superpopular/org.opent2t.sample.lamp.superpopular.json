@@ -1,46 +1,152 @@
 {
-    "id": "http://schemas.microsoft.com/org.opent2t.sample.lamp.superpopular#",
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "description": "",
-    "title": "OpenT2T SuperPopular Lamp",
-    "definitions": {
-        "org.opent2t.sample.lamp.superpopular": {
-            "type": "object",
-            "properties": {
-                "power": {
-                    "$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary",
-                    "description": "Power status of the light."
-                },
-                "dim": {
-                    "$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming",
-                    "description": "Dimming status of the light."
-                },
-                "colour": {
-                    "$ref": "oic.r.colour.rgb.json#/definitions/oic.r.colour.rgb",
-                    "description": "RGB color emitted by the light."
-                }
-            }
-        }
+  "id": "http://schemas.microsoft.com/org.opent2t.sample.lamp.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "OpenT2T light",
+  "definitions": {
+
+    "power":{
+      "description": "Light on/off.",
+      "type": "object",
+      "default": {
+        "id": "power",
+        "href": "/power",
+        "rt": ["oic.r.switch.binary"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
     },
-    "type": "object",
-    "allOf": [
-        {
-            "$ref": "oic.core.json#/definitions/oic.core"
-        },
-        {
-            "$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary"
-        },
-        {
-            "$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming"
-        },
-        {
-            "$ref": "oic.r.colour.rgb.json#/definitions/oic.r.colour.rgb"
-        },
-        {
-            "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
-        },
-        {
-            "$ref": "#/definitions/org.opent2t.sample.lamp.superpopular"
+
+    "dim":{
+      "description": "Dimming Level.",
+      "type": "object",
+      "default": {
+        "id": "dim",
+        "href": "/dim",
+        "rt": [ "oic.r.light.dimming" ],
+        "if": [ "oic.if.a", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "colourMode":{
+      "description": "ReadOnly, Supported colour mode, e.g rgb or chroma",
+      "type": "object",
+      "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link",
+      "default": {
+        "id": "colourMode",
+        "href": "/colourMode",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "colourRGB":{
+      "description": "Light colour in RBG format.",
+      "type": "object",
+      "default": {
+        "id": "colourRGB",
+        "href": "/colourRGB",
+        "rt": ["oic.r.colour.rgb"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.colour.rgb.json#/definitions/oic.r.colour.rgb"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "colourChroma":{
+      "description": "Light colour in chroma convention.",
+      "type": "object",
+      "default": {
+        "id": "colourChroma",
+        "href": "/colourChroma",
+        "rt": ["oic.r.colour.chroma"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.colour.chroma.json#/definitions/oic.r.colour.chroma"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+
+    "oic.d.light": {
+      "description": "The OCF Smarthome defined light",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/power"}
+            ]
+          }
         }
-    ]
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+     ]
+    },
+
+
+    "org.opent2t.sample.lamp.superpopular": {
+      "description": "The opent2t light; extends oic.d.light",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/dim"},
+              {"$ref": "#/definitions/colourMode"},
+              {"$ref": "#/definitions/colourRGB"},
+              {"$ref": "#/definitions/colourChroma"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "#/definitions/oic.d.light"},
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "org.opent2t.sample.lamp.superpopular": {
+      "description": "The opent2t light platform",
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/oic.d.light"},
+              {"$ref": "#/definitions/opent2t.d.light"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.platform"}
+      ]
+    }
+  },
+
+  "type": "object",
+  "allOf": [
+    {"$ref": "oic.core.json#/definitions/oic.core"},
+    {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
+    {"$ref": "#/definitions/org.opent2t.sample.lamp.superpopular"}
+  ]
 }
