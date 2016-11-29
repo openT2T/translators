@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN" "http://standards.freedesktop.org/dbus/introspect-1.0.dtd"[]>
+<node>
+  <interface name="org.opent2t.sample.lamp.superpopular">
+    <description>OpenT2T SuperPopular Lamp</description>
+
+    <property name="power" type="b" access="readwrite">
+      <description>Power status of the light.</description>
+    </property>
+
+    <property name="dim" type="d" access="readwrite">
+      <description>Dimming status of the light.</description>
+    </property>
+
+    <property name="color" type="ai" access="readwrite">
+      <description>RGB color emitted by the light, e.g. [255, 255, 255]</description>
+    </property>
+
+  </interface>
+</node>
