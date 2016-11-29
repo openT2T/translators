@@ -3,6 +3,7 @@
 
 "use strict";
 var request = require('request-promise');
+var OpenT2T = require('opent2t').OpenT2T; 
 
 /**
 * This translator class implements the "Hub" interface.
@@ -13,49 +14,33 @@ class Translator {
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
-        this._name = "SmartThings hub"; // TODO: Can be pulled from OpenT2T global constants.
+        this._name = "SmartThings Hub"; // TODO: Can be pulled from OpenT2T global constants.
+    }
+
+    /**
+     * Get the hub definition and devices
+     */
+    get(expand, payload) {
+         return this.getPlatforms(expand, payload);
     }
 
     /**
      * Get the list of devices discovered through the hub.
      */
-    getHubResURI() {
+    getPlatforms(expand, payload) {
+        if (payload != undefined) {
+            return this._providerSchemaToPlatformSchema(payload, expand);
+        }
+        else {
+            return this._hasValidEndpoint().then((isValid) => {
+                if (isValid == false) return undefined;
 
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var toReturn = {};
-            var filteredDevices = [];
-
-            return this._makeRequest(this._devicesPath, 'GET')
-                .then((devices) => {
-
-                    for (var i = 0; i < devices.length ; i++) {
-                        var smartThingsDevice = devices[i];
-
-                        // get the opent2t schema and translator for the SmartThings device
-                        var opent2tInfo = this._getOpent2tInfo(smartThingsDevice.deviceType);
-
-                        if (opent2tInfo != undefined) // we support the device                    
-                        {
-                            // we only need to return certain properties back
-                            var device = {};
-                            device.name = smartThingsDevice.name;
-
-                            // set the specific device object id to be the id
-                            device.id = smartThingsDevice.id;
-
-                            // set the opent2t info for the hue device
-                            device.openT2T = opent2tInfo;
-
-                            filteredDevices.push(device);
-                        }
-                    }
-
-                    toReturn.devices = filteredDevices;
-                    return toReturn;
-                });
-        });
+                return this._makeRequest(this._devicesPath, 'GET')
+                    .then((devices) => {
+                        return this._providerSchemaToPlatformSchema(devices, expand);
+                    });
+            });
+        }
     }
 
     /**
@@ -98,16 +83,60 @@ class Translator {
         });
     }
 
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
+
+        // Ensure that we have an array of provider schemas, even if a single object was given.
+        var devices = [].concat(providerSchemas);
+
+        devices.forEach((smartThingsDevice) => {
+            // get the opent2t schema and translator for the SmartThings device
+            var opent2tInfo = this._getOpent2tInfo(smartThingsDevice.deviceType);
+
+            if (typeof opent2tInfo !== 'undefined') // we support the device                    
+            {
+                /// set the opent2t info for the SmartThings device
+                var deviceInfo = {};
+                deviceInfo.opent2t = {};
+                deviceInfo.opent2t.controlId = smartThingsDevice.id;
+
+                // Create a translator for this device and get the platform information, possibly expanded
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                    .then((translator) => {
+                        // Use get to translate the SmartThings formatted device that we already got in the previous request.
+                        // We already have this data, so no need to make an unnecesary request over the wire.
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, smartThingsDevice])
+                            .then((platformResponse) => {
+                                return platformResponse;
+                            });
+                    }));
+            }
+        });
+
+        return Promise.all(platformPromises)
+                .then((platforms) => {
+                    var toReturn = {};
+                    toReturn.schema = "opent2t.p.hub";
+                    toReturn.platforms = platforms;
+                    return toReturn;
+                });
+    }
+
     /** 
      * Given the hub specific device, returns the opent2t schema and translator
      */
     _getOpent2tInfo(deviceType) {
         switch (deviceType) {
+            /**
             case "light":
                 return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
                     "translator": 'opent2t-translator-com-smartthings-lightbulb'
                 };
+            **/
             case "switch":
                 return {
                     "schema": 'org.opent2t.sample.binaryswitch.superpopular',
@@ -189,8 +218,6 @@ class Translator {
             .catch(function (err) {
                 console.log("Request failed to: " + options.method + " - " + options.url);
                 console.log("Error            : " + err);
-                //console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
                 throw err;
             });
     }

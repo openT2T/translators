@@ -3,7 +3,8 @@ title: org.opent2t.sample.binaryswitch.superpopular
 version: v1.0
 
 schemas:
-  - Switch: !include org.opent2t.sample.binaryswitch.superpopular.json
+  - BinarySwitch: !include oic.r.switch.binary.json
+  - OutletPlatform: !include org.opent2t.sample.binaryswitch.superpopular.json
   - Subscription: |
       {
         "type": "object",
@@ -15,71 +16,134 @@ schemas:
       }
 
 traits:
-  - interface:
+  - interface-actuator:
       queryParameters:
         if:
-          enum: ["oic.if.a"]
+          enum: ["oic.if.a", "oic.if.baseline"]
 
-/BinarySwitchResURI:
-  description: |
-    This resource describes the attributes associated with control of a Switch.
-    The value is a boolean.
-    A value of 'true' means that the switch is on.
-    A value of 'false' means that the switch is off.
-
-
-  displayName: Switch
-  is: [ interface ]
+#
+# Device relative URIs
+#
+/devices/{deviceid}/power:
+  displayName: Power
+  is: [ interface-actuator ]
 
   get:
-    description: |
-        Retrieves the current resource representation
     responses:
       200:
         body:
           application/json:
-            schema: Switch
+            schema: BinarySwitch
             example: |
               {
-                "rt": "org.opent2t.sample.binaryswitch.superpopular",
+                "rt": ["oic.r.switch.binary"],
                 "id": "unique_example_id",
-                "power": {
-                  "value": true
-                  }
+                "value": false
               }
-    
   post:
     body:
       application/json:
-        schema: Switch
+        schema: BinarySwitch
         example: |
           {
-            "power": {
-              "value": false
-            }
+            "id": "unique_example_id",
+            "value": true
           }
     responses:
       200:
         body:
           application/json:
-            schema: Switch
+            schema: BinarySwitch
             example: |
               {
                 "id": "unique_example_id",
-                "power": {
-                  "value": false
-                }
+                "value": true
               }
 
-/SubscribeBinarySwitchResURI:
+#
+# Platform Level URIs
+#
+/:
+  displayName: Platform
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: OutletPlatform
+            example: |
+              {
+                "opent2t": {
+                  "schema": "opent2t.p.outlet",
+                  "translator": "opent2t-translator-com-opent2t-p-outlet@0.1.1"
+                },
+                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
+                "mnmn": "Contoso",
+                "n": "Bedroom Outlet",
+                "rt": ["org.opent2t.sample.binaryswitch.superpopular],
+                "entities": [
+                  {
+                    "rt": ["oic.d.smartplug"],
+                    "n": "Device 1",
+                    "di": "0DFDA91C-F864-4718-8108-919E3106D0A1",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/power",
+                        "rt": ["oic.r.switch.binary"],
+                        "if": ["oic.if.a", "oic.if.baseline"]
+                      }
+                    ]
+                  }
+                ]
+              }
+
+/?$expand:
+  displayName: Platform
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: OutletPlatform
+            example: |
+              {
+                "opent2t": {
+                  "schema": "org.opent2t.sample.binaryswitch.superpopular",
+                  "translator": "opent2t-translator-com-opent2t-p-outlet@0.1.1"
+                },
+                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
+                "mnmn": "Contoso",
+                "n": "Bedroom Outlet",
+                "rt": ["org.opent2t.sample.binaryswitch.superpopular"],
+                "entities": [
+                  {
+                    "rt": ["oic.d.smartplug"],
+                    "n": "Device 1",
+                    "di": "0DFDA91C-F864-4718-8108-919E3106D0A1",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/power",
+                        "id": "power",
+                        "rt": ["oic.r.switch.binary"],
+                        "value": true
+                      }
+                    ]
+                  }
+                ]
+              }
+
+/subscribe:
   description: |
-   This resource manages subscriptions to changes on this device.
-  displayName: SubscribeBinarySwitch
-  is: [ interface ]
+    This resource manages subscriptions to changes on this device.
+  displayName: Subscribe
     
   post:
     description: |
-        Creates or refreshes a subscription to this binary switch.  This method should be called twice, first with
+        Creates or refreshes a subscription to this outlet.  This method can be called twice, first with
         a callback URL (verificationRequest will be ignored), and the second time with the parameters of an http GET to the
         callback Url server for verification of the subscription (in which case callback Url will be ignored). The second call
         will construct a response that should be returned to the notifications server.
@@ -124,4 +188,3 @@ traits:
         body:
           application/json:
           example: {}
-                
