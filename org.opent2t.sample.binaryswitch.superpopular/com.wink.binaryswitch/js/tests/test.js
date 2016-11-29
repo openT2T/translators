@@ -13,7 +13,7 @@ function getBinarySwitch(devices) {
     for (var i = 0; i < devices.length; i++) {
         var d = devices[i];
 
-        if (d.openT2T.translator === 'opent2t-translator-com-wink-binaryswitch') {
+        if (d.opent2t.translator === 'opent2t-translator-com-wink-binaryswitch') {
             return d;
         }
     }
@@ -24,8 +24,8 @@ function getBinarySwitch(devices) {
 // setup the translator before all the tests run
 test.before(async () => {
     var hubTranslator = await OpenT2T.createTranslatorAsync(hubPath, 'thingTranslator', config);
-    var hubInfo = await OpenT2T.getPropertyAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'HubResURI');
-    var deviceInfo = getBinarySwitch(hubInfo.devices);
+    var hubInfo = await OpenT2T.invokeMethodAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'get', [false]);
+    var deviceInfo = getBinarySwitch(hubInfo.platforms);
 
     translator = await OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
 });
