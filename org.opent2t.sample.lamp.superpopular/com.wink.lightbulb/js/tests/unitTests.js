@@ -10,5 +10,5 @@ function setTestData(testName, t) {
     mockHub.setTestData(deviceData.test_data[testName], t);
 }
 
-// Run standard binary switch unit tests
+// Run standard lamp unit tests
 runLampTests(mockHub.createTranslator(translatorPath), deviceId, test, setTestData);
