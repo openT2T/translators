@@ -39,10 +39,10 @@ class Translator {
         // converted to the opent2t/ocf representation.
         if (payload !== undefined) {
             // Callculate the HMAC for the payload using the secret
-            if (verification !== undefined && verification.secret !== undefined) {
+            if (verification !== undefined && verification.key !== undefined) {
                 // use secret to calculate HMAC
-                var hmac = require('crypto').createHmac('sha1', verification.secret).update(payload).digest('hex');
-                if (hmac != verification.hmac) {
+                var hmac = require('crypto').createHmac('sha1', verification.key).update(payload).digest('hex');
+                if (hmac !== undefined && hmac != verification.hmac) {
                    throw new Error("Payload signature doesn't match.");
                 }
             }
@@ -208,7 +208,7 @@ class Translator {
      * @param {string|number} deviceId - Id for the specific device
      * @param {Object} subscriptionInfo - Subscription information
      * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint. This URL will receive verification, and updates.
-     * @param {string} subscriptionInfo.secret - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
+     * @param {string} subscriptionInfo.key - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
      * @param {Object} subscriptionInfo.verificationRequest - The contents of a verification request made to the callbackURl, if 
      *      verification is being used.
      * @returns {SubscriptionResponse} - Object containing the subscription expiration time, and any content that
@@ -235,8 +235,8 @@ class Translator {
 
             // Secret provided for computing HMAC verification of the payload
             // this is optional to Wink
-            if (subscriptionInfo.secret) {
-                postPayload.secret = subscriptionInfo.secret;
+            if (subscriptionInfo.key) {
+                postPayload.key = subscriptionInfo.key;
             }
 
             var postPayloadString = JSON.stringify(postPayload);
