@@ -129,11 +129,13 @@ class Translator {
      */
     _getOpent2tInfo(deviceType) {
         switch (deviceType) {
+            /**
             case "light":
                 return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
                     "translator": 'opent2t-translator-com-smartthings-lightbulb'
                 };
+            **/
             case "switch":
                 return {
                     "schema": 'org.opent2t.sample.binaryswitch.superpopular',

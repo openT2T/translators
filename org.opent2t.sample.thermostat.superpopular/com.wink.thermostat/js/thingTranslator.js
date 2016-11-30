@@ -55,8 +55,13 @@ function translatorHvacModeToDeviceHvacMode(mode) {
     return translatorHvacModeToDeviceHvacModeMap[mode];
 }
 
+function deviceSupportedModesToTranslatorSupportedModes(deviceSupportedModes) {
+    var supportedModes = deviceSupportedModes.map(deviceHvacModeToTranslatorHvacMode);
+    return supportedModes.filter((m) => !!m);
+}
+
 function readHvacMode(stateReader) {
-    var supportedHvacModes = stateReader.get('modes_allowed').map(deviceHvacModeToTranslatorHvacMode);
+    var supportedHvacModes = deviceSupportedModesToTranslatorSupportedModes(stateReader.get('modes_allowed'))
     var hvacMode = deviceHvacModeToTranslatorHvacMode(stateReader.get('mode'));
     var powered = stateReader.get('powered');
 
@@ -71,88 +76,212 @@ function readHvacMode(stateReader) {
     };
 }
 
-// Helper method to convert the device schema to the translator schema.
-function deviceSchemaToTranslatorSchema(deviceSchema) {
+function createResource(resourceType, accessLevel, id, expand, state) {
+    var resource = {
+        href: '/' + id,
+        rt: [resourceType],
+        if: [accessLevel, 'oic.if.baseline']
+    }
 
-    var stateReader = new StateReader(deviceSchema.desired_state, deviceSchema.last_reading);
+    if (expand) {
+        resource.id = id;
+        Object.assign(resource, state);
+    }
+    
+    return resource;
+}
 
-    // Quirks:
-    // - Wink does not have a target temperature field, so returning the average of min and max setpoint
-    // - Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
+// Helper method to convert the provider schema to the platform schema.
+function providerSchemaToPlatformSchema(providerSchema, expand) {
+    var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
     var temperatureUnits = stateReader.get('units').temperature;
 
-    var result = {
-        id: deviceSchema['object_type'] + '.' + deviceSchema['object_id'],
-        n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.thermostat.superpopular',
-        targetTemperature: { temperature: (max + min) / 2, units: temperatureUnits },
-        targetTemperatureHigh: { temperature: max, units: temperatureUnits },
-        targetTemperatureLow: { temperature: min, units: temperatureUnits },
-        ambientTemperature: { temperature: stateReader.get('temperature'), units: temperatureUnits },
-        awayMode: stateReader.get('users_away'),
-        hasFan: stateReader.get('has_fan'),
-        ecoMode: stateReader.get('eco_target'),
-        hvacMode: readHvacMode(stateReader),
-        fanTimerActive: stateReader.get('fan_timer_active')
+    var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
+        temperature: stateReader.get('temperature'),
+        units: temperatureUnits
+    });
+
+    var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
+        temperature: (max + min) / 2,
+        units: temperatureUnits
+    });
+
+    var targetTemperatureHigh = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureHigh', expand, {
+        temperature: max,
+        units: temperatureUnits
+    });
+
+    var targetTemperatureLow = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureLow', expand, {
+        temperature: min,
+        units: temperatureUnits
+    });
+
+    var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
+        mode: stateReader.get('users_away') ? 'away' : 'home',
+        supportedModes: ['home', 'away']
+    });
+
+    var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
+        value: stateReader.get('eco_target')
+    });
+
+    var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, readHvacMode(stateReader));
+
+    var hasFan = createResource('oic.r.sensor', 'oic.if.s', 'hasFan', expand, {
+        value: stateReader.get('has_fan')
+    });
+
+    var fanActive = createResource('oic.r.sensor', 'oic.if.s', 'fanActive', expand, {
+        value: stateReader.get('fan_timer_active')
+    });
+
+    return {
+        opent2t: {
+            schema: 'org.opent2t.sample.thermostat.superpopular',
+            translator: 'opent2t-translator-com-wink-thermostat',
+            controlId: controlId
+        },
+        pi: providerSchema['uuid'],
+        mnmn: providerSchema['device_manufacturer'],
+        mnmo: providerSchema['manufacturer_device_model'],
+        n: providerSchema['name'],
+        rt: ['org.opent2t.sample.thermostat.superpopular'],
+        entities: [
+            {
+                rt: ['opent2t.d.thermostat'],
+                di: deviceIds['opent2t.d.thermostat'],
+                resources: [
+                    ambientTemperature,
+                    targetTemperature,
+                    targetTemperatureHigh,
+                    targetTemperatureLow,
+                    awayMode,
+                    ecoMode,
+                    hvacMode,
+                    hasFan,
+                    fanActive
+                ]
+            }
+        ]
     };
-
-    if (stateReader.get('external_temperature') !== null) {
-        result.externalTemperature = { temperature: stateReader.get('external_temperature'), units: temperatureUnits };
-    }
-
-    return result;
 }
 
 // Helper method to convert the translator schema to the device schema.
-function translatorSchemaToDeviceSchema(translatorSchema) {
+function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     // build the object with desired state
     var result = { 'desired_state': {} };
     var desired_state = result.desired_state;
 
     // Quirks:
-    // Wink does not have a target temperature field, so ignoring that field in translatorSchema.
+    // Wink does not have a target temperature field, so ignoring that resource.
     // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     // Instead, we infer it from the max and min setpoint
     // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
-    if (translatorSchema.n !== undefined) {
-        result['name'] = translatorSchema.n;
-    }
+    switch (resourceId) {
+        case 'targetTemperatureHigh':
+            desired_state['max_set_point'] = resourceSchema.temperature;
+            break;
+        case 'targetTemperatureLow':
+            desired_state['min_set_point'] = resourceSchema.temperature;
+            break;
+        case 'awayMode':
+            desired_state['users_away'] = resourceSchema.modes[0] === 'away';
+            break;
+        case 'hvacMode': {
+                var mode = resourceSchema.modes[0];
 
-    if (translatorSchema.targetTemperatureHigh !== undefined) {
-        desired_state['max_set_point'] = translatorSchema.targetTemperatureHigh.temperature;
-    }
-
-    if (translatorSchema.targetTemperatureLow !== undefined) {
-        desired_state['min_set_point'] = translatorSchema.targetTemperatureLow.temperature;
-    }
-
-    if (translatorSchema.awayMode !== undefined) {
-        desired_state['users_away'] = translatorSchema.awayMode;
-    }
-
-    if (translatorSchema.hvacMode !== undefined) {
-        var mode = translatorSchema.hvacMode.modes[0];
-
-        if (mode === 'off') {
-            desired_state['powered'] = false;
-        }
-        else {
-            desired_state['powered'] = true;
-            desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
-        }
+                if (mode === 'off') {
+                    desired_state['powered'] = false;
+                }
+                else {
+                    desired_state['powered'] = true;
+                    desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+                }
+                break;
+            }
+        case 'targetTemperature':
+        case 'awayTemperatureHigh':
+        case 'awayTemperatureLow':
+        case 'fanTimerTimeout':
+        case 'fanMode':
+            throw new Error('NotImplemented');
+        default:
+            throw new Error('NotFound');
     }
 
     return result;
 }
 
-var deviceId;
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'humidity':
+        case 'awayTemperatureHigh':
+        case 'awayTemperatureLow':
+        case 'heatingFuelSource':
+        case 'fanTimerActive':
+        case 'fanTimerTimeout':
+        case 'fanMode':
+            throw new Error('NotImplemented');
+    }
+}
+
+function findResource(schema, di, resourceId) {
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    if (!entity) {
+        throw new Error('NotFound');
+    }
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) {
+        throw new Error('NotFound');
+    }
+
+    return resource;
+}
+
+function getDeviceResource(translator, di, resourceId) {
+    validateResourceGet(resourceId);
+
+    return translator.get(true)
+        .then(response => {
+            return findResource(response, di, resourceId);
+        });
+}
+
+function postDeviceResource(di, resourceId, payload) {
+    if (di === deviceIds['opent2t.d.thermostat']) {
+        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+        return winkHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
+            .then((response) => {
+                var schema = providerSchemaToPlatformSchema(response.data, true);
+
+                return findResource(schema, di, resourceId);
+            });
+    } else {
+        throw new Error('NotFound');
+    }
+}
+
+var controlId;
 var deviceType = 'thermostats';
 var winkHub;
+
+var deviceIds = {
+    'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
+    'opent2t.d.thermostat': 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
+}
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
@@ -162,113 +291,131 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        deviceId = deviceInfo.deviceInfo.id;
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
         winkHub = deviceInfo.hub;
 
         console.log('Wink Thermostat Translator initialized.');
     }
 
-    // exports for the entire schema object
-
-    // Queries the entire state of the thermostat
+    // Queries the entire state of the binary switch
     // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-    getThermostatResURI(payload) {
+    get(expand, payload) {
         if (payload) {
-            return deviceSchemaToTranslatorSchema(payload);
+            return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+            return winkHub.getDeviceDetailsAsync(deviceType, controlId)
                 .then((response) => {
-                    return deviceSchemaToTranslatorSchema(response.data);
+                    return providerSchemaToPlatformSchema(response.data, expand);
                 });
         }
     }
 
-    // Updates the current state of the thermostat with the contents of postPayload
-    // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-    //
-    // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(postPayload) {
-        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
-
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response.data);
-            });
+    getDevicesAmbientTemperature(di) {
+        return getDeviceResource(this, di, 'ambientTemperature');
     }
 
-    // exports for individual properties
-
-    getAmbientTemperature() {
-        console.log('getAmbientTemperature called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.ambientTemperature.temperature;
-            });
+    getDevicesTargetTemperature(di) {
+        return getDeviceResource(this, di, 'targetTemperature');
     }
 
-    getTargetTemperature() {
-        console.log('getTargetTemperature called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.targetTemperature.temperature;
-            });
+    postDevicesTargetTemperature(di, payload) {
+        return postDeviceResource(di, 'targetTemperature', payload);
     }
 
-    getTargetTemperatureHigh() {
-        console.log('getTargetTemperatureHigh called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.targetTemperatureHigh.temperature;
-            });
+    getDevicesHumidity(di) {
+        return getDeviceResource(this, di, 'humidity');
     }
 
-    setTargetTemperatureHigh(value) {
-        console.log('setTargetTemperatureHigh called with value: ' + value);
-
-        var postPayload = {};
-        postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
-
-        return this.postThermostatResURI(postPayload)
-            .then(response => {
-                return response.targetTemperatureHigh.temperature;
-            });
+    getDevicesTargetTemperatureHigh(di) {
+        return getDeviceResource(this, di, 'targetTemperatureHigh');
     }
 
-    getTargetTemperatureLow() {
-        console.log('getTargetTemperatureLow called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.targetTemperatureLow.temperature;
-            });
+    postDevicesTargetTemperatureHigh(di, payload) {
+        return postDeviceResource(di, 'targetTemperatureHigh', payload);
     }
 
-    setTargetTemperatureLow(value) {
-        console.log('setTargetTemperatureLow called with value: ' + value);
-        
-        var postPayload = {};
-        postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
-
-        return this.postThermostatResURI(postPayload)
-            .then(response => {
-                return response.targetTemperatureLow.temperature;
-            });
+    getDevicesTargetTemperatureLow(di) {
+        return getDeviceResource(this, di, 'targetTemperatureLow');
     }
 
-    postSubscribeThermostatResURI(callbackUrl, verificationRequest, verificationResponse) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest, verificationResponse);
+    postDevicesTargetTemperatureLow(di, payload) {
+        return postDeviceResource(di, 'targetTemperatureLow', payload);
     }
 
-    deleteSubscribeThermostatResURI(callbackUrl) {
-        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+    getDevicesAwayMode(di) {
+        return getDeviceResource(this, di, 'awayMode');
     }
 
-    getSubscriptions() {
-        return winkHub._getSubscriptions(deviceType, deviceId);
+    postDevicesAwayMode(di, payload) {
+        return postDeviceResource(di, 'awayMode', payload);
+    }
+
+    getDevicesAwayTemperatureHigh(di) {
+        return getDeviceResource(this, di, 'awayTemperatureHigh');
+    }
+
+    postDevicesAwayTemperatureHigh(di, payload) {
+        return postDeviceResource(di, 'awayTemperatureHigh', payload);
+    }
+
+    getDevicesAwayTemperatureLow(di) {
+        return getDeviceResource(this, di, 'awayTemperatureLow');
+    }
+
+    postDevicesAwayTemperatureLow(di, payload) {
+        return postDeviceResource(di, 'awayTemperatureLow', payload);
+    }
+
+    getDevicesEcoMode(di) {
+        return getDeviceResource(this, di, 'ecoMode');
+    }
+
+    getDevicesHvacMode(di) {
+        return getDeviceResource(this, di, 'hvacMode');
+    }
+
+    postDevicesHvacMode(di, payload) {
+        return postDeviceResource(di, 'hvacMode', payload);
+    }
+
+    getDevicesHeatingFuelSource(di) {
+        return getDeviceResource(this, di, 'heatingFuelSource');
+    }
+
+    getDevicesHasFan(di) {
+        return getDeviceResource(this, di, 'hasFan');
+    }
+
+    getDevicesFanActive(di) {
+        return getDeviceResource(this, di, 'fanActive');
+    }
+
+    getDevicesFanTimerActive(di) {
+        return getDeviceResource(this, di, 'fanTimerActive');
+    }
+
+    getDevicesFanTimerTimeout(di) {
+        return getDeviceResource(this, di, 'fanTimerTimeout');
+    }
+
+    postDevicesFanTimerTimeout(di, payload) {
+        return postDeviceResource(di, 'fanTimerTimeout', payload);
+    }
+
+    getDevicesFanMode(di) {
+        return getDeviceResource(this, di, 'fanMode');
+    }
+
+    postDevicesFanMode(di, payload) {
+        return postDeviceResource(di, 'fanMode', payload);
+    }
+
+    postSubscribe(callbackUrl, verificationRequest) {
+        return winkHub._subscribe(deviceType, controlId, callbackUrl, verificationRequest);
+    }
+
+    deleteSubscribe(callbackUrl) {
+        return winkHub._unsubscribe(deviceType, controlId, callbackUrl);
     }
 }
 

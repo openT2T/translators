@@ -241,11 +241,10 @@ def getDevices() {
         deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
  
-    log.debug "getDevices, return: ${deviceData}"
     return deviceData 
 }
 
-//Endpoints function: get device data
+//Endpoints functions; get the data of a specific device
 def getDevice() {    
     def it = findDevice(params.id)
     def deviceType = getDeviceType(it)
@@ -258,7 +257,6 @@ def getDevice() {
     {
     	device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
     }   
-    log.debug "getDevice, return: ${device}"
     return device
 }
 

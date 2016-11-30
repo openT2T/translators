@@ -1,4 +1,3 @@
-const sleep = require('es6-sleep').promise;
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
@@ -39,64 +38,47 @@ test.serial("Valid Binary Switch Translator", t => {
 /// Run a series of tests to validate the translator
 ///
 
-// Set/Get power Value via setters for individual properties
-test.serial('Power', t => {
+// Get the entire Lamp schema object unexpanded
+test.serial('GetPlatform', t => {
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'get', [])
+        .then((response) => {
+            t.is(response.rt[0], 'org.opent2t.sample.binaryswitch.superpopular');
 
-    // set value to true
-    return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power', true)
-        .then(() => {
-
-            // wait a bit...
-            return sleep(5000).then(() => {
-                // get value back
-                return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power')
-                    .then((getResponse) => {
-                        // TEST: the same value was returned that was set
-                        console.log('*** getResponse ***: ' + JSON.stringify(getResponse, null, 2));
-                        t.is(getResponse, true);
-
-                        // set value to false
-                        return OpenT2T.setPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power', false)
-                            .then(() => {
-
-                                // wait a bit
-                                return sleep(5000).then(() => {
-                                    // get value back
-                                    return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'power')
-                                        .then((getResponse2) => {
-
-                                            // TEST: the same value was returned that was set
-                                            console.log('*** getResponse ***: ' + JSON.stringify(getResponse2, null, 2));
-                                            t.is(getResponse2, false);
-                                        });
-                                });
-                            });
-                    });
-            });
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
         });
 });
 
-// Set/Get power Value via POST/GET of the entire schema object
-test.serial('Power_Post_Get', t => {
+// Get the entire Lamp schema object expanded
+test.serial('GetPlatformExpanded', t => {
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'get', [true])
+        .then((response) => {
+            t.is(response.rt[0], 'org.opent2t.sample.binaryswitch.superpopular');
 
-    // build value payload with schema for this translator,
-    var postPayload = {
-        power: {
-            value: true
-        }
-    };
+            var resource = response.entities[0].resources[0];
+            t.is(resource.id, 'power');
+            t.is(resource.rt[0], 'oic.r.switch.binary');
+            t.true(resource.value !== undefined);
 
-    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'postBinarySwitchResURI', [postPayload])
-        .then((response1) => {
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
+        });
+});
 
-            console.log('*** multi-set response: ' + JSON.stringify(response1, null, 2));
+test.serial('GetPower', t => {
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'getDevicesPower', ['F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8'])
+        .then((response) => {
+            t.is(response.rt[0], 'oic.r.switch.binary');
 
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'getBinarySwitchResURI', [])
-                .then((response2) => {
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
+        });
+});
 
-                    // TEST: the same value was returned that was set
-                    console.log('*** multi-get response: ' + JSON.stringify(response2, null, 2));
-                    t.is(response2.power.value, true);
-                });
+test.serial('SetPower', t => {
+    var power = { 'value': true };
+
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.binaryswitch.superpopular', 'postDevicesPower', ['F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8', power])
+        .then((response) => {
+            t.is(response.rt[0], 'oic.r.switch.binary');
+            
+            console.log('*** response: \n' + JSON.stringify(response, null, 2));
         });
 });
