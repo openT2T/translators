@@ -26,18 +26,28 @@ class Translator {
     /**
      * Get the hub definition and devices
      */
-    get(expand, payload) {
-        return this.getPlatforms(expand, payload);
+    get(expand, payload, verification) {
+        return this.getPlatforms(expand, payload, verification);
     }
 
     /**
      * Get the list of devices discovered through the hub.
      */
-    getPlatforms(expand, payload) {
+    getPlatforms(expand, payload, verification) {
 
         // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
         // converted to the opent2t/ocf representation.
         if (payload !== undefined) {
+            // Callculate the HMAC for the payload using the secret
+            if (verification !== undefined && verification.secret !== undefined) {
+                // use secret to calculate HMAC
+                var hmac = require('crypto').createHmac('sha1', verification.secret).update(payload).digest('hex');
+                if (hmac != verification.hmac) {
+                   throw new Error("Payload signature doesn't match.");
+                }
+            }
+
+            // Return either the verified payload 
             return this._providerSchemaToPlatformSchema(payload, expand);
         }
         else {
@@ -190,18 +200,24 @@ class Translator {
      * currently 24 hours.  Subsequent calls to subscribe will refresh the expiration time, and in the
      * case of Wink/Pubsubhubbub will not require verification.
      * 
+     * @typedef {Object} SubscriptionResponse
+     * @property {number} expiration - Expiration time for the subscription.
+     * @property {string} response - Response payload for the verification request.
+     * 
      * @param {string} deviceType - Device Type (e.g. 'thermostats')
      * @param {string|number} deviceId - Id for the specific device
-     * @param {string} callbackUrl - Callback url for feed postbacks
-     * @param {HttpRequest} verificationRequest - GET request received by the server at a previously subscribed
-     *      callback URL.  This completes the verification half of the subscription.
-     * @returns {number} Object containing the subscription expiration time, and any content that
+     * @param {Object} subscriptionInfo - Subscription information
+     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint. This URL will receive verification, and updates.
+     * @param {string} subscriptionInfo.secret - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
+     * @param {Object} subscriptionInfo.verificationRequest - The contents of a verification request made to the callbackURl, if 
+     *      verification is being used.
+     * @returns {SubscriptionResponse} - Object containing the subscription expiration time, and any content that
      *      needs to be included in a response to the original request. Content that should be provided in the response to the
      *      verification request as {'Content-Type': 'text/plain'}.
      */
-    _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
+    _subscribe(deviceType, deviceId, subscriptionInfo) {
 
-        if (callbackUrl) {
+        if (subscriptionInfo.callbackUrl) {
             // Subscribe to notifications
 
             var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
@@ -214,7 +230,13 @@ class Translator {
             // with another call to this function.
 
             var postPayload = {
-                callback: callbackUrl,
+                callback: subscriptionInfo.callbackUrl
+            }
+
+            // Secret provided for computing HMAC verification of the payload
+            // this is optional to Wink
+            if (subscriptionInfo.secret) {
+                postPayload.secret = subscriptionInfo.secret;
             }
 
             var postPayloadString = JSON.stringify(postPayload);
@@ -226,10 +248,10 @@ class Translator {
                 };
             })
 
-        } else if (verificationRequest) {
+        } else if (subscriptionInfo.verificationRequest) {
             // Verify a subscription request by constructing the appropriate response
 
-            var params = require('url').parse(verificationRequest.url, true, true);
+            var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
             // This is a subscription validation, populate the response
             switch(params.query['hub.mode']) {
                 case "denied":
