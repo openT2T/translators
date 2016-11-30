@@ -3,7 +3,7 @@
 
 "use strict";
 var request = require('request-promise');
-var OpenT2T = require('opent2t').OpenT2T; 
+var OpenT2T = require('opent2t').OpenT2T;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -51,10 +51,9 @@ class Translator {
     }
 
     /**
-     * Gets device details (all fields), response formatted per http://www.developers.meethue.com/documentation/lights-api
+     * Gets device details (all fields)
      */
     getDeviceDetailsAsync(deviceId) {
-
         return this._hasValidEndpoint().then((isValid) => {
             if (isValid == false) return undefined;
 
@@ -66,7 +65,7 @@ class Translator {
     }
 
     /**
-     * Puts device details (all fields) payload formatted per http://www.developers.meethue.com/documentation/lights-api
+     * Puts device details (all fields) payload
      */
     putDeviceDetailsAsync(deviceId, putPayload) {
         return this._hasValidEndpoint().then((isValid) => {
@@ -140,6 +139,11 @@ class Translator {
                     "schema": 'opent2t.p.switch.binary',
                     "translator": 'opent2t-translator-com-smartthings-binaryswitch'
                 };
+            case "thermostat":
+                return {
+                    "schema": 'opent2t.p.thermostat',
+                    "translator": 'opent2t-translator-com-smartthings-thermostat'
+                };
             default:
                 return undefined;
         }
@@ -156,6 +160,24 @@ class Translator {
                 return Promise.resolve(responses[0].uri);
             }
             return Promise.resolve(undefined);
+        });
+    }
+
+    _subscribe(deviceId) {
+        return this._hasValidEndpoint().then((isValid) => {
+            if (isValid == false) return undefined;
+
+            var requestPath = '/subscription/' + deviceId;
+            return this._makeRequest(requestPath, 'POST', '');
+        });
+    }
+
+    _unsubscribe(deviceId) {
+        return this._hasValidEndpoint().then((isValid) => {
+            if (isValid == false) return undefined;
+
+            var requestPath = '/subscription/' + deviceId;
+            return this._makeRequest(requestPath, 'DELETE');
         });
     }
 
@@ -207,11 +229,12 @@ class Translator {
         // Start the async request
         return request(options)
             .then(function (body) {
-                if (method === 'PUT') {
+                if (method === 'PUT' || method === 'DELETE') {
                     if (body.length === 0) return "succeed";
                     return "Unkown error";
-                }
-                return JSON.parse(body);
+                } else {
+                    return JSON.parse(body);
+                }                
             })
             .catch(function (err) {
                 console.log("Request failed to: " + options.method + " - " + options.url);

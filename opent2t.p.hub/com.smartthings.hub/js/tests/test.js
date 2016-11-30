@@ -17,7 +17,7 @@ test.serial('Get', t => {
         .then(translator => {
             // TEST: translator is valid
             t.is(typeof translator, 'object') && t.truthy(translator);
-            return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.hub', 'getPlatforms', [])
+            return OpenT2T.invokeMethodAsync(translator, 'opent2t.p.hub', 'getPlatforms', [true])
                 .then((hub) => {
 
                     console.log("Hub:");

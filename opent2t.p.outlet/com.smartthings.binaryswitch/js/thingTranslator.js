@@ -31,7 +31,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'opent2t.p.outlet',
             translator: 'opent2t-translator-com-smartthings-binaryswitch',
-            controlId: deviceId
+            controlId: controlId
         },
         pi: providerSchema['id'],
         mnmn: providerSchema['manufacturer'],
@@ -84,7 +84,7 @@ function getDeviceResource(translator, di, resourceId) {
 function postDeviceResource(di, resourceId, payload) {
     var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-    return smartThingsHub.putDeviceDetailsAsync(deviceId, putPayload)
+    return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
         .then((response) => {
             var schema = providerSchemaToPlatformSchema(response, true);
 
@@ -92,7 +92,7 @@ function postDeviceResource(di, resourceId, payload) {
         });
 }
 
-var deviceId;
+var controlId;
 var smartThingsHub;
 
 // This translator class implements the 'opent2t.p.outlet' interface.
@@ -103,7 +103,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
         smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Binary Switch initializing...Done');
@@ -118,7 +118,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return smartThingsHub.getDeviceDetailsAsync(deviceId)
+            return smartThingsHub.getDeviceDetailsAsync(controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
