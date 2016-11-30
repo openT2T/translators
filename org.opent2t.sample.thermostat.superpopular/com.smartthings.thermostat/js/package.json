@@ -1,7 +1,7 @@
 {
-  "name": "opent2t-translator-com-smartthings-binaryswitch",
+  "name": "opent2t-translator-com-smartthings-thermostat",
   "version": "0.2.0",
-  "description": "SmartThings Binary Switch",
+  "description": "SmartThings Thermostat",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
@@ -10,7 +10,8 @@
   "main": "thingTranslator.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "unittest": "ava tests/unitTests.js"
   },
   "ava": {
     "files": [
@@ -19,11 +20,10 @@
   },
   "dependencies": {
     "opent2t": "*",
-    "opent2t-translator-com-smartthings-hub": "*"
+    "opent2t-translator-com-smartthings-hub": "^0.2.0"
   },
   "devDependencies": {
-    "optimist": "*",
     "ava": "^0.15.2",
-    "es6-sleep": "*"
+    "q": "*"
   }
 }
