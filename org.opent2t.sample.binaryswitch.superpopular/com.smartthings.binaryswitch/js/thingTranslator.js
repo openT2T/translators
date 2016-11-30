@@ -132,6 +132,21 @@ class Translator {
     postDevicesPower(di, payload) {
         return postDeviceResource(di, 'power', payload);
     }
+
+    /**
+     * Smartthings subscriptions are created as part of the groovy app so these methods are no-ops
+     * but must let the caller know that a subscription is successful.
+     */
+    postSubscribe(subscriptionInfo) {
+        return {
+            expiration: -1, // Subscription has no expiration
+            response: ""
+        };
+    }
+
+    deleteSubscribe(callbackUrl) {
+        return {};
+    }
 }
 
 // Export the translator from the module.

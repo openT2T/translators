@@ -166,8 +166,8 @@ class Translator {
         return postDeviceResource(di, 'power', payload);
     }
 
-    postSubscribe(callbackUrl, verificationRequest) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
+    postSubscribe(subscriptionInfo) {
+        return winkHub._subscribe(deviceType, deviceId, subscriptionInfo);
     }
 
     deleteSubscribe(callbackUrl) {

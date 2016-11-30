@@ -249,8 +249,8 @@ class Translator {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
-    postSubscribe(callbackUrl, verificationRequest) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
+    postSubscribe(subscriptionInfo) {
+        return winkHub._subscribe(deviceType, deviceId, subscriptionInfo);
     }
 
     deleteSubscribe(callbackUrl) {
