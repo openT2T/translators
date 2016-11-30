@@ -1,0 +1,27 @@
+{   "base_state" :
+    {   "data" :
+        {
+            "desired_state" : {
+                "powered" : false
+            },
+            "last_reading" : {
+                "powered" : false
+            },
+            "object_type" : "Mock Type",
+            "object_id" : "Mock Id",
+            "name" : "Mock Name"
+        }
+    },
+    "test_data" :
+    {
+        "SetPower" :
+            [
+                {
+                    "powered" : true
+                },
+                {
+                    "powered" : false
+                }
+            ]
+    }
+}
