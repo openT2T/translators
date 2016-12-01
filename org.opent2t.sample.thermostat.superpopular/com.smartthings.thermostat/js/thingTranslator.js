@@ -163,6 +163,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             result['fanMode'] = resourceSchema.modes[0];       //TODO: convert mode?
             break;
         case 'targetTemperature':
+            result['thermostatSetpoint'] = resourceSchema.temperature;
+            break;
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
@@ -239,14 +241,14 @@ var smartThingsHub;
 class Translator {
 
     constructor(deviceInfo) {
-        console.log('Initializing device.');
+        console.log('SmartThings Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         controlId = deviceInfo.deviceInfo.opent2t.controlId;
         smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Thermostat Translator initialized.');
+        console.log('SmartThings Thermostat initializing...Done');
     }
 
     // Queries the entire state of the binary switch

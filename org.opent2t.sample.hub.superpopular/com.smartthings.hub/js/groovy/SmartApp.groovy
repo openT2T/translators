@@ -136,8 +136,7 @@ def registerDeviceChange() {
         }
         return ["succeed"]
     } catch (e) {
-        log.error "something went wrong: $e"
-        return ['failed', [error: e]]
+        httpError(500, "something went wrong: $e")
     }
 }
 
@@ -149,8 +148,7 @@ def unregisterDeviceChange() {
         log.info "Unregistering ${myDevice.displayName}"
         return ["succeed"]
     } catch (e) {
-        log.error "something went wrong: $e"
-        return ["failed", [error: e]]
+        httpError(500, "something went wrong: $e")
     }
 }
 
@@ -241,10 +239,11 @@ def getDevices() {
         deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
  
+    log.debug "getDevices, return: ${deviceData}"
     return deviceData 
 }
 
-//Endpoints functions; get the data of a specific device
+//Endpoints function: get device data
 def getDevice() {    
     def it = findDevice(params.id)
     def deviceType = getDeviceType(it)
@@ -257,6 +256,7 @@ def getDevice() {
     {
     	device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
     }   
+    log.debug "getDevice, return: ${device}"
     return device
 }
 
@@ -272,9 +272,24 @@ void updateDevice() {
             value = commandList[1]
             
             if (command == "setAwayMode") {
-            	log.info "Setting away mode to ${value}"
+                log.info "Setting away mode to ${value}"
                 if (location.modes?.find {it.name == value}) {
                     location.setMode(value)
+                }
+            }else if (command == "thermostatSetpoint"){
+            	switch(device.currentThermostatMode){
+                	case "cool":
+                    	log.info "Update: ${device.displayName}, [${command}, ${value}]"
+                    	device.setCoolingSetpoint(value)
+                    	break
+                    case "heat":
+                    case "emergency heat":
+                    	log.info "Update: ${device.displayName}, [${command}, ${value}]"
+                    	device.setHeatingSetpoint(value)
+                    	break
+                    default:
+                    	httpError(501, "this mode: ${device.currentThermostatMode} does not allow changing thermostat setpoint.")
+                    	break
                 }
             }else if (!device) {
                 log.error "updateDevice, Device not found"
@@ -453,6 +468,10 @@ private mapDeviceCommands(command, value) {
             break
         case "heatingSetpoint":    
         	resultCommand = "setHeatingSetpoint"
+            resultValue = value
+            break
+        case "thermostatSetpoint":
+        	resultCommand = "thermostatSetpoint"
             resultValue = value
             break
         // lock attributes
