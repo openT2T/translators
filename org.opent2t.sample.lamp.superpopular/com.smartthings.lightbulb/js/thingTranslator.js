@@ -118,7 +118,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceId = deviceInfo.deviceInfo.opent2t.controlId;
+        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
         smartthingsHub = deviceInfo.hub;
 
         console.log('SmartThings Lightbulb initializing...Done');
