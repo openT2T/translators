@@ -157,12 +157,11 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             result['awayMode'] = resourceSchema.modes[0] === 'away' ? 'Away' : 'Home';
             break;
         case 'hvacMode':
-            var mode = resourceSchema.modes[0];
-            result['hvacMode'] = translatorHvacModeToDeviceHvacMode(mode);
+            result['hvacMode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
             break;
         case 'fanMode':
-            var mode = resourceSchema.modes[0];
-            result['fanMode'] = mode;       //TODO: convert mode
+            result['fanMode'] = resourceSchema.modes[0];       //TODO: convert mode?
+            break;
         case 'targetTemperature':
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':

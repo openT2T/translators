@@ -1,8 +1,6 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');
-var http = require('http');
-var q = require('q');
 
 console.log("Config:");
 console.log(JSON.stringify(config, null, 2));
@@ -149,8 +147,6 @@ test.serial('SetAwayModeForNonexistentDevice_Fails', t => {
  * Please check the "live logging" section for your SmartApp to see if the notification was send or not.
  */
 test.serial('Notifications - Subscribe', t => {
-    var deferred = q.defer();
-
     console.log("Subscripting...");
     return translator.postSubscribe().then((response) => {
         t.is(response[0], 'succeed');

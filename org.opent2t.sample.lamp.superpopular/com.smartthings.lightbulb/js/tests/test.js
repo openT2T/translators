@@ -1,4 +1,3 @@
-const sleep = require('es6-sleep').promise;
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var config = require('./testConfig');

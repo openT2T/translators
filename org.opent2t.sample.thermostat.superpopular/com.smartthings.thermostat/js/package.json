@@ -23,7 +23,6 @@
     "opent2t-translator-com-smartthings-hub": "^0.2.0"
   },
   "devDependencies": {
-    "ava": "^0.15.2",
-    "q": "*"
+    "ava": "^0.15.2"
   }
 }

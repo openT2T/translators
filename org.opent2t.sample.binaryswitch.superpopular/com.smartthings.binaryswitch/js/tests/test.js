@@ -6,7 +6,7 @@ console.log("Config:");
 console.log(JSON.stringify(config, null, 2));
 
 var translatorPath = require('path').join(__dirname, '..');
-var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/js'');
+var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/js');
 var translator = undefined;
 var controllId = undefined;
 

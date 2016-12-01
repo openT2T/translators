@@ -203,11 +203,11 @@ class Translator {
     }
 
     postSubscribe(callbackUrl, verificationRequest) {
-        return smartthingsHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
+        return smartthingsHub._subscribe(deviceId);
     }
 
     deleteSubscribe(callbackUrl) {
-        return smartthingsHub._unsubscribe(deviceType, deviceId, callbackUrl);
+        return smartthingsHub._unsubscribe(deviceId);
     }
 }
 
