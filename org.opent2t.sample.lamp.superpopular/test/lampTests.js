@@ -1,12 +1,13 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
+const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 
 function runLampTests(createTranslator, deviceId, test, setTestData) {
 
-    function setData(name, t) {
+    function setData(t) {
         if(setTestData) {
-            setTestData(name, t);
+            setTestData(t.title, t);
         }
     }
 
@@ -18,8 +19,8 @@ function runLampTests(createTranslator, deviceId, test, setTestData) {
 
     test.serial('GetPlatform', t => {
         return createTranslator().then(translator => {
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'get', []).then((response) => {
-                t.is(response.rt[0], 'org.opent2t.sample.lamp.superpopular');
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+                t.is(response.rt[0], SchemaName);
                 
                 var resource = response.entities[0].resources[0];
                 t.is(resource.rt[0], 'oic.r.switch.binary');
@@ -31,9 +32,9 @@ function runLampTests(createTranslator, deviceId, test, setTestData) {
 
     test.serial('GetPlatformExpanded', t => {
         return createTranslator().then(translator => {
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'get', [true])
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', [true])
                 .then((response) => {
-                    t.is(response.rt[0], 'org.opent2t.sample.lamp.superpopular');
+                    t.is(response.rt[0], SchemaName);
 
                     var resource = response.entities[0].resources[0];
                     t.is(resource.id, 'power');
@@ -45,7 +46,7 @@ function runLampTests(createTranslator, deviceId, test, setTestData) {
 
     test.serial('GetPower', t => {
         return createTranslator().then(translator => {
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'getDevicesPower', [deviceId])
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesPower', [deviceId])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.switch.binary');
             });
@@ -53,15 +54,15 @@ function runLampTests(createTranslator, deviceId, test, setTestData) {
     });
 
     test.serial('SetPower', t => {
-        setData('SetPower', t);
+        setData(t);
         return createTranslator().then(translator => {
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postDevicesPower', [deviceId, { 'value': true }])
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': true }])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.switch.binary');
                     t.is(response.id, 'power');
                     t.true(response.value === true);
 
-                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postDevicesPower', [deviceId, { 'value': false }])
+                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': false }])
                         .then((responseTwo) => {
                             t.is(responseTwo.id, 'power');
                             t.true(responseTwo.value === false);
@@ -72,7 +73,7 @@ function runLampTests(createTranslator, deviceId, test, setTestData) {
 
     test.serial('GetDimming', t => {
         return createTranslator().then(translator => {
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'getDeviceResource', [deviceId, 'dim'])
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDeviceResource', [deviceId, 'dim'])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.light.dimming');
                     t.true(response.dimmingSetting !== undefined);
@@ -81,15 +82,15 @@ function runLampTests(createTranslator, deviceId, test, setTestData) {
     });
 
     test.serial('SetDimming', t => {
-        setData('SetDimming', t);
+        setData(t);
         return createTranslator().then(translator => {
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 10 }])
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 10 }])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.light.dimming');
                     t.is(response.id, 'dim');
                     t.true(response.dimmingSetting === 10);
 
-                    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.lamp.superpopular', 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 50 }])
+                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 50 }])
                         .then((responseTwo) => {
                             t.is(responseTwo.id, 'dim');
                             t.true(responseTwo.dimmingSetting === 50);
