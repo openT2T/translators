@@ -93,12 +93,12 @@ test.serial('GetHumidity', t => {
 });
 
 test.serial('SetAwayMode', t => {
-    var awayMode = {'modes': ['away']};
+    var awayMode = {'modes': ['home']};
 
     return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesAwayMode', [controlId, awayMode])
         .then((response) => {
             t.is(response.rt[0], 'oic.r.mode');
-            t.is(response.modes, 'away');
+            t.is(response.modes, 'home');
 
             console.log('*** SetAwayMode::response: \n' + JSON.stringify(response, null, 2));
         });
@@ -114,6 +114,43 @@ test.serial('SetTargetTemperatureHigh', t => {
           t.is(response.temperature, 82);
 
           console.log('*** SetTargetTemperatureHigh::response: \n' + JSON.stringify(response, null, 2));
+      });
+});
+
+test.serial('SetTargetTemperature', t => {
+    var targetTemperature = { 'temperature': 60 };
+
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperature', [controlId, targetTemperature])
+      .then((response) => {
+          t.is(response.rt[0], 'oic.r.temperature');
+          t.is(response.temperature, 60);
+
+          console.log('*** SetTargetTemperature::response: \n' + JSON.stringify(response, null, 2));
+      });
+});
+
+test.serial('SetHVACMode', t => {
+    var hvacMode = {'modes': ['coolOnly']};
+
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesHvacMode', [controlId, hvacMode])
+        .then((response) => {
+            t.is(response.rt[0], 'oic.r.mode');
+            t.is(response.modes, 'coolOnly');
+
+            console.log('*** SetHVACMode::response: \n' + JSON.stringify(response, null, 2));
+        });
+});
+
+
+test.serial('SetTargetTemperature', t => {
+    var targetTemperature = { 'temperature': 80 };
+
+    return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperature', [controlId, targetTemperature])
+      .then((response) => {
+          t.is(response.rt[0], 'oic.r.temperature');
+          t.is(response.temperature, 80);
+
+          console.log('*** SetTargetTemperature::response: \n' + JSON.stringify(response, null, 2));
       });
 });
 

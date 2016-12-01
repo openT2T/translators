@@ -63,7 +63,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-smartthings-lightbulb',
-            controlId: deviceId
+            controlId: controlId
         },
         pi: providerSchema['id'],
         mnmn: providerSchema['manufacturer'],
@@ -107,8 +107,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-var deviceId;
-var smartthingsHub;
+var controlId;
+var smartThingsHub;
 
 // This translator class implements the 'opent2t.d.light' interface.
 class Translator {
@@ -118,8 +118,8 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
-        smartthingsHub = deviceInfo.hub;
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Lightbulb initializing...Done');
     }
@@ -135,7 +135,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return smartthingsHub.getDeviceDetailsAsync(deviceId)
+            return smartThingsHub.getDeviceDetailsAsync(controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -158,7 +158,7 @@ class Translator {
     postDeviceResource(di, resourceId, payload) {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-        return smartthingsHub.putDeviceDetailsAsync(deviceId, putPayload)
+        return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
             .then((response) => {
                 var schema = providerSchemaToPlatformSchema(response, true);
 
@@ -166,40 +166,40 @@ class Translator {
             });
     }
 
-    getDevicesPower(deviceId) {
-        return this.getDeviceResource(deviceId, "power");
+    getDevicesPower(controlId) {
+        return this.getDeviceResource(controlId, "power");
     }
 
-    postDevicesPower(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "power", payload)
+    postDevicesPower(controlId, payload) {
+        return this.postDeviceResource(controlId, "power", payload)
     }
 
-    getDevicesColourMode(deviceId) {
-        return this.getDeviceResource(deviceId, "colourMode");
+    getDevicesColourMode(controlId) {
+        return this.getDeviceResource(controlId, "colourMode");
     }
 
-    getDevicesColourRGB(deviceId) {
-        return this.getDeviceResource(deviceId, "colourRgb");
+    getDevicesColourRGB(controlId) {
+        return this.getDeviceResource(controlId, "colourRgb");
     }
 
-    postDevicesColourRGB(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourRgb", payload);
+    postDevicesColourRGB(controlId, payload) {
+        return this.postDeviceResource(controlId, "colourRgb", payload);
     }
 
-    getDevicesDim(deviceId) {
-        return this.getDeviceResource(deviceId, "dim");
+    getDevicesDim(controlId) {
+        return this.getDeviceResource(controlId, "dim");
     }
 
-    postDevicesDim(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "dim", payload);
+    postDevicesDim(controlId, payload) {
+        return this.postDeviceResource(controlId, "dim", payload);
     }
 
-    getDevicesColourChroma(deviceId) {
-        return this.getDeviceResource(deviceId, "colourChroma");
+    getDevicesColourChroma(controlId) {
+        return this.getDeviceResource(controlId, "colourChroma");
     }
 
-    postDevicesColourChroma(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourChroma", payload);
+    postDevicesColourChroma(controlId, payload) {
+        return this.postDeviceResource(controlId, "colourChroma", payload);
     }
 
     /*jslint unparam: true*/
