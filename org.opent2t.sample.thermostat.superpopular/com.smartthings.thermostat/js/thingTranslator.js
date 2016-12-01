@@ -362,6 +362,7 @@ class Translator {
         return postDeviceResource(di, 'fanMode', payload);
     }
 
+    /*jslint unparam: true*/
     postSubscribe(callbackUrl, verificationRequest) {
         return smartThingsHub._subscribe(controlId);
     }
@@ -369,6 +370,7 @@ class Translator {
     deleteSubscribe(callbackUrl) {
         return smartThingsHub._unsubscribe(controlId);
     }
+    /*jslint unparam: false*/
 }
 
 // Export the translator from the module.

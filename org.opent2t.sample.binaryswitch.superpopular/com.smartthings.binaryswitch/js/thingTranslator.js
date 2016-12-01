@@ -132,6 +132,16 @@ class Translator {
     postDevicesPower(di, payload) {
         return postDeviceResource(di, 'power', payload);
     }
+    
+    /*jslint unparam: true*/
+    postSubscribe(callbackUrl, verificationRequest) {
+        return smartThingsHub._subscribe(controlId);
+    }
+
+    deleteSubscribe(callbackUrl) {
+        return smartThingsHub._unsubscribe(controlId);
+    }
+    /*jslint unparam: false*/
 }
 
 // Export the translator from the module.

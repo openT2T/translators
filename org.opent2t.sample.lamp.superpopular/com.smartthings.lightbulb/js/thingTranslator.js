@@ -202,13 +202,15 @@ class Translator {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
+    /*jslint unparam: true*/
     postSubscribe(callbackUrl, verificationRequest) {
-        return smartthingsHub._subscribe(deviceId);
+        return smartThingsHub._subscribe(controlId);
     }
 
     deleteSubscribe(callbackUrl) {
-        return smartthingsHub._unsubscribe(deviceId);
+        return smartThingsHub._unsubscribe(controlId);
     }
+    /*jslint unparam: false*/
 }
 
 // Export the translator from the module.
