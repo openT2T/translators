@@ -1,13 +1,13 @@
 {
-  "name": "opent2t-device-thermostat",
+  "name": "opent2t-device-lamp",
   "version": "0.1.1",
-  "description": "Thermostat device",
+  "description": "Lamp device",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/opent2t/translators.git"
   },
-  "main": "thermostat.js",
+  "main": "lampTests.js",
   "license": "MIT",
   "dependencies": {
     "opent2t": "1.0.1"

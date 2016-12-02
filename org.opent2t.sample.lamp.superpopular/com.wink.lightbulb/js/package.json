@@ -10,7 +10,8 @@
     "main": "thingTranslator.js",
     "license": "MIT",
     "scripts": {
-        "test": "ava"
+        "test": "ava tests/test.js",
+        "unittest": "ava tests/unitTests.js"
     },
     "ava": {
         "files": [
@@ -25,6 +26,8 @@
         "opent2t": "*",
         "jshint": "^2.9.2",
         "ava": "^0.15.2",
-        "es6-sleep": "*"
+        "es6-sleep": "*",
+        "opent2t-device-winkhub": "file:../../../org.opent2t.sample.hub.superpopular/com.wink.hub/test",
+        "opent2t-device-lamp": "file:../../test"
     }
 }

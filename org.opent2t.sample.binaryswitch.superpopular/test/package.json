@@ -1,13 +1,13 @@
 {
-  "name": "opent2t-device-thermostat",
+  "name": "opent2t-device-binaryswitch",
   "version": "0.1.1",
-  "description": "Thermostat device",
+  "description": "Binary switch device",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/opent2t/translators.git"
   },
-  "main": "thermostat.js",
+  "main": "binarySwitchTests.js",
   "license": "MIT",
   "dependencies": {
     "opent2t": "1.0.1"

@@ -10,7 +10,7 @@
   "main": "thingTranslator.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava",
+    "test": "ava tests/test.js",
     "unittest": "ava tests/unitTests.js"
   },
   "ava": {
@@ -24,6 +24,8 @@
   "devDependencies": {
     "opent2t": "*",
     "ava": "^0.15.2",
-    "q": "*"
+    "q": "*",
+    "opent2t-device-winkhub": "file:../../../org.opent2t.sample.hub.superpopular/com.wink.hub/test",
+    "opent2t-device-thermostat": "file:../../test"
   }
 }
