@@ -210,7 +210,7 @@ class Translator {
     deleteSubscribe(callbackUrl) {
         return smartThingsHub._unsubscribe(controlId);
     }
-    /* eslint no-unused-vars: "on" */
+    /* eslint no-unused-vars: "warn" */
 }
 
 // Export the translator from the module.
