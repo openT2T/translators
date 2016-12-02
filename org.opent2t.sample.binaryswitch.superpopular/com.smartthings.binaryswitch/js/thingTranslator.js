@@ -82,14 +82,18 @@ function getDeviceResource(translator, di, resourceId) {
 }
 
 function postDeviceResource(di, resourceId, payload) {
-    var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+    if (di === controlId){
+        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-    return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
-        .then((response) => {
-            var schema = providerSchemaToPlatformSchema(response, true);
+        return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
+            .then((response) => {
+                var schema = providerSchemaToPlatformSchema(response, true);
 
-            return findResource(schema, di, resourceId);
-        });
+                return findResource(schema, di, resourceId);
+            });
+    } else {
+        throw new Error('NotFound');
+    }
 }
 
 var controlId;
