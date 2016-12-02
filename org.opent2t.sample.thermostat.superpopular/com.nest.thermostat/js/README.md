@@ -16,7 +16,7 @@ Unit tests do not require a physical or simulated device.
 Once dependencies have been installed simply run:
 
 ```bash
-npm run-script unittest
+npm run unittest
 ```
 
 ## Running Automated Integration tests
