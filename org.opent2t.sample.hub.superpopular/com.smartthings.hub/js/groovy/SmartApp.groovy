@@ -446,6 +446,10 @@ private mapDeviceCommands(command, value) {
         	resultCommand = "setSaturation"
             resultValue = value
             break
+        case "ct":
+        	resultCommand = "setColorTemperature"
+            resultValue = value
+            break
         case "color":    
         	resultCommand = "setColor"
             resultValue = value

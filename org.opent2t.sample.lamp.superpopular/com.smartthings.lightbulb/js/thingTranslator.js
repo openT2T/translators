@@ -79,7 +79,7 @@ function HSVtoRGB(hue, saturation, lumosity) {
 
 /**
  * Convert RGB to HSV colours
- * RGB values are in [0 ... 255]
+ *   RGB values are in [0 ... 255]
  */
 function RGBtoHSV(rgbValue) {
     var red = rgbValue[0] / MaxColor;
@@ -157,7 +157,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
-    //TODO: ct = providerSchema['attributes'].colorTemperature
+    // Build the colourChroma resource
+    var colourChroma = {
+        "href": "/colourChroma",
+        "rt": ["oic.r.colour.chroma"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+    }
 
     // Include the values is expand is specified
     if (expand) {
@@ -177,6 +182,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                                       providerSchema['attributes'].saturation / 100.0,
                                       providerSchema['attributes'].level / 100.0);
         colourRGB.range = [0, 255];
+
+        colourChroma.id = 'colourChroma';
+        colourChroma.ct = providerSchema['attributes'].colorTemperature;
     }
 
     return {
@@ -200,7 +208,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     power,
                     dim,
                     colourMode,
-                    colourRGB
+                    colourRGB,
+                    colourChroma
                 ]
             }
         ]
@@ -232,6 +241,14 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
                 result['level'] = Math.round(HSVColor.level * 100);
             }
             break;
+        case 'colourChroma':
+            if (resourceSchema.ct !== undefined)
+            {
+                result['ct'] = resourceSchema.ct;
+            } else {
+                throw new Error("Invalid resourceId");
+            }
+            break
         default:
             // Error case
             console.log("Invalid resourceId: " + resourceId)
