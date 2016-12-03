@@ -4,11 +4,16 @@ var runBinarySwitchTests = require('opent2t-device-binaryswitch/binarySwitchTest
 var deviceData = require('./devicedata');
 var MockHub = require('opent2t-device-smartthingshub/mockSmartthingsHub');
 var mockHub = new MockHub(deviceData.base_state);
-var deviceId = "Mock Id";
 
 function setTestData(testName, t) {
     mockHub.setTestData(deviceData.test_data[testName], t);
 }
 
+var settings = {
+    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.id),
+    test: test,
+    setTestData: setTestData
+};
+
 // Run standard binary switch unit tests
-runBinarySwitchTests(mockHub.createTranslator(translatorPath), deviceId, test, setTestData);
+runBinarySwitchTests(settings);

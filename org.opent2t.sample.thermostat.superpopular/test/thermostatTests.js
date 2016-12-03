@@ -4,17 +4,24 @@ var OpenT2T = require('opent2t').OpenT2T;
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 var translator = undefined;
 
-function runThermostatTests(createTranslator, deviceId, test, setTestData) {
+function runThermostatTests(settings) {
+    var test = settings.test;
+    var deviceId = settings.deviceId;
 
     function setData(t) {
-        if(setTestData) {
-            setTestData(t.title, t);
+        if(settings.setTestData) {
+            settings.setTestData(t.title, t);
         }
     }
 
     test.before(() => {
-        return createTranslator().then(trans => {
+        return settings.createTranslator().then(trans => {
             translator = trans;
+			OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+                if(deviceId === undefined) {
+                    deviceId = response.opent2t.controlId;
+                }
+			});
         });
     });
 

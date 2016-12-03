@@ -51,4 +51,4 @@ gulp.task('raml-lint', () => {
 
 gulp.task('ci-checks', ['js-lint', 'json-lint', 'xml-lint', 'validate-naming']);
 
-gulp.task('default', ['ci-checks'])
+gulp.task('default', ['ci-checks']);

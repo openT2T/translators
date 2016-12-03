@@ -4,11 +4,16 @@ var runLampTests = require('opent2t-device-lamp/lampTests');
 var deviceData = require('./devicedata');
 var MockHub = require('opent2t-device-winkhub/mockWinkHub');
 var mockHub = new MockHub(deviceData.base_state);
-var deviceId = "F8CFB903-58BB-4753-97E0-72BD7DBC7933";
 
 function setTestData(testName, t) {
     mockHub.setTestData(deviceData.test_data[testName], t);
 }
 
+var settings = {
+    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.data.object_id),
+    test: test,
+    setTestData: setTestData
+};
+
 // Run standard lamp unit tests
-runLampTests(mockHub.createTranslator(translatorPath), deviceId, test, setTestData);
+runLampTests(settings);

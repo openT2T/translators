@@ -14,7 +14,6 @@ class MockHub {
         deviceState = initialState;
         stateModifier = modifier;
         payloadVerifier = verifier;
-        this.deviceInfo = { id : 'Mock Hub Device' };
         this.deviceInfo = { opent2t : { controlId : 'Mock Hub Device' } };
         this.hub = {
             getDeviceDetailsAsync : function() {
@@ -36,10 +35,12 @@ class MockHub {
         };
     }
 
-    createTranslator(translatorPath) {
-        var that = this;
+    createTranslator(translatorPath, controlId) {
+        var deviceInfo = {};
+        deviceInfo.deviceInfo = { opent2t : { controlId : controlId } };
+        deviceInfo.hub = this.hub;
         return function () {
-            return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', that);
+            return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', deviceInfo);
         };
     }
 

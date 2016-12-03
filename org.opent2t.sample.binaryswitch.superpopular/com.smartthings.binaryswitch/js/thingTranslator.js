@@ -31,7 +31,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.binaryswitch.superpopular',
             translator: 'opent2t-translator-com-smartthings-binaryswitch',
-            controlId: deviceId
+            controlId: controlId
         },
         pi: providerSchema['id'],
         mnmn: providerSchema['manufacturer'],
@@ -82,17 +82,21 @@ function getDeviceResource(translator, di, resourceId) {
 }
 
 function postDeviceResource(di, resourceId, payload) {
-    var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+    if (di === controlId){
+        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-    return smartThingsHub.putDeviceDetailsAsync(deviceId, putPayload)
-        .then((response) => {
-            var schema = providerSchemaToPlatformSchema(response, true);
+        return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
+            .then((response) => {
+                var schema = providerSchemaToPlatformSchema(response, true);
 
-            return findResource(schema, di, resourceId);
-        });
+                return findResource(schema, di, resourceId);
+            });
+    } else {
+        throw new Error('NotFound');
+    }
 }
 
-var deviceId;
+var controlId;
 var smartThingsHub;
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
@@ -103,7 +107,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
         smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Binary Switch initializing...Done');
@@ -111,14 +115,14 @@ class Translator {
 
     // exports for the entire schema object
 
-    // Queries the entire state of the lamp
-    // and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+    // Queries the entire state of the outlet
+    // and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return smartThingsHub.getDeviceDetailsAsync(deviceId)
+            return smartThingsHub.getDeviceDetailsAsync(controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -132,6 +136,16 @@ class Translator {
     postDevicesPower(di, payload) {
         return postDeviceResource(di, 'power', payload);
     }
+    
+    /* eslint no-unused-vars: "off" */
+    postSubscribe(callbackUrl, verificationRequest) {
+        return smartThingsHub._subscribe(controlId);
+    }
+
+    deleteSubscribe(callbackUrl) {
+        return smartThingsHub._unsubscribe(controlId);
+    }
+    /* eslint no-unused-vars: "warn" */
 }
 
 // Export the translator from the module.

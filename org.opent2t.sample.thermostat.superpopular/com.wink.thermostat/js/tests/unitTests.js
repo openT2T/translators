@@ -5,15 +5,19 @@ var runWinkThermostatTests = require('./winkThermostatTests');
 var deviceData = require('./devicedata');
 var MockHub = require('opent2t-device-winkhub/mockWinkHub');
 var mockHub = new MockHub(deviceData.base_state);
-var deviceId = "D5D37EB6-F428-41FA-AC5D-918F084A4C93";
-var createTranslator = mockHub.createTranslator(translatorPath);
 
 function setTestData(testName, t) {
     mockHub.setTestData(deviceData.test_data[testName], t);
 }
 
+var settings = {
+    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.data.object_id),
+    test: test,
+    setTestData: setTestData
+};
+
 // Run standard thermostat tests
-runThermostatTests(createTranslator, deviceId, test, setTestData);
+runThermostatTests(settings);
 
 // Run wink thermostat tests
-runWinkThermostatTests(createTranslator, deviceId, test, setTestData);
+runWinkThermostatTests(settings);
