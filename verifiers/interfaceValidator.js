@@ -43,7 +43,13 @@ function getRamlFilePath(filePath) {
   return null;
 }
 
-// Get all of the methods defined in a raml schema file.
+// Get all of the methods defined in a raml schema file and compose method names for them.
+// We look for two things here.  First, any method defined for a raml resource.
+//  Examples: /subscribe/post: -> postSubscribe
+//            /devices/{deviceid}/power/get -> getDevicesPower
+// Second, we look for resources defined as interface-sensor or interface-actuator.
+//  Examples: /devices/{deviceid}/colourMode:is: [ interface-sensor ] -> getDevicesColourMode
+//            /devices/{deviceid}/colourRGB:is: [ interface-actuator ] -> getDevicesColourRGB, postDevicesColourRGB
 function getSchemaMethods(ramlPath) {
 
   function addMethod(methodName) {
