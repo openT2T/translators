@@ -4,17 +4,18 @@ var q = require('q');
 var OpenT2T = require('opent2t').OpenT2T;
 var postData = undefined;
 var deviceState = undefined;
+var testData = undefined;
 var stateModifier = undefined;
 var payloadVerifier = undefined;
 var t = undefined;
 
 class MockHub {
 
-    constructor(initialState, modifier, verifier) {
-        deviceState = initialState;
+    constructor(deviceData, modifier, verifier) {
+        deviceState = deviceData.base_state;
+        testData = deviceData.test_data;
         stateModifier = modifier;
         payloadVerifier = verifier;
-        this.deviceInfo = { id : 'Mock Hub Device' };
         this.deviceInfo = { opent2t : { controlId : 'Mock Hub Device' } };
         this.hub = {
             getDeviceDetailsAsync : function() {
@@ -36,15 +37,18 @@ class MockHub {
         };
     }
 
-    createTranslator(translatorPath) {
-        var that = this;
+    createTranslator(translatorPath, controlId) {
+        var deviceInfo = {};
+        deviceInfo.deviceInfo = { opent2t : { controlId : controlId } };
+        deviceInfo.hub = this.hub;
         return function () {
-            return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', that);
+            return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', deviceInfo);
         };
     }
 
-    setTestData(data, test) {
-        postData = data;
+    setTestData(testName, test) {
+        //mockHub.setTestData(deviceData.test_data[testName], t);
+        postData = testData[testName];
         t = test;
     }
 }

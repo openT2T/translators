@@ -1,0 +1,44 @@
+{   "base_state" :
+    {   "attributes" :
+        {
+            "switch" : "on",
+            "temperature" : 50
+        },
+        "locationMode" :
+        {
+            "supported" : ["home", "away"],
+            "mode" : "away"
+        },
+        "id" : "Mock Id",
+        "manufacturer" : "Mock Manufacturer",
+        "model" : "Mock Model",
+        "name" : "Mock Name"
+    },
+    "test_data" :
+    {
+        "SetAwayMode" :
+            [
+                {
+                    "awayMode" : "Away"
+                }
+            ],
+        "SetTargetTemperature" :
+            [
+                {
+                    "coolingSetpoint" : 30
+                }
+            ],
+        "SetTargetTemperatureHigh" :
+            [
+                {
+                    "coolingSetpoint" : 22
+                }
+            ],
+        "SetTargetTemperatureLow" :
+            [
+                {
+                    "heatingSetpoint" : 19
+                }
+            ]
+    }
+}

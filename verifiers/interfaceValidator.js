@@ -43,18 +43,59 @@ function getRamlFilePath(filePath) {
   return null;
 }
 
-// Get all of the methods defined in a raml schema file.
-// TODO: update how the names are assembled to handle multiple parts and to ignore
-// parameter values.
+// Get all of the methods defined in a raml schema file and compose method names for them.
+// We look for two things here.  First, any method defined for a raml resource.
+//  Examples: /subscribe/post: -> postSubscribe
+//            /devices/{deviceid}/power/get -> getDevicesPower
+// Second, we look for resources defined as interface-sensor or interface-actuator.
+//  Examples: /devices/{deviceid}/colourMode:is: [ interface-sensor ] -> getDevicesColourMode
+//            /devices/{deviceid}/colourRGB:is: [ interface-actuator ] -> getDevicesColourRGB, postDevicesColourRGB
 function getSchemaMethods(ramlPath) {
+
+  function addMethod(methodName) {
+    if(ramlMethods.indexOf(methodName) === -1) {
+      ramlMethods.push(methodName);
+    }
+  }
+
   var ramlMethods = [];
 
   if(ramlPath) {
-    raml.loadApiSync(ramlPath).resources().forEach(resource => {
-      resource.methods().forEach(method => {
-        ramlMethods.push(method.method() + resource.completeRelativeUri().substring(1));
-      });
+    var resources = [];
+    raml.loadApiSync(ramlPath).resources().forEach(r => {
+      resources.push(r);
     });
+
+    while(resources.length > 0) {
+      var current = resources.shift();
+      var resourceParts = current.completeRelativeUri().substring(1).split("/");
+      var suffix = "";
+
+      resourceParts.forEach(part => {
+        if(!part.startsWith("{") && !part.startsWith("?")){
+          suffix += part.charAt(0).toUpperCase() + part.slice(1);
+        }
+      });
+
+      current.is().forEach(trait => {
+        var traitName = trait.name();
+        if(traitName === "interface-sensor") {
+          addMethod("get" + suffix);
+        }
+        else if(traitName === "interface-actuator") {
+          addMethod("get" + suffix);
+          addMethod("post" + suffix);
+        }
+      });
+
+      current.methods().forEach(method => {
+        addMethod(method.method() + suffix);
+      });
+
+      current.resources().forEach(child => {
+        resources.push(child);
+      });
+    }
   }
 
   return ramlMethods;

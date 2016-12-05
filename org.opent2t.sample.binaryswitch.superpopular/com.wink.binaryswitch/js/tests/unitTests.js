@@ -3,12 +3,13 @@ var translatorPath = require('path').join(__dirname, '..');
 var runBinarySwitchTests = require('opent2t-device-binaryswitch/binarySwitchTests');
 var deviceData = require('./devicedata');
 var MockHub = require('opent2t-device-winkhub/mockWinkHub');
-var mockHub = new MockHub(deviceData.base_state);
-var deviceId = "F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8";
+var mockHub = new MockHub(deviceData);
 
-function setTestData(testName, t) {
-    mockHub.setTestData(deviceData.test_data[testName], t);
-}
+var settings = {
+    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.data.object_id),
+    test: test,
+    setTestData: mockHub.setTestData
+};
 
 // Run standard binary switch unit tests
-runBinarySwitchTests(mockHub.createTranslator(translatorPath), deviceId, test, setTestData);
+runBinarySwitchTests(settings);

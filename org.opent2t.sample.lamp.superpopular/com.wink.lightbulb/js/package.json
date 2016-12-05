@@ -24,6 +24,7 @@
     "devDependencies": {
         "optimist": "*",
         "opent2t": "*",
+        "opent2t-translator-com-wink-hub": "^1.2.0",
         "jshint": "^2.9.2",
         "ava": "^0.15.2",
         "es6-sleep": "*",

@@ -13,7 +13,7 @@ class accessTokenInfo {
     ) {
         this.accessToken = accessToken;
         this.cliendId = clientId
-        this.toketype = tokenType;
+        this.tokentype = tokenType;
         this.ttl = ttl;
         this.scope = scopes;
     }
