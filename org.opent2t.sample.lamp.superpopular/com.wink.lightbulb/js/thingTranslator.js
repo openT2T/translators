@@ -250,11 +250,15 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        return winkHub._subscribe(deviceType, deviceId, subscriptionInfo);
+        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceType = deviceType;
+        return winkHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(callbackUrl) {
-        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceType = deviceType;
+        return winkHub._unsubscribe(callbackUrl);
     }
 }
 

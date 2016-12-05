@@ -84,6 +84,28 @@ class Translator {
     }
 
     /**
+     * Subscribe to notifications for a platform.
+     * This function is intended to be called by the platform translator for initial subscription,
+     * and on the hub translator (this) for verification.
+     */
+    postSubscribe(subscriptionInfo) {
+        return {
+            expiration: -1, // Subscription has no expiration
+            response: ""
+        };
+    }
+
+    /**
+     * Unsubscribe from a platform subscription.
+     * This function is intended to be called by a platform translator
+     */
+    _unsubscribe(subscriptionInfo) {
+        return {
+            expiration: -1, // Subscription has no expiration
+        };
+    }
+
+    /**
      * Translates an array of provider schemas into an opent2t/OCF representations
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {

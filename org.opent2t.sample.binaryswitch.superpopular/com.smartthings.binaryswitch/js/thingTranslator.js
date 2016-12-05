@@ -138,14 +138,11 @@ class Translator {
      * but must let the caller know that a subscription is successful.
      */
     postSubscribe(subscriptionInfo) {
-        return {
-            expiration: -1, // Subscription has no expiration
-            response: ""
-        };
+        return smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
-    deleteSubscribe(callbackUrl) {
-        return {};
+    deleteSubscribe(subscriptionInfo) {
+        return smarthThingsHub._unsubscribe(subscriptionInfo);
     }
 }
 

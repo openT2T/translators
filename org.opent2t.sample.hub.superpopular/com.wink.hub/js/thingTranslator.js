@@ -92,8 +92,7 @@ class Translator {
     /**
      * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
-    refreshAuthToken(authInfo)
-    {
+    refreshAuthToken(authInfo) {
         var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
         
         if (authInfo == undefined || authInfo == null){
@@ -209,18 +208,59 @@ class Translator {
      * @param {Object} subscriptionInfo - Subscription information
      * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint. This URL will receive verification, and updates.
      * @param {string} subscriptionInfo.key - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
+     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to (not required for verification)
+     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to (not required for verification)
      * @param {Object} subscriptionInfo.verificationRequest - The contents of a verification request made to the callbackURl, if 
      *      verification is being used.
      * @returns {SubscriptionResponse} - Object containing the subscription expiration time, and any content that
      *      needs to be included in a response to the original request. Content that should be provided in the response to the
      *      verification request as {'Content-Type': 'text/plain'}.
      */
-    _subscribe(deviceType, deviceId, subscriptionInfo) {
+    postSubscribe(subscriptionInfo) {
+        if (subscriptionInfo.verificationRequest) {
+            // Verify a subscription request by constructing the appropriate response
 
-        if (subscriptionInfo.callbackUrl) {
-            // Subscribe to notifications
+            var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
+        
+            switch(params.query['hub.mode']) {
+                case "denied":
+                    // The subscription cannot be completed, access was denied.
+                    // This is likely due to a bad access token.
+                    throw new Error("Access denied");
+                case "unsubscribe":
+                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
+                    // with no verification.
+                    return {
+                        expiration: 0,
+                        response: ""
+                    }
+                case "subscribe":
+                    // Successful subscription/unsubscription requires a response to contain the same
+                    // challenge that was included in the request.
+                    return {
+                        expiration: params.query['hub.lease_seconds'],
+                        response: params.query['hub.challenge']
+                    }
+                default:
+                    // Hub mode is unknown.
+                    throw new Error("Unknown request");
+            }
+        }
+        else if (subscriptionInfo.callbackUrl) {
+            // If a callbackUrl is provided without a verification request, then it is a new subscription or a refresh.
 
-            var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
+            var requestPath = "";
+
+            if (subscriptionInfo.deviceType && subscriptionInfo.deviceId) {
+                // Platform level subscription
+                requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions';
+            }
+            else {
+                // Provider/Hub level subscription
+                // Subscribing to Wink as a provider (to receive notification of device add/delete etc.) will likely be
+                // possible in the future.  This should just require a different request path, but for now it's an error
+                throw new Error("Must subscribe to a device.");
+            }
 
             // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
             // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
@@ -247,39 +287,7 @@ class Translator {
                     expiration: response.data.expires_at
                 };
             })
-
-        } else if (subscriptionInfo.verificationRequest) {
-            // Verify a subscription request by constructing the appropriate response
-
-            var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
-            // This is a subscription validation, populate the response
-            switch(params.query['hub.mode']) {
-                case "denied":
-                    // The subscription cannot be completed, access was denied.
-                    // This is likely due to a bad access token.
-                    throw new Error("Access denied");
-                case "unsubscribe": // Could remove this, see below.
-                case "subscribe":
-                    // Successful subscription/unsubscription requires a response to contain the same
-                    // challenge that was included in the request.
-                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
-                    // with no verification.
-
-                    // Verify that this subscription is for the correct topic
-                    if (params.query['hub.topic'].endsWith(deviceType + '/' + deviceId)) {
-                        return {
-                            expiration: params.query['hub.lease_seconds'],
-                            response: params.query['hub.challenge']
-                        }
-                    } else {
-                        // There is a mistmatch.  This subscription doesn't match this device.
-                        throw new Error("Subscription cannot be verified");
-                    }
-                default:
-                    // Hub mode is unknown.
-                    throw new Error("Unknown request");
-            }
-        }
+        } 
     }
 
     /**
@@ -291,25 +299,26 @@ class Translator {
      * Wink's pubsubhubbub is slightly different than standard as it uses DELETE along
      * with a subscriptionID rather than another GET with a hub.mode of 'unsubscribe'
      * 
-     * @param {string} deviceType - Device Type (e.g. 'thermostats')
-     * @param {string|number} deviceId - Id for the specific device
-     * @param {string} callbackUrl - URL that will be unsubscribed
-     * @returns {request} Promise that supplies the server response
-     * 
+     * @param {Object} subscriptionInfo - Subscription information
+     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint.
+     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to
+     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to
+     * @returns {Object} Expiration of the subscription (expired)
      */
-    _unsubscribe(deviceType, deviceId, callbackUrl)
-    {
+    _unsubscribe(subscriptionInfo) {
         // Find the subscription ID for this callback URL
-        return this._getSubscriptions(deviceType, deviceId).then((subscriptions) => {
+        return this._getSubscriptions(subscriptionInfo.deviceType, subscriptionInfo.deviceId).then((subscriptions) => {
             subscriptions.forEach((sub) => {
                 // Find the subscription id for this callback URL and device
-                if (sub.callback == callbackUrl &&
-                    sub.topic.endsWith(deviceType + '/' + deviceId)) {
-                    var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions/' + sub.subscription_id;
+                if (sub.callback == subscriptionInfo.callbackUrl &&
+                    sub.topic.endsWith(subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId)) {
+                    var requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions/' + sub.subscription_id;
 
                     // Do the actual unsubscribe
                     return this._makeRequest(requestPath, 'DELETE').then(() => {
-                        return {};
+                        return {
+                            expiration: 0
+                        };
                     })
                 }
             });

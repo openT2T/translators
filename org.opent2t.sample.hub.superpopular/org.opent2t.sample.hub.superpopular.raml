@@ -99,3 +99,37 @@ traits:
                 }
              }
     
+/subscribe:
+  description: |
+    This resource manages subscriptions to platoforms connected to this hub.
+  displayName: Subscribe
+    
+  post:
+    description: |
+       Verifies a subscription to a platform on this hub.
+    body:
+      application/json:
+        schema: Subscription
+        example: |
+          {
+            "callbackUrl": "http://myserver.com",
+          }    
+    responses:
+       200:
+        body:
+          application/json:
+            schema: Subscription
+            example: |
+                {
+                  "callbackUrl":"http://myserver.com",
+                  "expiration": "123456678",
+                  "response": { "plain text response" }
+                }
+       400:
+          body:
+            application/json:
+              example: { "message": "Bad request" }
+       403:
+          body:
+            application/json:
+              example: { "message": "Subscription is denied" }
