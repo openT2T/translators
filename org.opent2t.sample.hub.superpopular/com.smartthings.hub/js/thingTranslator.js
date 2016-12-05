@@ -82,6 +82,9 @@ class Translator {
         });
     }
 
+
+    /* eslint no-unused-vars: "off" */ 
+
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
@@ -103,6 +106,8 @@ class Translator {
             expiration: -1, // Subscription has no expiration
         };
     }
+
+    /* eslint no-unused-vars: "warn" */ 
 
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
