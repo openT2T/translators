@@ -255,10 +255,10 @@ class Translator {
         return winkHub.postSubscribe(subscriptionInfo);
     }
 
-    deleteSubscribe(callbackUrl) {
+    deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = deviceId;
         subscriptionInfo.deviceType = deviceType;
-        return winkHub._unsubscribe(callbackUrl);
+        return winkHub._unsubscribe(subscriptionInfo);
     }
 }
 

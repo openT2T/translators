@@ -137,10 +137,6 @@ class Translator {
         return postDeviceResource(di, 'power', payload);
     }
 
-    /**
-     * Smartthings subscriptions are created as part of the groovy app so these methods are no-ops
-     * but must let the caller know that a subscription is successful.
-     */
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = controlId;
         return smartThingsHub.postSubscribe(subscriptionInfo);
@@ -148,7 +144,7 @@ class Translator {
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = controlId;
-        return smarthThingsHub._unsubscribe(subscriptionInfo);
+        return smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }
 

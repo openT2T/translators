@@ -82,19 +82,18 @@ class Translator {
         });
     }
 
-
-    /* eslint no-unused-vars: "off" */ 
-
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
      */
     postSubscribe(subscriptionInfo) {
-        return {
-            expiration: -1, // Subscription has no expiration
-            response: ""
-        };
+        return this._hasValidEndpoint().then((isValid) => {
+            if (isValid == false) return undefined;
+
+            var requestPath = '/subscription/' + subscriptionInfo.controlId;
+            return this._makeRequest(requestPath, 'POST', '');
+        });
     }
 
     /**
@@ -102,12 +101,13 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        return {
-            expiration: -1, // Subscription has no expiration
-        };
-    }
+        return this._hasValidEndpoint().then((isValid) => {
+            if (isValid == false) return undefined;
 
-    /* eslint no-unused-vars: "warn" */ 
+            var requestPath = '/subscription/' + subscriptionInfo.controlId;
+            return this._makeRequest(requestPath, 'DELETE');
+        });
+    }
 
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
@@ -187,24 +187,6 @@ class Translator {
                 return Promise.resolve(responses[0].uri);
             }
             return Promise.resolve(undefined);
-        });
-    }
-
-    _subscribe(deviceId) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var requestPath = '/subscription/' + deviceId;
-            return this._makeRequest(requestPath, 'POST', '');
-        });
-    }
-
-    _unsubscribe(deviceId) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var requestPath = '/subscription/' + deviceId;
-            return this._makeRequest(requestPath, 'DELETE');
         });
     }
 

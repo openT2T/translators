@@ -411,13 +411,13 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceId = controlId;
         subscriptionInfo.deviceType = deviceType;
         return winkHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceId = controlId;
         subscriptionInfo.deviceType = deviceType;
         return winkHub._unsubscribe(subscriptionInfo);
     }
