@@ -1,7 +1,7 @@
 {
-  "name": "opent2t-translator-com-wink-thermostat",
+  "name": "opent2t-translator-com-smartthings-thermostat",
   "version": "0.2.0",
-  "description": "Wink Thermostat",
+  "description": "SmartThings Thermostat",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
@@ -19,13 +19,12 @@
     ]
   },
   "dependencies": {
-    "opent2t-translator-com-wink-hub": "^1.2.0"
+    "opent2t": "*",
+    "opent2t-translator-com-smartthings-hub": "^0.2.0"
   },
   "devDependencies": {
-    "opent2t": "*",
     "ava": "^0.15.2",
-    "q": "*",
-    "opent2t-device-winkhub": "file:../../../org.opent2t.sample.hub.superpopular/com.wink.hub/test",
+    "opent2t-device-smartthingshub": "file:../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/test",
     "opent2t-device-thermostat": "file:../../test"
   }
 }

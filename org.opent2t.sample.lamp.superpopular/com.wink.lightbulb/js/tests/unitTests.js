@@ -1,7 +1,6 @@
 var test = require('ava');
 var translatorPath = require('path').join(__dirname, '..');
-var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
-var runWinkThermostatTests = require('./winkThermostatTests');
+var runLampTests = require('opent2t-device-lamp/lampTests');
 var deviceData = require('./devicedata');
 var MockHub = require('opent2t-device-winkhub/mockWinkHub');
 var mockHub = new MockHub(deviceData);
@@ -12,8 +11,5 @@ var settings = {
     setTestData: mockHub.setTestData
 };
 
-// Run standard thermostat tests
-runThermostatTests(settings);
-
-// Run wink thermostat tests
-runWinkThermostatTests(settings);
+// Run standard lamp unit tests
+runLampTests(settings);

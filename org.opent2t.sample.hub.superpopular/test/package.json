@@ -1,15 +1,20 @@
 {
-  "name": "opent2t-device-thermostat",
+  "name": "opent2t-device-hub",
   "version": "0.1.1",
-  "description": "Thermostat device",
+  "description": "Hub device",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/opent2t/translators.git"
   },
-  "main": "thermostat.js",
+  "main": "mockHub.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "1.0.1"
+    "opent2t": "1.0.1",
+    "q": "^1.4.1"
+  },
+  "devDependencies": {
+    "opent2t": "*",
+    "q": "^1.4.1"
   }
 }
