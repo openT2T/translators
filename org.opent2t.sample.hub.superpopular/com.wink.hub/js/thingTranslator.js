@@ -7,6 +7,7 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var Crypto = require('crypto');
 var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
@@ -32,6 +33,13 @@ class Translator {
 
     /**
      * Get the list of devices discovered through the hub.
+     * 
+     * @param {bool} expand - True to include the current state of the resources.
+     * @param {Buffer} payload - POST content for a subscribed notification
+     * @param {Object} verification - Information used to authenticate that the post is valid
+     * @param {Array} verification.header - Header information that came with the payload POST.
+     *      Should include X-Hub-Signature
+     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
      */
     getPlatforms(expand, payload, verification) {
 
@@ -40,14 +48,20 @@ class Translator {
         if (payload !== undefined) {
             // Callculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
+                
+                // Get the hash from the request header
+                var hash = verification.header("X-Hub-Signature");
+                var hmac = Crypto.createHmad('sha1', verification.key);
+                hmac.update(payload);
+                var crypted = hmac.digest("hex");
+
                 // use secret to calculate HMAC
-                var hmac = require('crypto').createHmac('sha1', verification.key).update(payload).digest('hex');
-                if (hmac !== undefined && hmac != verification.hmac) {
+                if (crypted != hash) {
                    throw new Error("Payload signature doesn't match.");
                 }
             }
 
-            // Return either the verified payload 
+            // Return the verified payload 
             return this._providerSchemaToPlatformSchema(payload, expand);
         }
         else {
@@ -276,7 +290,7 @@ class Translator {
             // Secret provided for computing HMAC verification of the payload
             // this is optional to Wink
             if (subscriptionInfo.key) {
-                postPayload.key = subscriptionInfo.key;
+                postPayload.secret = subscriptionInfo.key;
             }
 
             var postPayloadString = JSON.stringify(postPayload);
@@ -305,7 +319,8 @@ class Translator {
      * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to
      * @returns {Object} Expiration of the subscription (expired)
      */
-    _unsubscribe(subscriptionInfo) {
+     _unsubscribe(subscriptionInfo) {
+        var subscriptionsToDelete = [];
         // Find the subscription ID for this callback URL
         return this._getSubscriptions(subscriptionInfo.deviceType, subscriptionInfo.deviceId).then((subscriptions) => {
             subscriptions.forEach((sub) => {
@@ -315,16 +330,16 @@ class Translator {
                     var requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions/' + sub.subscription_id;
 
                     // Do the actual unsubscribe
-                    return this._makeRequest(requestPath, 'DELETE').then(() => {
-                        return {
-                            expiration: 0
-                        };
-                    })
+                    subscriptionsToDelete.push(this._makeRequest(requestPath, 'DELETE'));
                 }
             });
 
-            // Subscription wasn't found so there's nothing to do
-            return {};
+            // Return all delete requests.
+            return Promise.all(subscriptionsToDelete).then(() => {
+                return {
+                    expiration: 0
+                }
+            });
         });
     }
 
