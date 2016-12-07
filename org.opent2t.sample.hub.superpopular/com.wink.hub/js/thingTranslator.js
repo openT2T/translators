@@ -46,12 +46,12 @@ class Translator {
         // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
         // converted to the opent2t/ocf representation.
         if (payload !== undefined) {
-            // Callculate the HMAC for the payload using the secret
+            // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
                 
                 // Get the hash from the request header
                 var hash = verification.header("X-Hub-Signature");
-                var hmac = Crypto.createHmad('sha1', verification.key);
+                var hmac = Crypto.createHmac('sha1', verification.key);
                 hmac.update(payload);
                 var crypted = hmac.digest("hex");
 
