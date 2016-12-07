@@ -1,6 +1,6 @@
 var test = require('ava');
 var translatorPath = require('path').join(__dirname, '..');
-var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
+var runLampTests = require('opent2t-device-lamp/lampTests');
 var deviceData = require('./devicedata');
 var MockHub = require('opent2t-device-smartthingshub/mockSmartthingsHub');
 var mockHub = new MockHub(deviceData);
@@ -11,5 +11,5 @@ var settings = {
     setTestData: mockHub.setTestData
 };
 
-// Run standard thermostat unit tests
-runThermostatTests(settings);
+// Run standard lamp unit tests
+runLampTests(settings);

@@ -7,7 +7,6 @@ var translatorPath = require('path').join(__dirname, '..');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
 var http = require('http');
 var q = require('q');
-var deviceId = "D5D37EB6-F428-41FA-AC5D-918F084A4C93";
 var deviceInfo = {};
 
 function getThermostat(platforms) {
@@ -27,8 +26,14 @@ function createTranslator() {
     });
 }
 
-runThermostatTests(createTranslator, deviceId, test);
-runWinkThermostatTests(createTranslator, deviceId, test);
+var settings = {
+    createTranslator: createTranslator,
+    test: test,
+    deviceId: 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
+};
+
+runThermostatTests(settings);
+runWinkThermostatTests(settings);
 
 /**
  * Verifies that realtime notifications can be subscribed to for the device.

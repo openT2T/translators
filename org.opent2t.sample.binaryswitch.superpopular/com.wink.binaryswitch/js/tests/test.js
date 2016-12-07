@@ -4,7 +4,6 @@ var translatorPath = require('path').join(__dirname, '..');
 var runBinarySwitchTests = require('opent2t-device-binaryswitch/binarySwitchTests');
 var config = require('./testConfig');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
-var deviceId = "F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8";
 
 function getBinarySwitch(devices) {
     for (var i = 0; i < devices.length; i++) {
@@ -30,5 +29,11 @@ function createTranslator() {
     });
 }
 
+var settings = {
+    createTranslator: createTranslator,
+    test: test,
+    deviceId: 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8'
+};
+
 // Run standard binary switch tests
-runBinarySwitchTests(createTranslator, deviceId, test);
+runBinarySwitchTests(settings);
