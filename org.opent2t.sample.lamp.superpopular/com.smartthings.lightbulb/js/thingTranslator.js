@@ -194,8 +194,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: controlId
         },
         pi: providerSchema['id'],
-        mnmn: providerSchema['manufacturer'],
-        mnmo: providerSchema['model'],
+        mnmn: providerSchema['manufacturer'] === null ? "Unkown" : providerSchema['manufacturer'],
+        mnmo: providerSchema['model'] === null ? "Unkown" : providerSchema['model'],
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.lamp.superpopular'],
         entities: [
