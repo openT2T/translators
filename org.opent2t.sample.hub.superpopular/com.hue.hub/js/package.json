@@ -1,7 +1,7 @@
 {
   "name": "opent2t-translator-com-hue-hub",
-  "version": "0.0.6",
-  "description": "Hue Hub",
+  "version": "0.2.0",
+  "description": "Hue Bridge",
   "license": "MIT",
   "main": "thingTranslator.js",
   "files": [
@@ -22,7 +22,8 @@
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
     "opent2t": "^1.0.1",
-    "opent2t-onboarding-org-opent2t-onboarding-hue": "^0.0.1"
+    "opent2t-onboarding-org-opent2t-onboarding-hue": "^0.0.1",
+    "opent2t-translator-com-hue-bulb": "^0.2.0"
   },
   "devDependencies": {
     "ava": "^0.15.2"
