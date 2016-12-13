@@ -13,6 +13,18 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
+/**
+ * Return the string "Undefined" if the value is undefined and null.
+ * Otherwise, return the value itself.
+ */
+function validateValue(value) {
+    if (value === undefined || value === null) {
+        return 'Undefined';
+    }
+    return value;
+}
+
+
 // Helper method to convert the device schema to the translator schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
 
@@ -34,8 +46,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: controlId
         },
         pi: providerSchema['id'],
-        mnmn: providerSchema['manufacturer'] === null ? "Unkown" : providerSchema['manufacturer'],
-        mnmo: providerSchema['model'] === null ? "Unkown" : providerSchema['model'],
+        mnmn: validateValue(providerSchema['manufacturer']),
+        mnmo: validateValue(providerSchema['model']),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [

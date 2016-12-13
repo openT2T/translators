@@ -97,7 +97,7 @@ class Translator {
 
             if (typeof opent2tInfo !== 'undefined') // we support the device                    
             {
-                /// set the opent2t info for the SmartThings device
+                // set the opent2t info for the SmartThings device
                 var deviceInfo = {};
                 deviceInfo.opent2t = {};
                 deviceInfo.opent2t.controlId = smartThingsDevice.id;
