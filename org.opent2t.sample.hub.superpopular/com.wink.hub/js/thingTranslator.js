@@ -49,15 +49,9 @@ class Translator {
             // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
                 
-                // Get the hash from the request header
-                var hash = verification.header("X-Hub-Signature");
-                var hmac = Crypto.createHmac('sha1', verification.key);
-                hmac.update(payload);
-                var crypted = hmac.digest("hex");
-
-                // use secret to calculate HMAC
-                if (crypted != hash) {
-                   throw new Error("Payload signature doesn't match.");
+                var hashFromWink = verification.header("X-Hub-Signature");
+                if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
+                    throw new Error("Payload signature doesn't match.");
                 }
             }
 
@@ -468,6 +462,18 @@ class Translator {
             winkDevice.robot_id;
 
         return deviceId;
+    }
+
+    /** 
+     * Calculates a new hash of contents using key, and compares it to the master hash.
+     * Returns true is the contents can be verified.
+     */
+    _verifyHmac(hash, key, contents) {
+        var hmac = Crypto.createHmac("sha1", key);
+        hmac.update(contents);
+        var crypted = hmac.digest("hex");
+
+        return (crypted == hash);
     }
 }
 

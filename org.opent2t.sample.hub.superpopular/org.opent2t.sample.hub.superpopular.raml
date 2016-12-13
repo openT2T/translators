@@ -101,7 +101,7 @@ traits:
     
 /subscribe:
   description: |
-    This resource manages subscriptions to platoforms connected to this hub.
+    This resource manages subscriptions to platforms connected to this hub.
   displayName: Subscribe
     
   post:
@@ -112,7 +112,7 @@ traits:
         schema: Subscription
         example: |
           {
-            "callbackUrl": "http://myserver.com",
+            "verificationRequest": "..."
           }    
     responses:
        200:
