@@ -1,5 +1,6 @@
 'use strict';
 var crypto = require('crypto');
+var colour = require('./colour').Colour;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -55,6 +56,7 @@ function generateGUID(stringID) {
  * Converts a representation of a platform from the Hue API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
+    var states = providerSchema.state;
 
     // Build the oic.r.switch.binary resource
     var power = {
@@ -71,7 +73,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     }
 
     // Include the values is expand is specified
-    if (expand && providerSchema.state !== undefined) {
+    if (expand && states !== undefined) {
         power.id = 'power';
         power.value = providerSchema.state['on'];
 
@@ -80,8 +82,56 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.range = [0, 100];
     }
 
-    var guid = generateGUID(providerSchema['deviceid']);
+    var resources = [ power, dim ];
 
+    //Build colour resources if the lightbulb supports colour changing
+    if (states !== undefined && states.colormode !== undefined) {
+
+        // Build the colourMode resource
+        var colourMode = {
+            "href": "/colourMode",
+            "rt": ["oic.r.mode"],
+            "if": ["oic.if.s", "oic.if.baseline"]
+        }
+
+        // Build the colourRGB resource
+        var colourRGB = {
+            "href": "/colourRGB",
+            "rt": ["oic.r.colour.rgb"],
+            "if": ["oic.if.a", "oic.if.baseline"]
+        }
+
+        // Build the colourChroma resource
+        var colourChroma = {
+            "href": "/colourChroma",
+            "rt": ["oic.r.colour.chroma"],
+            "if": ["oic.if.a", "oic.if.baseline"]
+        }
+
+        if (expand) {
+            colourMode.id = 'colourMode';
+            colourMode.modes = 'rgb';
+            colourMode.supportedModes = ['rgb', 'chroma'];
+
+            colourRGB.id = 'colourRGB';
+            colourRGB.rgbvalue = colour.XYtoRGB({ x: states.xy[0], y: states.xy[1] }, providerSchema['modelid']);
+            colourRGB.range = [0, 255];
+
+            colourChroma.id = 'colourChroma';
+            colourChroma.hue = states.hue;
+            colourChroma.saturation = states.sat;
+            colourChroma.csc = states.xy;
+            colourChroma.ct = states.ct;
+        }
+
+        resources.push(colourMode);
+        resources.push(colourChroma);
+        if (states.colormode !== 'ct'){
+            resources.push(colourRGB);
+        }
+    }
+    
+    var guid = generateGUID(providerSchema['deviceid']);
     return {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
@@ -99,10 +149,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: guid,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
-                resources: [
-                    power,
-                    dim
-                ]
+                resources: resources
             }
         ]
     };
