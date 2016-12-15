@@ -31,16 +31,14 @@ function validateValue(value) {
  */
 function findResource(schema, di, resourceId) {
     // Find the entity by the unique di
-    var expectedDI = generateGUID(di);          //TODO: check expected device ID value.
     var entity = schema.entities.find((d) => {
-        return d.di === expectedDI;
+        return d.di === di;
     });
 
     // Find the resource
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
-
     return resource;
 }
 
@@ -57,6 +55,7 @@ function generateGUID(stringID) {
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var states = providerSchema.state;
+    if (providerSchema['modelid'] !== undefined) modelId = providerSchema['modelid'];
 
     // Build the oic.r.switch.binary resource
     var power = {
@@ -85,7 +84,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     var resources = [ power, dim ];
 
     //Build colour resources if the lightbulb supports colour changing
-    if (states !== undefined && states.colormode !== undefined) {
+    if (states !== undefined) {
 
         // Build the colourMode resource
         var colourMode = {
@@ -108,26 +107,36 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             "if": ["oic.if.a", "oic.if.baseline"]
         }
 
+        var hasRGB = false;
+
         if (expand) {
             colourMode.id = 'colourMode';
             colourMode.modes = 'rgb';
             colourMode.supportedModes = ['rgb', 'chroma'];
 
             colourRGB.id = 'colourRGB';
-            colourRGB.rgbvalue = colour.XYtoRGB({ x: states.xy[0], y: states.xy[1] }, providerSchema['modelid']);
             colourRGB.range = [0, 255];
+            if (states.xy !== undefined) {
+                colourRGB.rgbvalue = colour.XYtoRGB({ x: states.xy[0], y: states.xy[1] }, modelId);
+                hasRGB = true;
+                colourChroma.csc = states.xy;
+            } else if (states.hue !== undefined && states.sat !== undefined){
+                colourRGB.rgbvalue = colour.HSVtoRGB(states.hue, states.sat, states.bri);
+                hasRGB = true;
+            }
 
             colourChroma.id = 'colourChroma';
-            colourChroma.hue = states.hue;
-            colourChroma.saturation = states.sat;
-            colourChroma.csc = states.xy;
-            colourChroma.ct = states.ct;
+            if (states.ct !== undefined) colourChroma.ct = states.ct;
+            if (states.hue !== undefined) colourChroma.hue = states.hue;
+            if (states.sat !== undefined) colourChroma.saturation = states.sat;
         }
 
         resources.push(colourMode);
-        resources.push(colourChroma);
-        if (states.colormode !== 'ct'){
+        if (hasRGB) {
+            resources.push(colourChroma)
             resources.push(colourRGB);
+        } else if (states.ct !== undefined) {
+            resources.push(colourChroma);
         }
     }
     
@@ -174,6 +183,31 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             var bri = Math.round((resourceSchema.dimmingSetting * 2.53) + 1);
             result['bri'] = bri;
             break;
+        case 'colourRGB':
+            var xyColor = colour.RGBtoXY(resourceSchema.rgbvalue, modelId);
+            result['xy'] = [xyColor.x, xyColor.y];
+            break;
+        case 'colourChroma':
+            if (resourceSchema.ct !== undefined) {
+                result['ct'] = resourceSchema.ct;
+            }
+            
+            if (resourceSchema.csc !== undefined) {
+                result['xy'] = resourceSchema.csc;
+            }
+
+            if (resourceSchema.hue !== undefined) {
+                result['hue'] = resourceSchema.hue;
+            }
+
+            if (resourceSchema.saturation !== undefined) {
+                result['sat'] = resourceSchema.saturation;
+            } 
+            
+            if(result.length === 0){
+                throw new Error("Invalid resourceId");
+            }
+            break
         default:
             // Error case
             throw new Error("Invalid resourceId");
@@ -181,6 +215,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
+var modelId;
 var controlId;
 var deviceType = 'lights';
 var hueHub;
@@ -253,11 +288,11 @@ class Translator {
     }
 
     getDevicesColourRGB(deviceId) {
-        return this.getDeviceResource(deviceId, "colourRgb");
+        return this.getDeviceResource(deviceId, "colourRGB");
     }
 
     postDevicesColourRGB(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourRgb", payload);
+        return this.postDeviceResource(deviceId, "colourRGB", payload);
     }
 
     getDevicesDim(deviceId) {

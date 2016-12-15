@@ -286,16 +286,16 @@ class Colour {
     /**
      * Convert RGB to XY colours
      * @Param rgbValue is RGB colour values in [0 ... 255]
-     * @Return XY colour in a two-element array [<x_value>, <y_value>];
+     * @Return xyColour is an two-element object { x:<x_value>, y:<y_value> }
      */
-    static RGBtoXY(rgbValue) {
+    static RGBtoXY(rgbValue, modelID) {
         var outputPoint;
-        var rgb = [rgbValue[0] / 255.0, rgbValue[1]/ 255.0, rgbValue[2]  / 255.0];
+        var rgb = [rgbValue[0] / 255.0, rgbValue[1] / 255.0, rgbValue[2]  / 255.0];
 
         // Apply gamma correction
-        var r = (rgbValue[0] > 0.04045) ? Math.Pow((rgbValue[0] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[0] / 12.92);
-        var g = (rgbValue[1] > 0.04045) ? Math.Pow((rgbValue[1] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[1] / 12.92);
-        var b = (rgbValue[2] > 0.04045) ? Math.Pow((rgbValue[2] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[2] / 12.92);
+        var r = (rgbValue[0] > 0.04045) ? Math.pow((rgbValue[0] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[0] / 12.92);
+        var g = (rgbValue[1] > 0.04045) ? Math.pow((rgbValue[1] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[1] / 12.92);
+        var b = (rgbValue[2] > 0.04045) ? Math.pow((rgbValue[2] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[2] / 12.92);
 
         // Wide gamut conversion D65
         var X = r * 0.664511 + g * 0.154324 + b * 0.162028;
@@ -317,7 +317,7 @@ class Colour {
 
         //Check if the given XY value is within the colourreach of our lamps.
         outputPoint = {x:cx, y:cy};
-        var colorGamut = getColorGamutForModel(modelID);
+        var colorGamut = getColourGamutForModel(modelID);
         var inReachOfLamps = isPointInLampsReach(outputPoint, colorGamut);
 
         if (!inReachOfLamps)
@@ -350,10 +350,10 @@ class Colour {
             }
 
             //Change the xy value to a value which is within the reach of the lamp.
-            outputPoint = new XYColor(closestPoint.X, closestPoint.Y);
+            outputPoint = {x:closestPoint.x, y:closestPoint.y};
         }
 
-        return [outputPoint.x, outputPoint.y];
+        return { x:outputPoint.x, y:outputPoint.y};
     }
 }
 
