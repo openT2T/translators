@@ -83,21 +83,10 @@ class Translator {
     }
 
     /**
-     * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input accessTokenInfo.
+     * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input access token.
      */
-    refreshAuthToken(accessTokenInfo) {
-
-        if (accessTokenInfo == undefined || accessTokenInfo == null) {
-            throw new Error("Invalid accessTokenInfo object: Undefined/Null object");
-        }
-
-        if (accessTokenInfo.length !== 5) {
-            // We expect the accessTokenInfo object resulted from the onboarding flow
-            // The object should have 5 elements: accessToken, clientId, tokenType, ttl, and scopes.
-            throw new Error("Invalid accessTokenInfo object: missing element(s).");
-        }
-
-        return accessTokenInfo;
+    refreshAuthToken(authInfo) {
+        return this._accessToken;
     }
 
     /** 
