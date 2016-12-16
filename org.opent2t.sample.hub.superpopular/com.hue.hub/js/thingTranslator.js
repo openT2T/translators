@@ -4,6 +4,8 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var crypto = require('crypto');
+var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -37,6 +39,83 @@ class Translator {
                 });
         }
     }
+
+    /**
+     * Refreshes the OAuth token for the hub by sending refresh POST to the hue provider
+     */
+    refreshAuthToken(authInfo) {
+
+        if (authInfo == undefined || authInfo == null) {
+            throw new Error("Invalid authInfo object: undefined/null object");
+        }
+
+        if (authInfo.length !== 2) {
+            // We expect the original authInfo object used in the onboarding flow
+            throw new Error("Invalid authInfo object: missing element(s).");
+        }
+
+        // this comes from the onboardFlow property 
+        // as part of the schema and manifest.xml
+        var options = {
+            url: "https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token",
+            method: "POST",
+            headers: {
+                'cache-control': 'no-cache'
+            },
+            followAllRedirects: true,
+        };
+
+        return request(options)
+            .then(() => {
+                //Do Nothing
+            })
+            .catch((err) => {
+                if (err.statusCode == '401') {
+                    //extract nonce code from header
+                    var digestHeader = err.response.headers['www-authenticate'];
+                    var nonce = digestHeader.substr(digestHeader.indexOf('nonce=\"') + 7, 32);
+
+                    //Compute digest header response
+                    var disgestHeaderContent = 'username=\"' + authInfo[0].client_id + '\", ';
+                    disgestHeaderContent += 'realm=\"oauth2_client@api.meethue.com\", ';
+                    disgestHeaderContent += 'nonce=\"' + nonce + '\", ';
+                    disgestHeaderContent += 'uri=\"/oauth2/refresh\", ';
+                    var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':oauth2_client@api.meethue.com:' + authInfo[0].client_secret).digest('hex');
+                    var HASH2 = crypto.createHash('md5').update('POST:/oauth2/refresh').digest('hex');
+                    var authHeaderResponse = crypto.createHash('md5').update(HASH1 + ':' + nonce + ':' + HASH2).digest('hex');
+                    disgestHeaderContent += 'response=\"' + authHeaderResponse + '\"';
+
+                    options.headers = {
+                        'Accept': 'application/json',
+                        'Authorization': 'Digest ' + disgestHeaderContent,
+                        'Content-type': 'application/x-www-form-urlencoded'
+                    };
+
+                    options.body = 'refresh_token=' + this._accessToken.refreshToken;
+                    return request(options)
+                        .then((body) => {
+                            var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
+                            return new accessTokenInfo(
+                                        tokenInfo.access_token,
+                                        tokenInfo.access_token_expires_in,
+                                        tokenInfo.refresh_token,
+                                        tokenInfo.access_token_expires_in,
+                                        tokenInfo.token_type,
+                                        this._accessToken.bridgeId,
+                                        this._accessToken.whitelistId
+                                    );
+                        }).catch(function (err) {
+                            console.log("Request failed to: " + options.method + " - " + options.url);
+                            console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
+                            throw err;
+                        });
+                } else {
+                    console.log("Request failed to: " + options.method + " - " + options.url);
+                    console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
+                    throw err;
+                }
+            });
+     }
 
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
