@@ -83,45 +83,21 @@ class Translator {
     }
 
     /**
-     * Translates an array of provider schemas into an opent2t/OCF representations
+     * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input accessTokenInfo.
      */
-    _providerSchemaToPlatformSchema(providerSchemas, expand) {
-        var platformPromises = [];
+    refreshAuthToken(accessTokenInfo) {
 
-        // Ensure that we have an array of provider schemas, even if a single object was given.
-        var devices = [].concat(providerSchemas);
+        if (accessTokenInfo == undefined || accessTokenInfo == null) {
+            throw new Error("Invalid accessTokenInfo object: Undefined/Null object");
+        }
 
-        devices.forEach((smartThingsDevice) => {
-            // get the opent2t schema and translator for the SmartThings device
-            var opent2tInfo = this._getOpent2tInfo(smartThingsDevice.deviceType);
+        if (accessTokenInfo.length !== 5) {
+            // We expect the accessTokenInfo object resulted from the onboarding flow
+            // The object should have 5 elements: accessToken, clientId, tokenType, ttl, and scopes.
+            throw new Error("Invalid accessTokenInfo object: missing element(s).");
+        }
 
-            if (typeof opent2tInfo !== 'undefined') // we support the device                    
-            {
-                // set the opent2t info for the SmartThings device
-                var deviceInfo = {};
-                deviceInfo.opent2t = {};
-                deviceInfo.opent2t.controlId = smartThingsDevice.id;
-
-                // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
-                    .then((translator) => {
-                        // Use get to translate the SmartThings formatted device that we already got in the previous request.
-                        // We already have this data, so no need to make an unnecesary request over the wire.
-                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, smartThingsDevice])
-                            .then((platformResponse) => {
-                                return platformResponse;
-                            });
-                    }));
-            }
-        });
-
-        return Promise.all(platformPromises)
-                .then((platforms) => {
-                    var toReturn = {};
-                    toReturn.schema = "opent2t.p.hub";
-                    toReturn.platforms = platforms;
-                    return toReturn;
-                });
+        return accessTokenInfo;
     }
 
     /** 
