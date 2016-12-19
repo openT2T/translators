@@ -89,7 +89,6 @@ class Translator {
         return this._accessToken;
     }
 
-
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
