@@ -83,6 +83,14 @@ class Translator {
     }
 
     /**
+     * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input access token.
+     */
+    refreshAuthToken(authInfo) {
+        return this._accessToken;
+    }
+
+
+    /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
