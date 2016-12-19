@@ -249,12 +249,16 @@ class Translator {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
-    postSubscribe(callbackUrl, verificationRequest) {
-        return winkHub._subscribe(deviceType, deviceId, callbackUrl, verificationRequest);
+    postSubscribe(subscriptionInfo) {
+        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceType = deviceType;
+        return winkHub.postSubscribe(subscriptionInfo);
     }
 
-    deleteSubscribe(callbackUrl) {
-        return winkHub._unsubscribe(deviceType, deviceId, callbackUrl);
+    deleteSubscribe(subscriptionInfo) {
+        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceType = deviceType;
+        return winkHub._unsubscribe(subscriptionInfo);
     }
 }
 

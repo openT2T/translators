@@ -83,21 +83,72 @@ class Translator {
     }
 
     /**
-     * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input accessTokenInfo.
+     * Subscribe to notifications for a platform.
+     * This function is intended to be called by the platform translator for initial subscription,
+     * and on the hub translator (this) for verification.
      */
-    refreshAuthToken(accessTokenInfo) {
+    postSubscribe(subscriptionInfo) {
+        return this._hasValidEndpoint().then((isValid) => {
+            if (isValid == false) return undefined;
 
-        if (accessTokenInfo == undefined || accessTokenInfo == null) {
-            throw new Error("Invalid accessTokenInfo object: Undefined/Null object");
-        }
+            var requestPath = '/subscription/' + subscriptionInfo.controlId;
+            return this._makeRequest(requestPath, 'POST', '');
+        });
+    }
 
-        if (accessTokenInfo.length !== 5) {
-            // We expect the accessTokenInfo object resulted from the onboarding flow
-            // The object should have 5 elements: accessToken, clientId, tokenType, ttl, and scopes.
-            throw new Error("Invalid accessTokenInfo object: missing element(s).");
-        }
+    /**
+     * Unsubscribe from a platform subscription.
+     * This function is intended to be called by a platform translator
+     */
+    _unsubscribe(subscriptionInfo) {
+        return this._hasValidEndpoint().then((isValid) => {
+            if (isValid == false) return undefined;
 
-        return accessTokenInfo;
+            var requestPath = '/subscription/' + subscriptionInfo.controlId;
+            return this._makeRequest(requestPath, 'DELETE');
+        });
+    }
+
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
+
+        // Ensure that we have an array of provider schemas, even if a single object was given.
+        var devices = [].concat(providerSchemas);
+
+        devices.forEach((smartThingsDevice) => {
+            // get the opent2t schema and translator for the SmartThings device
+            var opent2tInfo = this._getOpent2tInfo(smartThingsDevice.deviceType);
+
+            if (typeof opent2tInfo !== 'undefined') // we support the device                    
+            {
+                /// set the opent2t info for the SmartThings device
+                var deviceInfo = {};
+                deviceInfo.opent2t = {};
+                deviceInfo.opent2t.controlId = smartThingsDevice.id;
+
+                // Create a translator for this device and get the platform information, possibly expanded
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                    .then((translator) => {
+                        // Use get to translate the SmartThings formatted device that we already got in the previous request.
+                        // We already have this data, so no need to make an unnecesary request over the wire.
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, smartThingsDevice])
+                            .then((platformResponse) => {
+                                return platformResponse;
+                            });
+                    }));
+            }
+        });
+
+        return Promise.all(platformPromises)
+                .then((platforms) => {
+                    var toReturn = {};
+                    toReturn.schema = "opent2t.p.hub";
+                    toReturn.platforms = platforms;
+                    return toReturn;
+                });
     }
 
     /** 
@@ -136,24 +187,6 @@ class Translator {
                 return Promise.resolve(responses[0].uri);
             }
             return Promise.resolve(undefined);
-        });
-    }
-
-    _subscribe(deviceId) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var requestPath = '/subscription/' + deviceId;
-            return this._makeRequest(requestPath, 'POST', '');
-        });
-    }
-
-    _unsubscribe(deviceId) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var requestPath = '/subscription/' + deviceId;
-            return this._makeRequest(requestPath, 'DELETE');
         });
     }
 

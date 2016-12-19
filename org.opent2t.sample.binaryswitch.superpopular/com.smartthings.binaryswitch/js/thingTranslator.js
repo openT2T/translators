@@ -148,16 +148,16 @@ class Translator {
     postDevicesPower(di, payload) {
         return postDeviceResource(di, 'power', payload);
     }
-    
-    /* eslint no-unused-vars: "off" */
-    postSubscribe(callbackUrl, verificationRequest) {
-        return smartThingsHub._subscribe(controlId);
+
+    postSubscribe(subscriptionInfo) {
+        subscriptionInfo.controlId = controlId;
+        return smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
-    deleteSubscribe(callbackUrl) {
-        return smartThingsHub._unsubscribe(controlId);
+    deleteSubscribe(subscriptionInfo) {
+        subscriptionInfo.controlId = controlId;
+        return smartThingsHub._unsubscribe(subscriptionInfo);
     }
-    /* eslint no-unused-vars: "warn" */
 }
 
 // Export the translator from the module.

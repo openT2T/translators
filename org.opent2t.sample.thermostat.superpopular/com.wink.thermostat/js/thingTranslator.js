@@ -410,12 +410,16 @@ class Translator {
         return postDeviceResource(di, 'fanMode', payload);
     }
 
-    postSubscribe(callbackUrl, verificationRequest) {
-        return winkHub._subscribe(deviceType, controlId, callbackUrl, verificationRequest);
+    postSubscribe(subscriptionInfo) {
+        subscriptionInfo.deviceId = controlId;
+        subscriptionInfo.deviceType = deviceType;
+        return winkHub._subscribe(subscriptionInfo);
     }
 
-    deleteSubscribe(callbackUrl) {
-        return winkHub._unsubscribe(deviceType, controlId, callbackUrl);
+    deleteSubscribe(subscriptionInfo) {
+        subscriptionInfo.deviceId = controlId;
+        subscriptionInfo.deviceType = deviceType;
+        return winkHub._unsubscribe(subscriptionInfo);
     }
 }
 
