@@ -310,6 +310,14 @@ class Translator {
     postDevicesColourChroma(deviceId, payload) {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
+
+    postSubscribe(subscriptionInfo) {
+        return hueHub.postSubscribe(subscriptionInfo);
+    }
+
+    deleteSubscribe(subscriptionInfo) {
+        return hueHub._unsubscribe(subscriptionInfo);
+    }
 }
 
 // Export the translator from the module.

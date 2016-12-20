@@ -117,6 +117,26 @@ class Translator {
             });
      }
 
+
+    /**
+     * Subscribe to notifications for a platform.
+     * This function is intended to be called by the platform translator for initial subscription,
+     * and on the hub translator (this) for verification.
+     */
+    postSubscribe(subscriptionInfo) {
+        // Error case
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Unsubscribe from a platform subscription.
+     * This function is intended to be called by a platform translator
+     */
+    _unsubscribe(subscriptionInfo) {
+        // Error case
+        throw new Error("Not implemented");
+    }
+
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
      */

@@ -290,7 +290,6 @@ class Colour {
      */
     static RGBtoXY(rgbValue, modelID) {
         var outputPoint;
-        var rgb = [rgbValue[0] / 255.0, rgbValue[1] / 255.0, rgbValue[2]  / 255.0];
 
         // Apply gamma correction
         var r = (rgbValue[0] > 0.04045) ? Math.pow((rgbValue[0] + 0.055) / (1.0 + 0.055), 2.4) : (rgbValue[0] / 12.92);
