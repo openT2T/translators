@@ -117,7 +117,7 @@ class Translator {
             });
      }
 
-
+    /* eslint no-unused-vars: "off" */
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
@@ -136,6 +136,7 @@ class Translator {
         // Error case
         throw new Error("Not implemented");
     }
+    /* eslint no-unused-vars: "warn" */
 
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
