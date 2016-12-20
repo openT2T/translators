@@ -46,7 +46,7 @@ function findResource(schema, di, resourceId) {
  * Generate a GUID for given an ID.
  */
 function generateGUID(stringID) {
-    var guid = crypto.createHash('md5').update('PhilipsHue.' + stringID).digest('hex');
+    var guid = crypto.createHash('sha1').update('PhilipsHue' + stringID).digest('hex');
     return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
 }
 
