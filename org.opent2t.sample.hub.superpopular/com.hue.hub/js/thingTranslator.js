@@ -97,9 +97,9 @@ class Translator {
                             var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
                             return new accessTokenInfo(
                                         tokenInfo.access_token,
-                                        tokenInfo.access_token_expires_in,
+                                        this._add2CurrentUTC(tokenInfo.access_token_expires_in),
                                         tokenInfo.refresh_token,
-                                        tokenInfo.access_token_expires_in,
+                                        this._add2CurrentUTC(tokenInfo.refresh_token_expires_in),
                                         tokenInfo.token_type,
                                         this._accessToken.bridgeId,
                                         this._accessToken.whitelistId
@@ -269,8 +269,17 @@ class Translator {
     }
 
     /** 
+     * add input # of second in to the current UTC time in Standard Unix UTC timestamp.
+     */
+    _add2CurrentUTC(seconds) {
+        var t = parseInt(Math.floor(new Date().getTime() / 1000));
+        t += parseInt(seconds);
+        return t;
+    }
+
+    /** 
      * Given the hub specific device, returns the opent2t schema and translator
-    */
+     */
     _getOpent2tInfo(HueDevice) {
         if (HueDevice.modelid.startsWith('L')) {
             return {
