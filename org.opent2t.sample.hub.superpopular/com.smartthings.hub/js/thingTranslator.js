@@ -82,6 +82,15 @@ class Translator {
         });
     }
 
+    /* eslint no-unused-vars: "off" */
+    /**
+     * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input access token.
+     */
+    refreshAuthToken(authInfo) {
+        return this._accessToken;
+    }
+    /* eslint no-unused-vars: "warn" */
+
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,

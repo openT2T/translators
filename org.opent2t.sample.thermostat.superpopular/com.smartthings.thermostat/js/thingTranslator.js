@@ -13,13 +13,23 @@ function validateArgumentType(arg, argName, expectedType) {
     }
 }
 
+/**
+ * Return the string "Undefined" if the value is undefined and null.
+ * Otherwise, return the value itself.
+ */
+function validateValue(value) {
+    if (value === undefined || value === null) {
+        return 'Undefined';
+    }
+    return value;
+}
+
 function deviceSupportedModesToTranslatorSupportedModes(deviceSupportedModes) {
     var supportedModes = deviceSupportedModes.map((x) => {
         return x.toLowerCase();
     });
     return supportedModes.filter((m) => !!m);
 }
-
 
 var deviceHvacModeToTranslatorHvacModeMap = {
     'cool': 'coolOnly',
@@ -116,8 +126,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: controlId
         },
         pi: providerSchema['id'],
-        mnmn: providerSchema['manufacturer'],
-        mnmo: providerSchema['model'],
+        mnmn: validateValue(providerSchema['manufacturer']),
+        mnmo: validateValue(providerSchema['model']),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [

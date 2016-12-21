@@ -14,6 +14,18 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Return the string "Undefined" if the value is undefined and null.
+ * Otherwise, return the value itself.
+ */
+function validateValue(value) {
+    if (value === undefined || value === null) {
+        return 'Undefined';
+    }
+    return value;
+}
+
+
+/**
  * Finds a resource for an entity in a schema
  */
 function findResource(schema, di, resourceId) {
@@ -29,6 +41,7 @@ function findResource(schema, di, resourceId) {
 
     return resource;
 }
+
 
 /**
  * Colour Conversion Funcitons
@@ -194,8 +207,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: controlId
         },
         pi: providerSchema['id'],
-        mnmn: providerSchema['manufacturer'],
-        mnmo: providerSchema['model'],
+        mnmn: validateValue(providerSchema['manufacturer']),
+        mnmo: validateValue(providerSchema['model']),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.lamp.superpopular'],
         entities: [
