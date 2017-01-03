@@ -9,7 +9,7 @@ function getLamp(devices) {
     for (var i = 0; i < devices.length; i++) {
         var d = devices[i];
 
-        if (d.opent2t.translator === 'opent2t-translator-com-hue-bulb' && d.opent2t.controlId === '7') {
+        if (d.opent2t.translator === 'opent2t-translator-com-hue-bulb') {
             return d;
         }
     }
