@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
 'use strict';
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -59,6 +57,21 @@ function readHvacMode(deviceSchema) {
     };
 }
 
+function createResource(resourceType, accessLevel, id, expand, state) {
+    var resource = {
+        href: '/' + id,
+        rt: [resourceType],
+        if: [accessLevel, 'oic.if.baseline']
+    }
+
+    if (expand) {
+        resource.id = id;
+        Object.assign(resource, state);
+    }
+
+    return resource;
+}
+
 // Helper method to convert the device schema to the translator schema.
 function deviceSchemaToTranslatorSchema(deviceSchema) {
 
@@ -71,19 +84,95 @@ function deviceSchemaToTranslatorSchema(deviceSchema) {
     var ts = tempScale.toLowerCase();
 
     return {
-        id: deviceSchema['device_id'],
-        n: deviceSchema['name'],
-        rt: 'org.opent2t.sample.thermostat.superpopular',
-        targetTemperature: { temperature: deviceSchema['target_temperature_' + ts], units: tempScale },
-        targetTemperatureHigh: { temperature: deviceSchema['target_temperature_high_' + ts], units: tempScale },
-        targetTemperatureLow: { temperature: deviceSchema['target_temperature_low_' + ts], units: tempScale },
-        ambientTemperature: { temperature: deviceSchema['ambient_temperature_' + ts], units: tempScale },
-        hasFan: deviceSchema['has_fan'],
-        ecoMode: deviceSchema['has_leaf'],
         hvacMode: readHvacMode(deviceSchema),
-        fanTimerActive: deviceSchema['fan_timer_active']
     };
 }
+
+// Helper method to convert the provider schema to the platform schema.
+function providerSchemaToPlatformSchema(providerSchema, expand) {
+
+    // Quirks:
+    // - Nest does not have an external temperature field, so that is left out.
+    // - Away Mode is not implemented at this time.
+
+    // Get temperature scale
+    var ts = providerSchema['temperature_scale'].toLowerCase();
+
+    var max = stateReader.get('max_set_point');
+    var min = stateReader.get('min_set_point');
+    var temperatureUnits = stateReader.get('units').temperature;
+
+    var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
+        temperature: providerSchema['ambient_temperature_' + ts],
+        units: ts //TODO: check scale
+    });
+
+    var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
+        temperature: providerSchema['target_temperature_' + ts],
+        units: ts
+    });
+
+    var targetTemperatureHigh = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureHigh', expand, {
+        temperature: providerSchema['target_temperature_high_' + ts],
+        units: ts
+    });
+
+    var targetTemperatureLow = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureLow', expand, {
+        temperature: providerSchema['target_temperature_low_' + ts],
+        units: ts
+    });
+
+    //TODO: AWAY
+    var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
+        mode: stateReader.get('users_away') ? 'away' : 'home',
+        supportedModes: ['home', 'away']
+    });
+
+    var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
+        value: providerSchema['has_leaf']
+    });
+
+    var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, readHvacMode(providerSchema));
+
+    var hasFan = createResource('oic.r.sensor', 'oic.if.s', 'hasFan', expand, {
+        value: providerSchema['has_fan']
+    });
+
+    var fanActive = createResource('oic.r.sensor', 'oic.if.s', 'fanActive', expand, {
+        value: providerSchema['fan_timer_active']
+    });
+
+    return {
+        opent2t: {
+            schema: 'org.opent2t.sample.thermostat.superpopular',
+            translator: 'opent2t-translator-com-nest-thermostat',
+            controlId: providerSchema['device_id']
+        },
+        pi: providerSchema['uuid'],
+        mnmn: 'Nest',
+        mnmo: 'Undefined',
+        n: providerSchema['name'],
+        rt: ['org.opent2t.sample.thermostat.superpopular'],
+        entities: [
+            {
+                rt: ['opent2t.d.thermostat'],
+                di: deviceIds['opent2t.d.thermostat'],
+                resources: [
+                    ambientTemperature,
+                    targetTemperature,
+                    targetTemperatureHigh,
+                    targetTemperatureLow,
+                    awayMode,
+                    ecoMode,
+                    hvacMode,
+                    hasFan,
+                    fanActive
+                ]
+            }
+        ]
+    };
+}
+
 
 // Helper method to convert the translator schema to the device schema.
 function translatorSchemaToDeviceSchema(translatorSchema) {

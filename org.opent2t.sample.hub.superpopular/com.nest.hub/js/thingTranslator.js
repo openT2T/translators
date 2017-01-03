@@ -1,11 +1,9 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
 var request = require('request-promise');
+var Firebase = require("firebase");
 
 /**
 * This translator class implements the "Hub" interface.
@@ -13,57 +11,72 @@ var request = require('request-promise');
 class Translator {
     constructor(accessToken) {
         this._accessToken = accessToken;
-
         this._baseUrl = "https://developer-api.nest.com";
         this._devicesPath = '/devices';
-
         this._name = "Nest Hub";
+        this._ref = new Firebase(this._baseUrl);
+        this._ref.authWithCustomToken(this._accessToken.accessToken);
+    }
+
+    /**
+     * Get the hub definition and devices
+     */
+    get(expand, payload) {
+        return this.getPlatforms(expand, payload);
     }
 
     /**
      * Get the list of devices discovered through the hub.
      */
-    getHubResURI() {
-        return this._makeRequest(this._devicesPath, 'GET').then((nestDevices) => {
-
-            console.log(JSON.stringify(nestDevices, null, 2));
-
-            var toReturn = {};
-            
-            // get all nest sub device collections 
-            var nestThermostats = nestDevices.thermostats;
-            
-            // unused at the moment, but setup for future
-            // var nestCameras = nestDevices.cameras; 
-            // var nestSmokeAlarms = nestDevices.smoke_co_alarms;
-
-            var filteredDevices = [];
-
-            // load thermostats
-            var nestThermostatIds = Object.keys(nestThermostats);
-            nestThermostatIds.forEach((nestThermostatId) => {
-                var nestDevice = nestThermostats[nestThermostatId];
-
-                // get the opent2t schema and translator for the nest device
-                var opent2tInfo = this._getOpent2tInfo("thermostats");
-
-                // we only need to return certain properties back
-                var device = {};
-                device.name = nestDevice.name;
-
-                // set the specific device object id to be the id
-                device.id = nestThermostatId;
-
-                // set the opent2t info for the nest device
-                device.openT2T = opent2tInfo;
-                
-                filteredDevices.push(device);
-            });
-
-            toReturn.devices = filteredDevices;
-
-            return toReturn;
+    getPlatforms(expand, payload) {
+        return this._ref.once('value').then( (snapshot) => {
+            var postsData = snapshot.val();
+            var devices = postsData.devices
+            return this._providerSchemaToPlatformSchema(postsData.devices, expand);
         });
+    }
+
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
+
+        if(providerSchemas.thermostats !== undefined){
+
+            // get the opent2t schema and translator for Nest thermostat
+            var opent2tInfo = { 
+                "schema": 'org.opent2t.sample.thermostat.superpopular',
+                "translator": "opent2t-translator-com-nest-thermostat"
+            };
+
+            var nestThermostatIds = Object.keys(providerSchemas.thermostats);
+            nestThermostatIds.forEach((nestThermostatId) => {
+                // set the opent2t info for the Nest Device
+                var deviceInfo = {};
+                deviceInfo.opent2t = {};
+                deviceInfo.opent2t.controlId = nestThermostatId;
+
+                // Create a translator for this device and get the platform information, possibly expanded
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                    .then((translator) => {
+                        // Use get to translate the SmartThings formatted device that we already got in the previous request.
+                        // We already have this data, so no need to make an unnecesary request over the wire.
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, providerSchemas.thermostats[nestThermostatId]])
+                            .then((platformResponse) => {
+                                return platformResponse;
+                            });
+                    }));
+            });
+        }
+
+        return Promise.all(platformPromises)
+                .then((platforms) => {
+                    var toReturn = {};
+                    toReturn.schema = "opent2t.p.hub";
+                    toReturn.platforms = platforms;
+                    return toReturn;
+                });
     }
 
     /**
@@ -78,11 +91,11 @@ class Translator {
      */
     getDeviceDetailsAsync(deviceType, deviceId) {
 
-        // build request URI
-        var requestPath = this._devicesPath + '/' + deviceType + '/' + deviceId;
-
-        // Make the async request
-        return this._makeRequest(requestPath, 'GET');
+        return this._ref.once('value').then((snapshot) => {
+            var postsData = snapshot.val();
+            var device = postsData.devices[deviceType].deviceId;
+            return this._providerSchemaToPlatformSchema({[deviceType]: {[deviceId]: device}}, expand);
+        });
     }
 
     /**
@@ -96,20 +109,6 @@ class Translator {
 
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
-    }
-
-    /** 
-     * Given the hub specific device, returns the opent2t schema and translator
-    */
-    _getOpent2tInfo(nestDeviceType) {
-        if (nestDeviceType === "thermostats") {
-            return { 
-                "schema": 'org.opent2t.sample.thermostat.superpopular',
-                "translator": "opent2t-translator-com-nest-thermostat"
-            };
-        }
-        
-        return undefined;
     }
 
     /**
