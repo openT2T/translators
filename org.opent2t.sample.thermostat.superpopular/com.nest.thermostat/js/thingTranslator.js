@@ -72,35 +72,15 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     return resource;
 }
 
-// Helper method to convert the device schema to the translator schema.
-function deviceSchemaToTranslatorSchema(deviceSchema) {
-
-    // Quirks:
-    // - Nest does not have an external temperature field, so that is left out.
-    // - Away Mode is not implemented at this time.
-
-    // return units in Celsius regardless of what the thermostat is set to
-    var tempScale = 'C';
-    var ts = tempScale.toLowerCase();
-
-    return {
-        hvacMode: readHvacMode(deviceSchema),
-    };
-}
-
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
-
+  
     // Quirks:
     // - Nest does not have an external temperature field, so that is left out.
     // - Away Mode is not implemented at this time.
-
+    
     // Get temperature scale
     var ts = providerSchema['temperature_scale'].toLowerCase();
-
-    var max = stateReader.get('max_set_point');
-    var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units').temperature;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient_temperature_' + ts],
@@ -123,11 +103,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     //TODO: AWAY
+    /*
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
         mode: stateReader.get('users_away') ? 'away' : 'home',
         supportedModes: ['home', 'away']
     });
-
+    */
+    
     var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
         value: providerSchema['has_leaf']
     });
@@ -148,21 +130,21 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-nest-thermostat',
             controlId: providerSchema['device_id']
         },
-        pi: providerSchema['uuid'],
+        pi: providerSchema['device_id'],
         mnmn: 'Nest',
         mnmo: 'Undefined',
-        n: providerSchema['name'],
+        n: providerSchema['name_long'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
                 rt: ['opent2t.d.thermostat'],
-                di: deviceIds['opent2t.d.thermostat'],
+                di: providerSchema['device_id'],
                 resources: [
                     ambientTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
-                    awayMode,
+                    //awayMode,
                     ecoMode,
                     hvacMode,
                     hasFan,
@@ -173,39 +155,97 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
-
 // Helper method to convert the translator schema to the device schema.
-function translatorSchemaToDeviceSchema(translatorSchema) {
-
-    // Quirks:
-    // - Away Mode is not implemented at this time.
-
+function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
+    // build the object with desired state
     var result = {};
 
-    if (translatorSchema.n) {
-        result['name'] = translatorSchema.n;
-    }
-
-    if (translatorSchema.targetTemperature) {
-        result['target_temperature_' + translatorSchema.targetTemperature.units.toLowerCase()] = translatorSchema.targetTemperature.temperature;
-    }
-
-    if (translatorSchema.targetTemperatureHigh) {
-        result['target_temperature_high_' + translatorSchema.targetTemperatureHigh.units.toLowerCase()] = translatorSchema.targetTemperatureHigh.temperature;
-    }
-
-    if (translatorSchema.targetTemperatureLow) {
-        result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = translatorSchema.targetTemperatureLow.temperature;
-    }
-
-    if (translatorSchema.hvacMode) {
-        result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(translatorSchema.hvacMode.modes[0]);
+    switch (resourceId) {
+        case 'targetTemperature':
+            result['target_temperature_' + translatorSchema.targetTemperature.units.toLowerCase()] = resourceSchema.temperature;
+            break;
+        case 'targetTemperatureHigh':
+            result['target_temperature_high_' + translatorSchema.targetTemperatureHigh.units.toLowerCase()] = resourceSchema.temperature;
+            break;
+        case 'targetTemperatureLow':
+            result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = resourceSchema.temperature;
+            break;
+        case 'awayMode':
+            result['awayMode'] = resourceSchema.modes[0] === 'away' ? 'Away' : 'Home';
+            break;
+        case 'hvacMode':
+            result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
+            break;
+        case 'fanMode':
+        case 'awayTemperatureHigh':
+        case 'awayTemperatureLow':
+        case 'fanTimerTimeout':
+            throw new Error('NotImplemented');
+        default:
+            throw new Error('NotFound');
     }
 
     return result;
 }
 
-var deviceId;
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'ecoMode':
+        case 'awayTemperatureHigh':
+        case 'awayTemperatureLow':
+        case 'heatingFuelSource':
+        case 'fanTimerActive':
+        case 'fanTimerTimeout':
+        case 'fanActive':
+            throw new Error('NotImplemented');
+    }
+}
+
+function findResource(schema, di, resourceId) {
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    if (!entity) {
+        throw new Error('NotFound');
+    }
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) {
+        throw new Error('NotFound');
+    }
+
+    return resource;
+}
+
+function getDeviceResource(translator, di, resourceId) {
+    validateResourceGet(resourceId);
+
+    return translator.get(true)
+        .then(response => {
+            return findResource(response, di, resourceId);
+        });
+}
+
+function postDeviceResource(di, resourceId, payload) {
+    if (di === controlId)
+    {
+        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+        return nestHub.putDeviceDetailsAsync(controlId, putPayload)
+            .then((response) => {
+                var schema = providerSchemaToPlatformSchema(response, true);
+                return findResource(schema, di, resourceId);
+            });
+    } else {
+        throw new Error('NotFound');
+    }
+}
+
+var controlId;
 var deviceType = 'thermostats';
 var nestHub;
 
@@ -213,106 +253,136 @@ var nestHub;
 class Translator {
 
     constructor(deviceInfo) {
-        console.log('Initializing device.');
-        console.log(JSON.stringify(deviceInfo, null, 2));
+        console.log('Nest Thermostat initializing...');
 
-        validateArgumentType(deviceInfo, 'deviceInfo', 'object');
-        validateArgumentType(deviceInfo.hub, 'deviceInfo.hub', 'object');
-
-        validateArgumentType(deviceInfo.deviceInfo.id, 'deviceInfo.deviceInfo.id', 'string');
-
-        deviceId = deviceInfo.deviceInfo.id;
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
         nestHub = deviceInfo.hub;
 
-        console.log('Javascript and Nest Thermostat initialized.');
+        console.log('Nest Thermostat initializing...Done');
     }
 
-    // exports for the entire schema object
-
-    // Queries the entire state of the thermostat
-    // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-    getThermostatResURI() {
-        return nestHub.getDeviceDetailsAsync(deviceType, deviceId)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response);
-            });
+    // Queries the entire state of the binary switch
+    // and returns an object that maps to the json schema opent2t.p.thermostat
+    get(expand, payload) {
+        if (payload) {
+            return providerSchemaToPlatformSchema(payload, expand);
+        } else {
+            return nestHub.getDeviceDetailsAsync(deviceType, controlId)
+                .then((response) => {
+                    return providerSchemaToPlatformSchema(response, expand);
+                });
+        }
     }
 
-    // Updates the current state of the thermostat with the contents of postPayload
-    // postPayload is an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
-    //
-    // In addition, returns the updated state (see sample in RAML)
-    postThermostatResURI(postPayload) {
-
-        console.log('postThermostatResURI called with payload: ' + JSON.stringify(postPayload, null, 2));
-
-        var putPayload = translatorSchemaToDeviceSchema(postPayload);
-        return nestHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                return deviceSchemaToTranslatorSchema(response);
-            });
+    getDevicesAmbientTemperature(di) {
+        return getDeviceResource(this, di, 'ambientTemperature');
     }
 
-    // exports for individual properties
-
-    getAmbientTemperature() {
-        console.log('getAmbientTemperature called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.ambientTemperature.temperature;
-            });
+    getDevicesTargetTemperature(di) {
+        return getDeviceResource(this, di, 'targetTemperature');
     }
 
-    getTargetTemperature() {
-        console.log('getTargetTemperature called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.targetTemperature.temperature;
-            });
+    postDevicesTargetTemperature(di, payload) {
+        return postDeviceResource(di, 'targetTemperature', payload);
     }
 
-    getTargetTemperatureHigh() {
-        console.log('getTargetTemperatureHigh called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.targetTemperatureHigh.temperature;
-            });
+    getDevicesHumidity(di) {
+        return getDeviceResource(this, di, 'humidity');
     }
 
-    setTargetTemperatureHigh(value) {
-        console.log('setTargetTemperatureHigh called with value: ' + value);
-
-        var postPayload = {};
-        postPayload.targetTemperatureHigh = { temperature: value, units: 'C' };
-
-        return this.postThermostatResURI(postPayload)
-            .then(response => {
-                return response.targetTemperatureHigh.temperature;
-            });
+    getDevicesTargetTemperatureHigh(di) {
+        return getDeviceResource(this, di, 'targetTemperatureHigh');
     }
 
-    getTargetTemperatureLow() {
-        console.log('getTargetTemperatureLow called');
-
-        return this.getThermostatResURI()
-            .then(response => {
-                return response.targetTemperatureLow.temperature;
-            });
+    postDevicesTargetTemperatureHigh(di, payload) {
+        return postDeviceResource(di, 'targetTemperatureHigh', payload);
     }
 
-    setTargetTemperatureLow(value) {
-        console.log('setTargetTemperatureLow called with value: ' + value);
+    getDevicesTargetTemperatureLow(di) {
+        return getDeviceResource(this, di, 'targetTemperatureLow');
+    }
 
-        var postPayload = {};
-        postPayload.targetTemperatureLow = { temperature: value, units: 'C' };
+    postDevicesTargetTemperatureLow(di, payload) {
+        return postDeviceResource(di, 'targetTemperatureLow', payload);
+    }
 
-        return this.postThermostatResURI(postPayload)
-            .then(response => {
-                return response.targetTemperatureLow.temperature;
-            });
+    getDevicesAwayMode(di) {
+        return getDeviceResource(this, di, 'awayMode');
+    }
+
+    postDevicesAwayMode(di, payload) {
+        return postDeviceResource(di, 'awayMode', payload);
+    }
+
+    getDevicesAwayTemperatureHigh(di) {
+        return getDeviceResource(this, di, 'awayTemperatureHigh');
+    }
+
+    postDevicesAwayTemperatureHigh(di, payload) {
+        return postDeviceResource(di, 'awayTemperatureHigh', payload);
+    }
+
+    getDevicesAwayTemperatureLow(di) {
+        return getDeviceResource(this, di, 'awayTemperatureLow');
+    }
+
+    postDevicesAwayTemperatureLow(di, payload) {
+        return postDeviceResource(di, 'awayTemperatureLow', payload);
+    }
+
+    getDevicesEcoMode(di) {
+        return getDeviceResource(this, di, 'ecoMode');
+    }
+
+    getDevicesHvacMode(di) {
+        return getDeviceResource(this, di, 'hvacMode');
+    }
+
+    postDevicesHvacMode(di, payload) {
+        return postDeviceResource(di, 'hvacMode', payload);
+    }
+
+    getDevicesHeatingFuelSource(di) {
+        return getDeviceResource(this, di, 'heatingFuelSource');
+    }
+
+    getDevicesHasFan(di) {
+        return getDeviceResource(this, di, 'hasFan');
+    }
+
+    getDevicesFanActive(di) {
+        return getDeviceResource(this, di, 'fanActive');
+    }
+
+    getDevicesFanTimerActive(di) {
+        return getDeviceResource(this, di, 'fanTimerActive');
+    }
+
+    getDevicesFanTimerTimeout(di) {
+        return getDeviceResource(this, di, 'fanTimerTimeout');
+    }
+
+    postDevicesFanTimerTimeout(di, payload) {
+        return postDeviceResource(di, 'fanTimerTimeout', payload);
+    }
+
+    getDevicesFanMode(di) {
+        return getDeviceResource(this, di, 'fanMode');
+    }
+
+    postDevicesFanMode(di, payload) {
+        return postDeviceResource(di, 'fanMode', payload);
+    }
+
+    postSubscribe(subscriptionInfo) {
+        subscriptionInfo.controlId = controlId;
+        return nestHub.postSubscribe(subscriptionInfo);
+    }
+
+    deleteSubscribe(subscriptionInfo) {
+        subscriptionInfo.controlId = controlId;
+        return nestHub._unsubscribe(subscriptionInfo);
     }
 }
 

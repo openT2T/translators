@@ -23,7 +23,6 @@
     "opent2t-translator-com-nest-hub": "*"
   },
   "devDependencies": {
-    "opent2t": "*",
     "ava": "^0.15.2",
     "q": "*",
     "opent2t-device-nesthub": "file:../../../org.opent2t.sample.hub.superpopular/com.nest.hub/test",

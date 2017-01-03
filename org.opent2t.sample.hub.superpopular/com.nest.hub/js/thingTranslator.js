@@ -3,6 +3,7 @@
 
 "use strict";
 var request = require('request-promise');
+var OpenT2T = require('opent2t').OpenT2T;
 var Firebase = require("firebase");
 
 /**
@@ -30,11 +31,32 @@ class Translator {
      */
     getPlatforms(expand, payload) {
         return this._ref.once('value').then( (snapshot) => {
-            var postsData = snapshot.val();
-            var devices = postsData.devices
-            return this._providerSchemaToPlatformSchema(postsData.devices, expand);
+            var postData = snapshot.val();
+            return this._providerSchemaToPlatformSchema(postData.devices, expand);
         });
     }
+
+    /* eslint no-unused-vars: "off" */
+    /**
+     * Subscribe to notifications for a platform.
+     * This function is intended to be called by the platform translator for initial subscription,
+     * and on the hub translator (this) for verification.
+
+     */
+    postSubscribe(subscriptionInfo) {
+        // Error case
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Unsubscribe from a platform subscription.
+     * This function is intended to be called by a platform translator
+     */
+    _unsubscribe(subscriptionInfo) {
+        // Error case
+        throw new Error("Not implemented");
+    }
+    /* eslint no-unused-vars: "warn" */
 
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
@@ -90,11 +112,10 @@ class Translator {
      * Gets device details (all fields), response formatted per nest api
      */
     getDeviceDetailsAsync(deviceType, deviceId) {
-
         return this._ref.once('value').then((snapshot) => {
             var postsData = snapshot.val();
-            var device = postsData.devices[deviceType].deviceId;
-            return this._providerSchemaToPlatformSchema({[deviceType]: {[deviceId]: device}}, expand);
+            var devices = postsData.devices[deviceType];
+            return devices[deviceId];
         });
     }
 
@@ -102,7 +123,6 @@ class Translator {
      * Puts device details (all fields) payload formatted per nest api
     */
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
-
         // build request path and body
         var requestPath = this._devicesPath + '/' + deviceType + '/' + deviceId;
         var putPayloadString = JSON.stringify(putPayload);
