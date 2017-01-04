@@ -70,6 +70,12 @@ function product(pt1, pt2){
     return ((pt1.x * pt2.y) - (pt1.y * pt2.x));
 }
 
+
+/*
+ * Returns colour gamut based on the light device's model.
+ * Reference to https://developers.meethue.com/documentation/supported-lights.
+ */
+
 function getColourGamutForModel(modelId)
 {
     var output = [ {x:1, y:0}, {x:0, y:1}, {x:0, y:0}];
@@ -110,6 +116,16 @@ function getColourGamutForModel(modelId)
 
     return output;
 }
+
+
+/*
+ *
+ * This class provides methods to convert XY colour to RGB value and vice versa.
+ * Details on Hue's colour conversion formula for XY colour space is available at 
+ * https://developers.meethue.com/documentation/color-conversions-rgb-xy.
+ * Methods for converting between HSV and RGB colours are inclued as well.
+ *
+ */
 
 class Colour {
 
