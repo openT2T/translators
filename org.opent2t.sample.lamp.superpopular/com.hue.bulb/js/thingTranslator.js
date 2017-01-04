@@ -312,7 +312,7 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        return hueHub.postSubscribe(subscriptionInfo);
+        return hueHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
