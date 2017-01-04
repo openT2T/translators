@@ -54,8 +54,6 @@ class Translator {
             throw new Error("Invalid authInfo object: missing element(s).");
         }
 
-        // this comes from the onboardFlow property 
-        // as part of the schema and manifest.xml
         var options = {
             url: "https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token",
             method: "POST",
@@ -75,25 +73,8 @@ class Translator {
                     var digestHeader = err.response.headers['www-authenticate'];
                     var nonce = digestHeader.substr(digestHeader.indexOf('nonce=\"') + 7, 32);
 
-                    //Compute digest header response
-                    var disgestHeaderContent = 'username=\"' + authInfo[0].client_id + '\", ';
-                    disgestHeaderContent += 'realm=\"oauth2_client@api.meethue.com\", ';
-                    disgestHeaderContent += 'nonce=\"' + nonce + '\", ';
-                    disgestHeaderContent += 'uri=\"/oauth2/refresh\", ';
-                    var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':oauth2_client@api.meethue.com:' + authInfo[0].client_secret).digest('hex');
-                    var HASH2 = crypto.createHash('md5').update('POST:/oauth2/refresh').digest('hex');
-                    var authHeaderResponse = crypto.createHash('md5').update(HASH1 + ':' + nonce + ':' + HASH2).digest('hex');
-                    disgestHeaderContent += 'response=\"' + authHeaderResponse + '\"';
-
-                    options.headers = {
-                        'Accept': 'application/json',
-                        'Authorization': 'Digest ' + disgestHeaderContent,
-                        'Content-type': 'application/x-www-form-urlencoded'
-                    };
-
-                    options.body = 'refresh_token=' + this._accessToken.refreshToken;
-                    return request(options)
-                        .then((body) => {
+                    //send Digest Autehticaiton
+                    return this._sendDigestAuthentication(nonce, authInfo).then((body) => {
                             var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
                             return new accessTokenInfo(
                                         tokenInfo.access_token,
@@ -117,13 +98,41 @@ class Translator {
             });
      }
 
+     /**
+     * A helper function to the refreshAuthToken that send digest authentication to refresh token.
+     */
+    _sendDigestAuthentication(nonce, authInfo){
+                
+        //Compute digest header response
+        var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':oauth2_client@api.meethue.com:' + authInfo[0].client_secret).digest('hex');
+        var HASH2 = crypto.createHash('md5').update('POST:/oauth2/refresh').digest('hex');
+        var authHeaderResponse = crypto.createHash('md5').update(HASH1 + ':' + nonce + ':' + HASH2).digest('hex');
+        var disgestHeaderContent = 'username=\"' + authInfo[0].client_id 
+                                 + '\", realm=\"oauth2_client@api.meethue.com\", nonce=\"' + nonce 
+                                 + '\", uri=\"/oauth2/refresh\", response=\"' + authHeaderResponse + '\"';
+
+        var options = {
+            url: "https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token",
+            method: "POST",
+            headers:{
+                'Accept': 'application/json',
+                'Authorization': 'Digest ' + disgestHeaderContent,
+                'Content-type': 'application/x-www-form-urlencoded'
+            },
+            body: 'refresh_token=' + this._accessToken.refreshToken,
+            followAllRedirects: true,
+        };
+
+        return request(options);
+    }
+     
     /* eslint no-unused-vars: "off" */
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
      */
-    postSubscribe(subscriptionInfo) {
+    _subscribe(subscriptionInfo) {
         // Error case
         throw new Error("Not implemented");
     }
