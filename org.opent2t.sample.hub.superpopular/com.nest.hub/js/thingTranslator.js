@@ -43,7 +43,7 @@ class Translator {
      * and on the hub translator (this) for verification.
 
      */
-    postSubscribe(subscriptionInfo) {
+    _subscribe(subscriptionInfo) {
         // Error case
         throw new Error("Not implemented");
     }
@@ -121,14 +121,28 @@ class Translator {
 
     /**
      * Puts device details (all fields) payload formatted per nest api
-    */
+     */
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
-        // build request path and body
-        var requestPath = this._devicesPath + '/' + deviceType + '/' + deviceId;
-        var putPayloadString = JSON.stringify(putPayload);
-
-        // Make the async request
-        return this._makeRequest(requestPath, 'PUT', putPayloadString);
+        var propertyName = Object.keys(putPayload);
+        var path = 'devices/' + deviceType + '/' + deviceId + '/' + propertyName[0];
+        return this._ref.child(path).set(putPayload[propertyName[0]]).then((response) => {
+            if (response === undefined) { //success
+                var result = {};
+                result['device_id'] = deviceId;
+                result[propertyName] = putPayload[propertyName[0]];
+                if (propertyName[0].includes('_temperature_')) {
+                    var index = propertyName[0].length -1;
+                    result['temperature_scale'] = propertyName[0].charAt(index);
+                }
+                return result;
+            }
+        }).catch(function (err) {
+            var str = err.toString();
+            var startInd = str.indexOf('{');
+            var endInd = str.lastIndexOf('}');
+            var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
+            throw new Error(errorMsg.error);
+        });
     }
 
     /**

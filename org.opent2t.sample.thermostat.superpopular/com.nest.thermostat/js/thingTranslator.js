@@ -50,6 +50,7 @@ function readHvacMode(deviceSchema) {
     }
 
     var hvacMode = deviceHvacModeToTranslatorHvacMode(deviceSchema['hvac_mode']);
+    if (hvacMode === undefined) deviceHvacModeToTranslatorHvacMode(deviceSchema['hvac_state']);
 
     return {
         supportedModes: supportedHvacModes,
@@ -74,7 +75,7 @@ function createResource(resourceType, accessLevel, id, expand, state) {
 
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
-  
+
     // Quirks:
     // - Nest does not have an external temperature field, so that is left out.
     // - Away Mode is not implemented at this time.
@@ -102,14 +103,28 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         units: ts
     });
 
-    //TODO: AWAY
+    var awayTemperatureHigh = createResource('oic.r.temperature', 'oic.if.s', 'awayTemperatureHigh', expand, {
+        temperature: providerSchema['away_temperature_high_' + ts],
+        units: ts
+    });
+
+    var awayTemperatureLow = createResource('oic.r.temperature', 'oic.if.s', 'awayTemperatureLow', expand, {
+        temperature: providerSchema['away_temperature_low_' + ts],
+        units: ts
+    });
+
+    var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
+        humidity: providerSchema['humidity']
+    });
+
+    //TODO
     /*
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
         mode: stateReader.get('users_away') ? 'away' : 'home',
         supportedModes: ['home', 'away']
     });
     */
-    
+
     var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
         value: providerSchema['has_leaf']
     });
@@ -120,7 +135,11 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['has_fan']
     });
 
-    var fanActive = createResource('oic.r.sensor', 'oic.if.s', 'fanActive', expand, {
+    var fanActive = createResource('oic.r.sensor', 'oic.if.a', 'fanActive', expand, {
+        value: providerSchema['fan_timer_active']
+    });
+
+    var fanTimerActive = createResource('oic.r.sensor', 'oic.if.a', 'fanTimerActive', expand, {
         value: providerSchema['fan_timer_active']
     });
 
@@ -144,11 +163,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
+                    awayTemperatureHigh,
+                    awayTemperatureLow,
+                    humidity,
                     //awayMode,
                     ecoMode,
                     hvacMode,
                     hasFan,
-                    fanActive
+                    fanActive,
+                    fanTimerActive
                 ]
             }
         ]
@@ -162,23 +185,26 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     switch (resourceId) {
         case 'targetTemperature':
-            result['target_temperature_' + translatorSchema.targetTemperature.units.toLowerCase()] = resourceSchema.temperature;
+            result['target_temperature_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureHigh':
-            result['target_temperature_high_' + translatorSchema.targetTemperatureHigh.units.toLowerCase()] = resourceSchema.temperature;
+            result['target_temperature_high_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureLow':
-            result['target_temperature_low_' + translatorSchema.targetTemperatureLow.units.toLowerCase()] = resourceSchema.temperature;
-            break;
-        case 'awayMode':
-            result['awayMode'] = resourceSchema.modes[0] === 'away' ? 'Away' : 'Home';
+            result['target_temperature_low_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'hvacMode':
             result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
             break;
-        case 'fanMode':
+        case 'fanActive':
+        case 'fanTimerActive':
+            result['fan_timer_active'] = resourceSchema.value;
+            break;
+        case 'ambientTemperature':
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
+        case 'humidity':
+        case 'ecoMode':
         case 'fanTimerTimeout':
             throw new Error('NotImplemented');
         default:
@@ -190,13 +216,10 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
 function validateResourceGet(resourceId) {
     switch (resourceId) {
-        case 'ecoMode':
-        case 'awayTemperatureHigh':
-        case 'awayTemperatureLow':
         case 'heatingFuelSource':
-        case 'fanTimerActive':
+        case 'fanMode':
         case 'fanTimerTimeout':
-        case 'fanActive':
+        case 'awayMode':
             throw new Error('NotImplemented');
     }
 }
@@ -235,7 +258,7 @@ function postDeviceResource(di, resourceId, payload) {
     {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-        return nestHub.putDeviceDetailsAsync(controlId, putPayload)
+        return nestHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
             .then((response) => {
                 var schema = providerSchemaToPlatformSchema(response, true);
                 return findResource(schema, di, resourceId);
