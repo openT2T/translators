@@ -29,16 +29,21 @@ function validateValue(value) {
 /**
  * Finds a resource for an entity in a schema
  */
+
 function findResource(schema, di, resourceId) {
-    // Find the entity by the unique di
+
     var entity = schema.entities.find((d) => {
         return d.di === di;
     });
 
-    // Find the resource
+    if (!entity) throw new Error('NotFound');
+
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
+
+    if (!resource) throw new Error('NotFound');
+
     return resource;
 }
 
@@ -266,13 +271,14 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        //TODO: check di
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-        return hueHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response[0], true);
-                return findResource(schema, di, resourceId);
-            });
+        if(di === generateGUID(controlId)){
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+            return hueHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response[0], true);
+                    return findResource(schema, di, resourceId);
+                });  
+        }
     }
 
     getDevicesPower(deviceId) {

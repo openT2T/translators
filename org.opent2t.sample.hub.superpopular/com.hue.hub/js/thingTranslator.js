@@ -15,6 +15,9 @@ class Translator {
         this._accessToken = accessTokenInfo;
         this._baseUrl = 'https://api.meethue.com/v2/bridges/' + accessTokenInfo.bridgeId + '/' + accessTokenInfo.whitelistId;
         this._devicesPath = '/lights';
+        this._refreshUrl = 'https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token';
+        this._realm = 'oauth2_client@api.meethue.com';
+        this._refreshUri = '/oauth2/refresh';
         this._name = "Hue Bridge"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on hub hub.
     }
 
@@ -55,7 +58,7 @@ class Translator {
         }
 
         var options = {
-            url: "https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token",
+            url: this._refreshUrl,
             method: "POST",
             headers: {
                 'cache-control': 'no-cache'
@@ -104,19 +107,21 @@ class Translator {
     _sendDigestAuthentication(nonce, authInfo){
                 
         //Compute digest header response
-        var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':oauth2_client@api.meethue.com:' + authInfo[0].client_secret).digest('hex');
-        var HASH2 = crypto.createHash('md5').update('POST:/oauth2/refresh').digest('hex');
+        var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':' + this._realm + ':' + authInfo[0].client_secret).digest('hex');
+        var HASH2 = crypto.createHash('md5').update('POST:' + this._refreshUri).digest('hex');
         var authHeaderResponse = crypto.createHash('md5').update(HASH1 + ':' + nonce + ':' + HASH2).digest('hex');
-        var disgestHeaderContent = 'username=\"' + authInfo[0].client_id 
-                                 + '\", realm=\"oauth2_client@api.meethue.com\", nonce=\"' + nonce 
-                                 + '\", uri=\"/oauth2/refresh\", response=\"' + authHeaderResponse + '\"';
+        var digestHeaderContent = 'username=\"' + authInfo[0].client_id 
+                                + '\", realm=\"' + this._realm
+                                + '\", nonce=\"' + nonce
+                                + '\", uri=\"' + this._refreshUri
+                                + '\", response=\"' + authHeaderResponse + '\"';
 
         var options = {
-            url: "https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token",
+            url: this._refreshUrl,
             method: "POST",
             headers:{
                 'Accept': 'application/json',
-                'Authorization': 'Digest ' + disgestHeaderContent,
+                'Authorization': 'Digest ' + digestHeaderContent,
                 'Content-type': 'application/x-www-form-urlencoded'
             },
             body: 'refresh_token=' + this._accessToken.refreshToken,

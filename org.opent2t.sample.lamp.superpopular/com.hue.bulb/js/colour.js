@@ -6,6 +6,9 @@ const MaxColour = 255;
 
 /*
  * Method to see if the given XY value is within the reach of the lamps.
+ * 
+ * Details on the math theory is avaialble at http://mathworld.wolfram.com/TriangleInterior.html
+ * and https://en.wikipedia.org/wiki/Barycentric_coordinate_system
  *
  * @param xyColour is a two-element object representing a point containing the X,Y value
  * @param colourGamut   the color gamut of the light device.
@@ -13,19 +16,28 @@ const MaxColour = 255;
  */
 function isPointInLampsReach(xyColour, colourGamut){
 
+    //Calculate vectors based on colourGamut[0]
     var v1 = [colourGamut[1].x - colourGamut[0].x, colourGamut[1].y - colourGamut[0].y];
     var v2 = [colourGamut[2].x - colourGamut[0].x, colourGamut[2].y - colourGamut[0].y];
-    var q = [xyColour.x - colourGamut[0].x, xyColour.y - colourGamut[0].y];
+    var v = [xyColour.x - colourGamut[0].x, xyColour.y - colourGamut[0].y];
 
-    var s = product(q, v2) / product(v1, v2);
-    var t = product(v1, q) / product(v1, v2);
+    //Calculate the barycentric coordinates
+    var a = determinant(v, v2) / determinant(v1, v2);
+    var b = determinant(v1, v) / determinant(v1, v2);
 
-    return ((s >= 0) && (t >= 0) && (s + t <= 1)) ? true : false;
+    return ((a >= 0) && (b >= 0) && (a + b <= 1)) ? true : false;
+}
+
+function determinant(pt1, pt2) {
+    return ((pt1.x * pt2.y) - (pt1.y * pt2.x));
 }
 
 /*
  * Find the closest point on a line.
  * This point will be within reach of the lamp.
+ *
+ * Details on the math theory is avaiable at 
+ * https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#A_vector_projection_proof
  *
  * @param ptA the point where the line starts
  * @param ptB the point where the line ends
@@ -34,13 +46,12 @@ function isPointInLampsReach(xyColour, colourGamut){
  */
 function getClosestPointToPoints(ptA, ptB, ptP){
 
-    var AP = {x: (ptP.x - ptA.x), y: (ptP.y - ptA.y)};
-    var AB = {x: (ptB.x - ptA.x), y: (ptB.y - ptA.y)};
-    var ab2 = (AB.x * AB.x) + (AB.y * AB.y);
-    var ap_ab = (AP.x * AB.x) + (AP.y * AB.y);
+    var AP = {x: (ptP.x - ptA.x), y: (ptP.y - ptA.y)};      // Vector from ptA to ptP
+    var AB = { x: (ptB.x - ptA.x), y: (ptB.y - ptA.y) };    // Vector from ptA to ptB
+    var ab2 = (AB.x * AB.x) + (AB.y * AB.y);                // Squared magnitude of vector AB
+    var apDotab = (AP.x * AB.x) + (AP.y * AB.y);            // Dot product of vector AP and vector AB
 
-    var t = ap_ab / ab2;
-
+    var t = apDotab / ab2;    // The normalized "distance" from ptA to the closet point.
     if (t < 0.0)
     {
         t = 0.0;
@@ -50,6 +61,7 @@ function getClosestPointToPoints(ptA, ptB, ptP){
         t = 1.0;
     }
 
+    //Add the normalized distance to ptA, moving towards B.
     return {x: (ptA.x + (AB.x * t)), y: (ptA.y + (AB.y * t))};
 }
 
@@ -65,11 +77,6 @@ function getDistanceBetweenTwoPoints(pt1, pt2){
     var dy = pt1.y - pt2.y; // vertical difference
     return Math.sqrt((dx * dx) + (dy * dy));
 }
-
-function product(pt1, pt2){
-    return ((pt1.x * pt2.y) - (pt1.y * pt2.x));
-}
-
 
 /*
  * Returns colour gamut based on the light device's model.
