@@ -1,3 +1,10 @@
+/* 
+ * We use British variant spelling here to align with the OCF spec 
+ * (https://openconnectivity.org/specs/OIC_1.1-Specification.zip
+ * see OIC_Resource_Type_Specification_v1.1.0.pdf)
+ *
+ */
+
 "use strict";
 
 const ChangeTolerance = 0.0001;
@@ -28,8 +35,8 @@ function isPointInLampsReach(xyColour, colourGamut){
     return ((a >= 0) && (b >= 0) && (a + b <= 1)) ? true : false;
 }
 
-function determinant(pt1, pt2) {
-    return ((pt1.x * pt2.y) - (pt1.y * pt2.x));
+function determinant(point1, point2) {
+    return ((point1.x * point2.y) - (point1.y * point2.x));
 }
 
 /*
@@ -39,43 +46,43 @@ function determinant(pt1, pt2) {
  * Details on the math theory is avaiable at 
  * https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#A_vector_projection_proof
  *
- * @param ptA the point where the line starts
- * @param ptB the point where the line ends
- * @param ptP the point which is close to a line.
+ * @param pointA the point where the line starts
+ * @param pointB the point where the line ends
+ * @param pointP the point which is close to a line.
  * @return the point which is on the line.
  */
-function getClosestPointToPoints(ptA, ptB, ptP){
+function getClosestPointToPoints(pointA, pointB, pointP){
 
-    var AP = {x: (ptP.x - ptA.x), y: (ptP.y - ptA.y)};      // Vector from ptA to ptP
-    var AB = { x: (ptB.x - ptA.x), y: (ptB.y - ptA.y) };    // Vector from ptA to ptB
-    var ab2 = (AB.x * AB.x) + (AB.y * AB.y);                // Squared magnitude of vector AB
-    var apDotab = (AP.x * AB.x) + (AP.y * AB.y);            // Dot product of vector AP and vector AB
+    var vectorAP = { x: (pointP.x - pointA.x), y: (pointP.y - pointA.y) };
+    var vectorAB = { x: (pointB.x - pointA.x), y: (pointB.y - pointA.y) };
+    var abSquared = (vectorAB.x * vectorAB.x) + (vectorAB.y * vectorAB.y);
+    var apDotab = (vectorAP.x * vectorAB.x) + (vectorAP.y * vectorAB.y);
 
-    var t = apDotab / ab2;    // The normalized "distance" from ptA to the closet point.
-    if (t < 0.0)
+    var normalizedDistToClosest = apDotab / abSquared;
+    if (normalizedDistToClosest < 0.0)
     {
-        t = 0.0;
+        normalizedDistToClosest = 0.0;
     }
-    else if (t > 1.0)
+    else if (normalizedDistToClosest > 1.0)
     {
-        t = 1.0;
+        normalizedDistToClosest = 1.0;
     }
 
-    //Add the normalized distance to ptA, moving towards B.
-    return {x: (ptA.x + (AB.x * t)), y: (ptA.y + (AB.y * t))};
+    //Add the normalized distance to pointA, moving towards B.
+    return { x: (pointA.x + (vectorAB.x * normalizedDistToClosest)), y: (pointA.y + (vectorAB.y * normalizedDistToClosest)) };
 }
 
 /*
  * Find the distance between two points.
  *
- * @param pt1
- * @param pt2
+ * @param point1
+ * @param point2
  * @return the distance between point one and two
  */
-function getDistanceBetweenTwoPoints(pt1, pt2){
-    var dx = pt1.x - pt2.x; // horizontal difference
-    var dy = pt1.y - pt2.y; // vertical difference
-    return Math.sqrt((dx * dx) + (dy * dy));
+function getDistanceBetweenTwoPoints(point1, point2){
+    var deltaX = point1.x - point2.x; // horizontal difference
+    var deltaY = point1.y - point2.y; // vertical difference
+    return Math.sqrt((deltaX * deltaX) + (deltaY * deltaY));
 }
 
 /*
@@ -126,7 +133,6 @@ function getColourGamutForModel(modelId)
 
 
 /*
- *
  * This class provides methods to convert XY colour to RGB value and vice versa.
  * Details on Hue's colour conversion formula for XY colour space is available at 
  * https://developers.meethue.com/documentation/color-conversions-rgb-xy.

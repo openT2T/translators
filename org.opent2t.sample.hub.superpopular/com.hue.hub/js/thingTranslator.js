@@ -7,6 +7,10 @@ var OpenT2T = require('opent2t').OpenT2T;
 var crypto = require('crypto');
 var accessTokenInfo = require('./common').accessTokenInfo;
 
+const REFRESH_URL = 'https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token';
+const REFRESH_URI = '/oauth2/refresh';
+const REALM = 'oauth2_client@api.meethue.com';
+
 /**
 * This translator class implements the "Hub" interface.
 */
@@ -15,9 +19,6 @@ class Translator {
         this._accessToken = accessTokenInfo;
         this._baseUrl = 'https://api.meethue.com/v2/bridges/' + accessTokenInfo.bridgeId + '/' + accessTokenInfo.whitelistId;
         this._devicesPath = '/lights';
-        this._refreshUrl = 'https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token';
-        this._realm = 'oauth2_client@api.meethue.com';
-        this._refreshUri = '/oauth2/refresh';
         this._name = "Hue Bridge"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on hub hub.
     }
 
@@ -58,7 +59,7 @@ class Translator {
         }
 
         var options = {
-            url: this._refreshUrl,
+            url: REFRESH_URL,
             method: "POST",
             headers: {
                 'cache-control': 'no-cache'
@@ -107,17 +108,17 @@ class Translator {
     _sendDigestAuthentication(nonce, authInfo){
                 
         //Compute digest header response
-        var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':' + this._realm + ':' + authInfo[0].client_secret).digest('hex');
-        var HASH2 = crypto.createHash('md5').update('POST:' + this._refreshUri).digest('hex');
+        var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':' + REALM + ':' + authInfo[0].client_secret).digest('hex');
+        var HASH2 = crypto.createHash('md5').update('POST:' + REFRESH_URI).digest('hex');
         var authHeaderResponse = crypto.createHash('md5').update(HASH1 + ':' + nonce + ':' + HASH2).digest('hex');
         var digestHeaderContent = 'username=\"' + authInfo[0].client_id 
-                                + '\", realm=\"' + this._realm
+                                + '\", realm=\"' + REALM
                                 + '\", nonce=\"' + nonce
-                                + '\", uri=\"' + this._refreshUri
+                                + '\", uri=\"' + REFRESH_URI
                                 + '\", response=\"' + authHeaderResponse + '\"';
 
         var options = {
-            url: this._refreshUrl,
+            url: REFRESH_URL,
             method: "POST",
             headers:{
                 'Accept': 'application/json',
@@ -138,7 +139,7 @@ class Translator {
      * and on the hub translator (this) for verification.
      */
     _subscribe(subscriptionInfo) {
-        // Error case
+        // Error case: this is not implemented because Hue does not support notification subcription.
         throw new Error("Not implemented");
     }
 
@@ -147,7 +148,7 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        // Error case
+        // Error case: this is not implemented because Hue does not support notification subcription.
         throw new Error("Not implemented");
     }
     /* eslint no-unused-vars: "warn" */
