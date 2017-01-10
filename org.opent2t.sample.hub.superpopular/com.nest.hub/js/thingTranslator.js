@@ -13,10 +13,11 @@ class Translator {
     constructor(accessToken) {
         this._accessToken = accessToken;
         this._baseUrl = "https://developer-api.nest.com";
-        this._devicesPath = '/devices';
+        this._devicesPath = 'devices/';
+        this._structPath = 'structures/';
         this._name = "Nest Hub";
-        this._ref = new Firebase(this._baseUrl);
-        this._ref.authWithCustomToken(this._accessToken.accessToken);
+        this._firebaseRef = new Firebase(this._baseUrl);
+        this._firebaseRef.authWithCustomToken(this._accessToken.accessToken);
     }
 
     /**
@@ -30,9 +31,8 @@ class Translator {
      * Get the list of devices discovered through the hub.
      */
     getPlatforms(expand, payload) {
-        return this._ref.once('value').then( (snapshot) => {
-            var postData = snapshot.val();
-            return this._providerSchemaToPlatformSchema(postData.devices, expand);
+        return this._firebaseRef.child(this._devicesPath).once('value').then( (snapshot) => {
+            return this._providerSchemaToPlatformSchema( snapshot.val(), expand);
         });
     }
 
@@ -82,12 +82,16 @@ class Translator {
                 // Create a translator for this device and get the platform information, possibly expanded
                 platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                     .then((translator) => {
-                        // Use get to translate the SmartThings formatted device that we already got in the previous request.
+                        // Use get to translate the Nest formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
-                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, providerSchemas.thermostats[nestThermostatId]])
-                            .then((platformResponse) => {
-                                return platformResponse;
-                            });
+                        var deviceSchema = providerSchemas.thermostats[nestThermostatId];
+                        return this._getAwayStatus(deviceSchema['structure_id']).then((result) => {
+                            deviceSchema.away = result;
+                            return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceSchema ])
+                                .then((platformResponse) => {
+                                    return platformResponse;
+                                });
+                        });
                     }));
             });
         }
@@ -112,10 +116,12 @@ class Translator {
      * Gets device details (all fields), response formatted per nest api
      */
     getDeviceDetailsAsync(deviceType, deviceId) {
-        return this._ref.once('value').then((snapshot) => {
-            var postsData = snapshot.val();
-            var devices = postsData.devices[deviceType];
-            return devices[deviceId];
+        return this._firebaseRef.child(this._devicesPath + deviceType + '/' +deviceId).once('value').then((snapshot) => {
+            var deviceSchema = snapshot.val();
+            return this._getAwayStatus(deviceSchema['structure_id']).then((result) => {
+                deviceSchema.away = result;
+                return deviceSchema;
+            });
         });
     }
 
@@ -124,15 +130,17 @@ class Translator {
      */
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
         var propertyName = Object.keys(putPayload);
-        var path = 'devices/' + deviceType + '/' + deviceId + '/' + propertyName[0];
-        return this._ref.child(path).set(putPayload[propertyName[0]]).then((response) => {
+        var path = this._devicesPath + deviceType + '/' + deviceId + '/' + propertyName[0];
+        return this._firebaseRef.child(path).set(putPayload[propertyName[0]]).then((response) => {
             if (response === undefined) { //success
-                var result = {};
-                result['device_id'] = deviceId;
+                var result = {
+                    device_id:deviceId
+                };
                 result[propertyName] = putPayload[propertyName[0]];
+                
+                //get temperature scale
                 if (propertyName[0].includes('_temperature_')) {
-                    var index = propertyName[0].length -1;
-                    result['temperature_scale'] = propertyName[0].charAt(index);
+                    result['temperature_scale'] = propertyName[0].charAt(propertyName[0].length -1);
                 }
                 return result;
             }
@@ -144,47 +152,14 @@ class Translator {
             throw new Error(errorMsg.error);
         });
     }
-
+    
     /**
-     * Internal helper method which makes the actual request to the nest service
+     * Internal Helper function to get the away status for structure with structureId
      */
-    _makeRequest(path, method, content) {
-        // build request URI
-        var requestUri = this._baseUrl + path;
-
-        // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + this._accessToken.accessToken,
-            'Accept': 'application/json'
-        }
-
-        if (content) {
-            headers['Content-Type'] = 'application/json';
-            headers['Content-length'] = content.length;
-        }
-
-        var options = {
-            url: requestUri,
-            method: method,
-            headers: headers,
-            followAllRedirects: true
-        };
-
-        if (content) {
-            options.body = content;
-        }
-
-        // Start the async request
-        return request(options)
-            .then(function (body) {
-                return JSON.parse(body);
-            })
-            .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
-                throw err;
-            });
+    _getAwayStatus(structureId) {
+        return this._firebaseRef.child(this._structPath + structureId + '/away').once('value').then((snapshot) => {
+            return snapshot.val();
+        });
     }
 }
 

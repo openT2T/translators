@@ -81,11 +81,11 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // - Away Mode is not implemented at this time.
     
     // Get temperature scale
-    var ts = providerSchema['temperature_scale'].toLowerCase();
+    var ts = providerSchema['temperature_scale'] !== undefined ? providerSchema['temperature_scale'].toLowerCase() : undefined;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient_temperature_' + ts],
-        units: ts //TODO: check scale
+        units: ts
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
@@ -117,14 +117,11 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         humidity: providerSchema['humidity']
     });
 
-    //TODO
-    /*
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        mode: stateReader.get('users_away') ? 'away' : 'home',
+        modes:  providerSchema['away'],
         supportedModes: ['home', 'away']
     });
-    */
-
+    
     var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
         value: providerSchema['has_leaf']
     });
@@ -166,7 +163,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     awayTemperatureHigh,
                     awayTemperatureLow,
                     humidity,
-                    //awayMode,
+                    awayMode,
                     ecoMode,
                     hvacMode,
                     hasFan,
@@ -206,7 +203,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'humidity':
         case 'ecoMode':
         case 'fanTimerTimeout':
-            throw new Error('NotImplemented');
+            throw new Error('NotMutable');
         default:
             throw new Error('NotFound');
     }
