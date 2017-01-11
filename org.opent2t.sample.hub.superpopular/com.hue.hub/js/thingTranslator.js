@@ -1,11 +1,15 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
 var request = require('request-promise');
+var OpenT2T = require('opent2t').OpenT2T;
+var crypto = require('crypto');
+var accessTokenInfo = require('./common').accessTokenInfo;
+
+const REFRESH_URL = 'https://api.meethue.com/oauth2/refresh?&grant_type=refresh_token';
+const REFRESH_URI = '/oauth2/refresh';
+const REALM = 'oauth2_client@api.meethue.com';
 
 /**
 * This translator class implements the "Hub" interface.
@@ -19,39 +23,181 @@ class Translator {
     }
 
     /**
-     * Get the list of devices discovered through the hub.
+    * Get the hub definition and devices
+    */
+    get(expand, payload) {
+        return this.getPlatforms(expand, payload);
+    }
+
+    /**
+    * Get the list of devices discovered through the hub.
+    */
+    getPlatforms(expand, payload) {
+        if (payload != undefined) {
+            return this._providerSchemaToPlatformSchema(payload, expand);
+        }
+        else {
+            return this._makeRequest(this._devicesPath, 'GET')
+                .then((devices) => {
+                    return this._providerSchemaToPlatformSchema(devices, expand);
+                });
+        }
+    }
+
+    /**
+     * Refreshes the OAuth token for the hub by sending refresh POST to the hue provider
      */
-    getHubResURI() {
-        return this._makeRequest(this._devicesPath, 'GET').then((devices) => {
+    refreshAuthToken(authInfo) {
 
-            var toReturn = {};
-            var filteredDevices = [];
-            for (var hueDeviceID in devices){
+        if (authInfo == undefined || authInfo == null) {
+            throw new Error("Invalid authInfo object: undefined/null object");
+        }
 
-                var hueDevice = devices[hueDeviceID];
-                // get the opent2t schema and translator for the hue device
-                var opent2tInfo = this._getOpent2tInfo(hueDevice);
+        if (authInfo.length !== 2) {
+            // We expect the original authInfo object used in the onboarding flow
+            throw new Error("Invalid authInfo object: missing element(s).");
+        }
 
-                if (opent2tInfo != undefined) // we support the device                    
-                {
-                    // we only need to return certain properties back
-                    var device = {};
-                    device.name = hueDevice.name;
+        var options = {
+            url: REFRESH_URL,
+            method: "POST",
+            headers: {
+                'cache-control': 'no-cache'
+            },
+            followAllRedirects: true,
+        };
 
-                    // set the specific device object id to be the id
-                    device.id = hueDeviceID;
+        return request(options)
+            .then(() => {
+                //Do Nothing
+            })
+            .catch((err) => {
+                if (err.statusCode == '401') {
+                    //extract nonce code from header
+                    var digestHeader = err.response.headers['www-authenticate'];
+                    var nonce = digestHeader.substr(digestHeader.indexOf('nonce=\"') + 7, 32);
 
-                    // set the opent2t info for the hue device
-                    device.openT2T = opent2tInfo;
-                    
-                    filteredDevices.push(device);
+                    //send Digest Autehticaiton
+                    return this._sendDigestAuthentication(nonce, authInfo).then((body) => {
+                            var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
+                            return new accessTokenInfo(
+                                        tokenInfo.access_token,
+                                        this._add2CurrentUTC(tokenInfo.access_token_expires_in),
+                                        tokenInfo.refresh_token,
+                                        this._add2CurrentUTC(tokenInfo.refresh_token_expires_in),
+                                        tokenInfo.token_type,
+                                        this._accessToken.bridgeId,
+                                        this._accessToken.whitelistId
+                                    );
+                        }).catch(function (err) {
+                            console.log("Request failed to: " + options.method + " - " + options.url);
+                            console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
+                            throw err;
+                        });
+                } else {
+                    console.log("Request failed to: " + options.method + " - " + options.url);
+                    console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
+                    throw err;
                 }
+            });
+     }
+
+     /**
+     * A helper function to the refreshAuthToken that send digest authentication to refresh token.
+     */
+    _sendDigestAuthentication(nonce, authInfo){
+                
+        //Compute digest header response
+        var HASH1 = crypto.createHash('md5').update(authInfo[0].client_id + ':' + REALM + ':' + authInfo[0].client_secret).digest('hex');
+        var HASH2 = crypto.createHash('md5').update('POST:' + REFRESH_URI).digest('hex');
+        var authHeaderResponse = crypto.createHash('md5').update(HASH1 + ':' + nonce + ':' + HASH2).digest('hex');
+        var digestHeaderContent = 'username=\"' + authInfo[0].client_id 
+                                + '\", realm=\"' + REALM
+                                + '\", nonce=\"' + nonce
+                                + '\", uri=\"' + REFRESH_URI
+                                + '\", response=\"' + authHeaderResponse + '\"';
+
+        var options = {
+            url: REFRESH_URL,
+            method: "POST",
+            headers:{
+                'Accept': 'application/json',
+                'Authorization': 'Digest ' + digestHeaderContent,
+                'Content-type': 'application/x-www-form-urlencoded'
+            },
+            body: 'refresh_token=' + this._accessToken.refreshToken,
+            followAllRedirects: true,
+        };
+
+        return request(options);
+    }
+     
+    /* eslint no-unused-vars: "off" */
+    /**
+     * Subscribe to notifications for a platform.
+     * This function is intended to be called by the platform translator for initial subscription,
+     * and on the hub translator (this) for verification.
+     */
+    _subscribe(subscriptionInfo) {
+        // Error case: this is not implemented because Hue does not support notification subcription.
+        throw new Error("Not implemented");
+    }
+
+    /**
+     * Unsubscribe from a platform subscription.
+     * This function is intended to be called by a platform translator
+     */
+    _unsubscribe(subscriptionInfo) {
+        // Error case: this is not implemented because Hue does not support notification subcription.
+        throw new Error("Not implemented");
+    }
+    /* eslint no-unused-vars: "warn" */
+
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
+        // Ensure that we have an array of provider schemas, even if a single object was given.
+        var devices = [];
+        for (var id in providerSchemas) {
+            var device = providerSchemas[id];
+            device.deviceid = id;
+            devices.push(device);
+        }
+
+        devices.forEach((hueDevice) => {
+
+            // get the opent2t schema and translator for the hue device
+            var opent2tInfo = this._getOpent2tInfo(hueDevice);
+
+            if (opent2tInfo !== 'undefined') // we support the device                    
+            {
+                // set the opent2t info for the Hue light
+                var deviceInfo = {};
+                deviceInfo.opent2t = {};
+                deviceInfo.opent2t.controlId = hueDevice.deviceid;
+
+                // Create a translator for this device and get the platform information, possibly expanded
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                    .then((translator) => {
+                        // Use get to translate the SmartThings formatted device that we already got in the previous request.
+                        // We already have this data, so no need to make an unnecesary request over the wire.
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, hueDevice])
+                            .then((platformResponse) => {
+                                return platformResponse;
+                            });
+                    }));
             }
-
-            toReturn.devices = filteredDevices;
-
-            return toReturn;
         });
+
+        return Promise.all(platformPromises)
+                .then((platforms) => {
+                    var toReturn = {};
+                    toReturn.schema = "opent2t.p.hub";
+                    toReturn.platforms = platforms;
+                    return toReturn;
+                });
     }
 
     /**
@@ -70,7 +216,12 @@ class Translator {
         var requestPath = '/' + deviceType + '/' + deviceId;
 
         // Make the async request
-        return this._makeRequest(requestPath, 'GET');
+        return this._makeRequest(requestPath, 'GET')
+            .then((response) => {
+                var device = response;
+                device.deviceid = deviceId;
+                return device;
+            });
     }
 
     /**
@@ -115,7 +266,38 @@ class Translator {
             for (var i = 0; i < responses.length ; i++) {
                 var partialResult = responses[i];
                 for (var j = 0; j < partialResult.length ; j++) {
-                    result.push(partialResult[j]);
+                    if (partialResult[j].success !== undefined) {
+
+                        //construct partial provider schema from the return message
+                        var key = Object.keys(partialResult[j].success)[0];
+                        var tokens = key.split('/');
+                        var partialDevice;
+
+                        switch (tokens.length) {
+                            case 5:
+                                partialDevice = { [tokens[3]]: { [tokens[4]]: partialResult[j].success[key] } };
+                                break;
+                            case 4:
+                                partialDevice = { [tokens[3]]: partialResult[j].success[key] };
+                                break;
+                            default:
+                                break;
+                        }
+                        partialDevice.deviceid = deviceId;
+
+                        result.push(partialDevice);
+                    } else {
+
+                        var error = {
+                            statusCode: partialResult[j].error.type,
+                            response: {
+                                statusMessage: partialResult[j].error.description,
+                                address: partialResult[j].error.address
+                            }
+                        }
+
+                        throw error;
+                    }
                 }
             }
             return Promise.resolve(result);
@@ -123,16 +305,25 @@ class Translator {
     }
 
     /** 
+     * add input # of second in to the current UTC time in Standard Unix UTC timestamp.
+     */
+    _add2CurrentUTC(seconds) {
+        var t = parseInt(Math.floor(new Date().getTime() / 1000));
+        t += parseInt(seconds);
+        return t;
+    }
+
+    /** 
      * Given the hub specific device, returns the opent2t schema and translator
-    */
+     */
     _getOpent2tInfo(HueDevice) {
         if (HueDevice.modelid.startsWith('L')) {
-            return { 
+            return {
                 "schema": 'org.opent2t.sample.lamp.superpopular',
                 "translator": "opent2t-translator-com-hue-bulb"
             };
         }
-        
+
         return undefined;
     }
 
