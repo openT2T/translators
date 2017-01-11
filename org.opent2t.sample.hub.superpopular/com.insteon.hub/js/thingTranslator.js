@@ -3,7 +3,9 @@
 
 "use strict";
 var request = require('request-promise');
-const sleep = require('es6-sleep').promise;
+var OpenT2T = require('opent2t').OpenT2T;
+var accessTokenInfo = require('./common').accessTokenInfo;
+var sleep = require('es6-sleep').promise;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -15,60 +17,110 @@ class Translator {
         this._subCatMap = { lightBulbs:[ '3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51']};
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
-        this._name = "Insteon Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on insteon hub.
+        this._name = "Insteon Hub";
+    }
+
+
+    /**
+     * Get the hub definition and devices
+     */
+    get(expand, payload, verification) {
+        return this.getPlatforms(expand, payload, verification);
     }
 
     /**
      * Get the list of devices discovered through the hub.
+     * 
+     * @param {bool} expand - True to include the current state of the resources.
+     * @param {Buffer} payload - POST content for a subscribed notification
+     * @param {Object} verification - Information used to authenticate that the post is valid
+     * @param {Array} verification.header - Header information that came with the payload POST.
+     *      Should include X-Hub-Signature
+     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
      */
-    getHubResURI() {
+    getPlatforms(expand, payload, verification) {
         return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+            return this._providerSchemaToPlatformSchema(response.DeviceList, expand);
+        });
+    }
 
-            var toReturn = {};
-            var devices = response.DeviceList;
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
 
-            var filteredDevices = [];
-            var promises = [];
-            devices.forEach((insteonDevice) => {
-                
-                var promise = this._makeRequest(this._devicesPath + '/' + insteonDevice.DeviceID, 'GET')
-                    .then((details) => {
+        providerSchemas.forEach((insteonDevice) => {
 
-                        // get the opent2t schema and translator for the insteon device
-                        var opent2tInfo = this._getOpent2tInfo(details.DevCat, details.SubCat.toString(16).toUpperCase());
+            //query detail device data    
+            var promise = this._makeRequest(this._devicesPath + '/' + insteonDevice.DeviceID, 'GET')
+                .then((data) => {
 
-                        if (opent2tInfo != undefined) // we support the device
-                        {
-                            var device = {};
+                    var deviceData = data;
 
-                            // we only need to return certain properties back
-                            device.name = details.DeviceName;
+                    // get the opent2t schema and translator for the insteon device
+                    var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                    if (opent2tInfo !== undefined) // we support the device
+                    {
+                        // set the opent2t info for the wink device
+                        var deviceInfo = {};
+                        deviceInfo.opent2t = {};
+                        deviceInfo.opent2t.controlId = insteonDevice.DeviceID;
 
-                            // set the specific device object id to be the id
-                            device.id = details.DeviceID;
+                        //Get device properties
+                        var postPaylaod = {
+                                command: 'get_status',
+                                device_id: insteonDevice.DeviceID
+                            };
 
-                            // set the opent2t info for the insteon device
-                            device.openT2T = opent2tInfo;
-                            
-                            return Promise.resolve(device);
-                        }
-                        return Promise.resolve(undefined);
-                    });
+                        return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
+                            .then((response) => {
+                                return this._getCommandResponse(response.id, 3) // get device status
+                                    .then((deviceStatus) => {
 
-                promises.push(promise);
-            });
+                                        if (deviceStatus !== undefined && deviceStatus.status == 'succeeded') {
+                                            deviceData['Level'] = deviceStatus.response.level;
+                                            if (deviceStatus.response.level == 0) {
+                                                deviceData['Power'] = 'off';
+                                            } else {
+                                                deviceData['Power'] = 'on';
+                                            }
+                                        }
 
-            return Promise.all(promises).then((results) => {
-                for (var i = 0; i < results.length ; i++) {
-                    if(results[i] !== undefined){
-                        filteredDevices.push(results[i]);
+                                        // Create a translator for this device and get the platform information, possibly expanded
+                                        return OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                                            .then((translator) => {
+
+                                                // Use get to translate the Insteon formatted device that we already got in the previous request.
+                                                // We already have this data, so no need to make an unnecesary request over the wire.
+                                                return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
+                                                    .then((platformResponse) => {
+                                                        return platformResponse;
+                                                    });
+                                            });
+                                    });
+                            });
+                    }
+                    return Promise.resolve(undefined);
+                });
+
+            platformPromises.push(promise);
+        });
+
+        // Return a promise for all platform translations.
+        return Promise.all(platformPromises)
+            .then((platforms) => {
+                var toReturn = {};
+                toReturn.schema = "org.opent2t.sample.hub.superpopular";
+                toReturn.platforms = [];
+                for (var i = 0; i < platforms.length ; i++) {
+                    if (platforms[i] !== undefined) {
+                        toReturn.platforms.push(platforms[i]);
                     }
                 }
-
-                toReturn.devices = filteredDevices;
-                return Promise.resolve(toReturn);
+                return toReturn;
             });
-        });
+
     }
 
     /**
@@ -88,7 +140,6 @@ class Translator {
             .then((details) => {
 
                 var device = details;
-
                 var postPaylaod =
                 {
                     command: 'get_status',
@@ -199,7 +250,6 @@ class Translator {
      * We can identify the device using those two value based on the table at
      * https://insteon.atlassian.net/wiki/display/IKB/Insteon+Device+Categories+and+Sub-Categories#InsteonDeviceCategoriesandSub-Categories-devcat-subcat
      */
-
     _getOpent2tInfo(devCat, subCat) {
         switch (devCat) {
             case 1:
@@ -244,7 +294,7 @@ class Translator {
                             return this._getCommandResponse(commandId, --count)
                         } else {
                             var errMsg = {
-                                statusCode: "500",
+                                statusCode: '500',
                                 response: { statusMessage: 'Internal Error - Insteon command timeout.' }
                             };
                             throw errMsg;
