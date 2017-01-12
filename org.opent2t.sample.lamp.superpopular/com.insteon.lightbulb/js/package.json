@@ -1,29 +1,32 @@
 {
-    "name": "opent2t-translator-com-insteon-lightbulb",
-    "version": "0.1.0",
-    "description": "Insteon Light Bulb",
-    "homepage": "http://opentranslatorstothings.org",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/opent2t/translators.git"
-    },
-    "main": "thingTranslator.js",
-    "license": "MIT",
-    "scripts": {
-        "test": "ava"
-    },
-    "ava": {
-        "files": [
-            "tests/*.js"
-        ]
-    },
-   "dependencies": {
-        "opent2t": "*",
-        "opent2t-translator-com-insteon-hub": "*"
-   },
-    "devDependencies": {
-        "opent2t-translator-com-insteon-hub": "*",
-        "ava": "^0.15.2",
-        "es6-sleep": "*"
-    }
+  "name": "opent2t-translator-com-insteon-lightbulb",
+  "version": "0.2.0",
+  "description": "Insteon Light Bulb",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "thingTranslator.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "ava",
+    "unittest": "ava tests/unitTests.js"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
+  },
+  "dependencies": {
+    "es6-sleep": "*",
+    "opent2t": "*",
+    "opent2t-translator-com-insteon-hub": "*"
+  },
+  "devDependencies": {
+    "opent2t-translator-com-insteon-hub": "*",
+    "ava": "^0.15.2",
+    "opent2t-device-insteonhub": "file:../../../org.opent2t.sample.hub.superpopular/com.insteon.hub/test",
+    "opent2t-device-lamp": "file:../../test"
+  }
 }

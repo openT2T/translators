@@ -20,7 +20,6 @@ class Translator {
         this._name = "Insteon Hub";
     }
 
-
     /**
      * Get the hub definition and devices
      */
@@ -51,7 +50,6 @@ class Translator {
         var platformPromises = [];
 
         providerSchemas.forEach((insteonDevice) => {
-
             //query detail device data    
             var promise = this._makeRequest(this._devicesPath + '/' + insteonDevice.DeviceID, 'GET')
                 .then((data) => {
@@ -134,7 +132,6 @@ class Translator {
      * Gets device details (all fields), response formatted per http://docs.insteon.apiary.io/#reference/devices
      */
     getDeviceDetailsAsync(deviceId) {
-
         // Make the async request
         return this._makeRequest(this._devicesPath + '/' + deviceId, 'GET')
             .then((details) => {
@@ -236,8 +233,9 @@ class Translator {
                     }
                 }
             }
-            
-            if(device.length === 0 ) return Promise.resolve(undefined);
+
+            if (device.length === 0) return Promise.resolve(undefined);
+            device['DeviceID'] = deviceId;
             return Promise.resolve(device);
         });
 
