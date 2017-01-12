@@ -1,7 +1,7 @@
 {
-  "name": "opent2t-translator-com-insteon-lightbulb",
+  "name": "opent2t-translator-com-insteon-binaryswitch",
   "version": "0.2.0",
-  "description": "Insteon Light Bulb",
+  "description": "Insteon Binary Switch",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
   "main": "thingTranslator.js",
   "license": "MIT",
   "scripts": {
-    "test": "ava",
+    "test": "ava tests/test.js",
     "unittest": "ava tests/unitTests.js"
   },
   "ava": {
@@ -26,6 +26,6 @@
     "ava": "^0.15.2",
     "es6-sleep": "*",
     "opent2t-device-insteonhub": "file:../../../org.opent2t.sample.hub.superpopular/com.insteon.hub/test",
-    "opent2t-device-lamp": "file:../../test"
+    "opent2t-device-binaryswitch": "file:../../test"
   }
 }

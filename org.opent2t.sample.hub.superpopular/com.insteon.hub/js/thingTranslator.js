@@ -14,7 +14,8 @@ class Translator {
     constructor(accessToken) {
         this._accessToken = accessToken;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
-        this._subCatMap = { lightBulbs:[ '3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51']};
+        this._subCatMap = { lightBulbs:[ '3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
+                            binarySwitch:[ '8', 'B', '2A', '35', '36', '37', '38', '39', '3A']};
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
@@ -59,7 +60,7 @@ class Translator {
                     // get the opent2t schema and translator for the insteon device
                     var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
                     if (opent2tInfo !== undefined) // we support the device
-                    {
+                    { 
                         // set the opent2t info for the wink device
                         var deviceInfo = {};
                         deviceInfo.opent2t = {};
@@ -134,9 +135,9 @@ class Translator {
     getDeviceDetailsAsync(deviceId) {
         // Make the async request
         return this._makeRequest(this._devicesPath + '/' + deviceId, 'GET')
-            .then((details) => {
+            .then((data) => {
 
-                var device = details;
+                var deviceData = data;
                 var postPaylaod =
                 {
                     command: 'get_status',
@@ -149,14 +150,14 @@ class Translator {
                             .then((deviceStatus) => {
 
                                 if (deviceStatus !== undefined && deviceStatus.status == 'succeeded') {   
-                                    device['Level'] = deviceStatus.response.level;
+                                    deviceData['Level'] = deviceStatus.response.level;
                                     if (deviceStatus.response.level == 0) {
-                                        device['Power'] = 'off';
+                                        deviceData['Power'] = 'off';
                                     } else {
-                                        device['Power'] = 'on';
+                                        deviceData['Power'] = 'on';
                                     }
                                 }
-                                return Promise.resolve(device);
+                                return Promise.resolve(deviceData);
                             });
                     });
             });
@@ -166,7 +167,7 @@ class Translator {
      * Puts device details (all fields) payload formatted per http://docs.insteon.apiary.io/#reference/devices
      */
     putDeviceDetailsAsync(deviceId, putPayload) {
-
+        console.log(putPayload);
         // build request path and body
         var statusChanges = { device_id: deviceId };
         var nonStatusChanges = {};
@@ -256,6 +257,15 @@ class Translator {
                     return {
                         "schema": 'org.opent2t.sample.lamp.superpopular',
                         "translator": "opent2t-translator-com-insteon-lightbulb"
+                    };
+                }
+                return undefined;
+            case 2:
+                if (this._subCatMap.binarySwitch.indexOf(subCat) >= 0)
+                {
+                    return {
+                        "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                        "translator": "opent2t-translator-com-insteon-binaryswitch"
                     };
                 }
                 return undefined;

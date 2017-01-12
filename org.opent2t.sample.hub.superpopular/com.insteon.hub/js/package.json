@@ -24,6 +24,7 @@
     "opent2t": "^1.0.1",
     "opent2t-onboarding-org-opent2t-onboarding-insteon": "^0.2.0",
     "opent2t-translator-com-insteon-lightbulb": "^0.2.0",
+    "opent2t-translator-com-insteon-binaryswitch": "^0.2.0",
     "es6-sleep": "*"
   },
   "devDependencies": {
