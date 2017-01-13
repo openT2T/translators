@@ -19,8 +19,8 @@
     ]
   },
   "dependencies": {
-    "opent2t": "1.0.1",
-    "opent2t-translator-com-nest-hub": "*"
+    "opent2t": "^1.0.1",
+    "opent2t-translator-com-nest-hub": "^0.2.0"
   },
   "devDependencies": {
     "ava": "^0.15.2",
