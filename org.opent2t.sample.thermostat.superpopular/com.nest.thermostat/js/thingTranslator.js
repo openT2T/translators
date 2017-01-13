@@ -182,12 +182,15 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     switch (resourceId) {
         case 'targetTemperature':
+            if (resourceSchema.units === undefined) throw new Error('Resource Schema missing temperature units.');
             result['target_temperature_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureHigh':
+            if (resourceSchema.units === undefined) throw new Error('Resource Schema missing temperature units.');
             result['target_temperature_high_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureLow':
+            if (resourceSchema.units === undefined) throw new Error('Resource Schema missing temperature units.');
             result['target_temperature_low_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'hvacMode':
@@ -202,6 +205,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureLow':
         case 'humidity':
         case 'ecoMode':
+        case 'awayMode':
         case 'fanTimerTimeout':
             throw new Error('NotMutable');
         default:
@@ -216,7 +220,6 @@ function validateResourceGet(resourceId) {
         case 'heatingFuelSource':
         case 'fanMode':
         case 'fanTimerTimeout':
-        case 'awayMode':
             throw new Error('NotImplemented');
     }
 }
