@@ -32,11 +32,11 @@ class Translator {
     getPlatforms(expand, payload) {
         if(payload !== undefined){
             return this._providerSchemaToPlatformSchema( payload, expand );
-	} else {
-            return this._firebaseRef.child(this._devicesPath).once('value').then( (snapshot) => {
-                return this._providerSchemaToPlatformSchema( snapshot.val(), expand );
-            });
-	}
+	    } else {
+                return this._firebaseRef.child(this._devicesPath).once('value').then( (snapshot) => {
+                    return this._providerSchemaToPlatformSchema( snapshot.val(), expand );
+                });
+	    }
     }
 
     /* eslint no-unused-vars: "off" */
