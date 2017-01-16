@@ -1,0 +1,25 @@
+{
+  "name": "opent2t-device-huehub",
+  "version": "0.1.1",
+  "description": "Hue hub device",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opent2t/translators.git"
+  },
+  "main": "mockHueHub.js",
+  "license": "MIT",
+  "dependencies": {
+    "opent2t": "*",
+    "opent2t-device-hub": "file:../../test"
+  },
+  "bugs": {
+    "url": "https://github.com/opent2t/translators/issues"
+  },
+  "readme": "ERROR: No README data found!",
+  "_id": "opent2t-device-huehub@0.1.1",
+  "scripts": {},
+  "_shasum": "1ab43a4940621cb705347a5c02a08dca63fea895",
+  "_from": "..\\..\\..\\org.opent2t.sample.hub.superpopular\\com.hue.hub\\test",
+  "_resolved": "file:..\\..\\..\\org.opent2t.sample.hub.superpopular\\com.hue.hub\\test"
+}

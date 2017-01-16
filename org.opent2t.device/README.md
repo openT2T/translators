@@ -1,1 +1,0 @@
-This is a device representing the opent2t device type returned by the hub device.

@@ -10,14 +10,13 @@ var translatorPath = require('path').join(__dirname, '..');
 /// Run a series of tests to validate the translator
 ///
 
-// HubResURI
-test.serial('HubResURI', t => {
-
+// Get
+test.serial('Get', t => {
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config)
         .then(translator => {
             // TEST: translator is valid
             t.is(typeof translator, 'object') && t.truthy(translator);
-            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.hub.superpopular', 'HubResURI')
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.hub.superpopular', 'getPlatforms', [true])
                 .then((hub) => {
 
                     console.log("Hub:");
@@ -27,8 +26,8 @@ test.serial('HubResURI', t => {
                     t.truthy(hub);
 
                     // TEST: hub has devices
-                    t.truthy(hub.devices);
-                    t.true(hub.devices.length > 0);
+                    t.truthy(hub.platforms);
+                    t.true(hub.platforms.length > 0);
                 });
         });
-});
+})
