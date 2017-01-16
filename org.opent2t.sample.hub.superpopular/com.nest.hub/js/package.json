@@ -8,8 +8,7 @@
     "thingTranslator.js",
     "package.json",
     "manifest.xml",
-    "common.js",
-    "firebase.js"
+    "common.js"
   ],
   "repository": {
     "type": "git",

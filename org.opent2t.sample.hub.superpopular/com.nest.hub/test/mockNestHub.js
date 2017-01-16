@@ -14,7 +14,7 @@ function verifyPayload(modification, t, args) {
     return JSON.stringify(args[1]) === JSON.stringify(modification);
 }
 
-class MockSmartthingsHub extends MockHub {
+class MockNestHub extends MockHub {
     constructor(initialState) {
         super(initialState, modifyDeviceState, verifyPayload);
     }

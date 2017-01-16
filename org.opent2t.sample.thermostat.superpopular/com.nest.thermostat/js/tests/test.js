@@ -33,7 +33,7 @@ runThermostatTests(settings);
 /**
  * Verifies that realtime notifications can be subscribed to for the device.
  * Please check the "live logging" section for your SmartApp to see if the notification was send or not.
-
+ */
 test.serial('Notifications - Subscribe', t => {
     console.log("Subscripting...");
 
@@ -56,4 +56,3 @@ test.serial('Notifications - Subscribe', t => {
         });
     });
 });
- */

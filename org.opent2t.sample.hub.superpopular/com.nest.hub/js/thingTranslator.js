@@ -2,7 +2,6 @@
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
-var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var Firebase = require("firebase");
 
@@ -31,9 +30,13 @@ class Translator {
      * Get the list of devices discovered through the hub.
      */
     getPlatforms(expand, payload) {
-        return this._firebaseRef.child(this._devicesPath).once('value').then( (snapshot) => {
-            return this._providerSchemaToPlatformSchema( snapshot.val(), expand);
-        });
+        if(payload !== undefined){
+            return this._providerSchemaToPlatformSchema( payload, expand );
+	} else {
+	    return this._firebaseRef.child(this._devicesPath).once('value').then( (snapshot) => {
+                return this._providerSchemaToPlatformSchema( snapshot.val(), expand );
+            });
+	}
     }
 
     /* eslint no-unused-vars: "off" */
@@ -44,7 +47,7 @@ class Translator {
 
      */
     _subscribe(subscriptionInfo) {
-        // Error case
+        // Error case: waiting for design decision
         throw new Error("Not implemented");
     }
 
@@ -53,7 +56,7 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        // Error case
+        // Error case: waiting for design decision
         throw new Error("Not implemented");
     }
     /* eslint no-unused-vars: "warn" */
