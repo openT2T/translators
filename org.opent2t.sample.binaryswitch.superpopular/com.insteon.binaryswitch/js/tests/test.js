@@ -8,7 +8,6 @@ var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hu
 function getBinarySwitch(devices) {
     for (var i = 0; i < devices.length; i++) {
         var d = devices[i];
-
         if (d.opent2t.translator === 'opent2t-translator-com-insteon-binaryswitch') {
             return d;
         }

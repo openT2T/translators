@@ -45,8 +45,7 @@ function generateGUID(stringID) {
 
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
-    console.log('Translator::providerSchemaToPlatformSchema');
-    console.log(providerSchema);
+
     var power = {
         href: '/power',
         rt: ['oic.r.switch.binary'],

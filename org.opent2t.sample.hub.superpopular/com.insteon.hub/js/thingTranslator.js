@@ -14,8 +14,11 @@ class Translator {
     constructor(accessToken) {
         this._accessToken = accessToken;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
-        this._subCatMap = { lightBulbs:[ '3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
-                            binarySwitch:[ '8', 'B', '2A', '35', '36', '37', '38', '39', '3A']};
+        this._subCatMap = {
+            lightBulbs: ['3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
+            binarySwitch: ['8', 'B', '1E', '1F', '2B', '2A', '2B', '2C', '2E', '2D', '2F',
+                '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A']
+        };
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
@@ -24,24 +27,24 @@ class Translator {
     /**
      * Get the hub definition and devices
      */
-    get(expand, payload, verification) {
-        return this.getPlatforms(expand, payload, verification);
+    get(expand, payload) {
+        return this.getPlatforms(expand, payload);
     }
 
     /**
      * Get the list of devices discovered through the hub.
      * 
      * @param {bool} expand - True to include the current state of the resources.
-     * @param {Buffer} payload - POST content for a subscribed notification
-     * @param {Object} verification - Information used to authenticate that the post is valid
-     * @param {Array} verification.header - Header information that came with the payload POST.
-     *      Should include X-Hub-Signature
-     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
+     * @param {Object} payload - device lists in provider schema
      */
-    getPlatforms(expand, payload, verification) {
-        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-            return this._providerSchemaToPlatformSchema(response.DeviceList, expand);
-        });
+    getPlatforms(expand, payload) {
+        if (payload !== undefined) {
+            return this._providerSchemaToPlatformSchema(payload, expand);
+        } else {
+            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+                return this._providerSchemaToPlatformSchema(response.DeviceList, expand);
+            });
+        }
     }
 
     /**
