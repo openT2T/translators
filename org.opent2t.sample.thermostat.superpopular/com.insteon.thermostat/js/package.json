@@ -1,0 +1,31 @@
+{
+  "name": "opent2t-translator-com-insteon-thermostat",
+  "version": "0.2.0",
+  "description": "Insteon Thermostat",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "thingTranslator.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "ava tests/test.js",
+    "unittest": "ava tests/unitTests.js"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
+  },
+  "dependencies": {
+    "opent2t": "^1.0.1",
+    "opent2t-translator-com-insteon-hub": "^0.2.0"
+  },
+  "devDependencies": {
+    "ava": "^0.15.2",
+    "q": "*",
+    "opent2t-device-insteonhub": "file:../../../org.opent2t.sample.hub.superpopular/com.insteon.hub/test",
+    "opent2t-device-thermostat": "file:../../test"
+  }
+}

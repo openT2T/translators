@@ -17,7 +17,8 @@ class Translator {
         this._subCatMap = {
             lightBulbs: ['3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
             binarySwitch: ['8', 'B', '1E', '1F', '2B', '2A', '2B', '2C', '2E', '2D', '2F',
-                '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A']
+                '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A'],
+            thermostats: ['B']
         };
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
@@ -62,8 +63,8 @@ class Translator {
 
                     // get the opent2t schema and translator for the insteon device
                     var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
-                    if (opent2tInfo !== undefined) // we support the device
-                    { 
+                    if (opent2tInfo !== undefined && opent2tInfo.schema === 'org.opent2t.sample.thermostat.superpopular') // we support the device
+                    {
                         // set the opent2t info for the wink device
                         var deviceInfo = {};
                         deviceInfo.opent2t = {};
@@ -77,18 +78,29 @@ class Translator {
 
                         return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                             .then((response) => {
-                                return this._getCommandResponse(response.id, 3) // get device status
+                                return this._getCommandResponse(response.id, 10) // get device status
                                     .then((deviceStatus) => {
 
-                                        if (deviceStatus !== undefined && deviceStatus.status == 'succeeded') {
-                                            deviceData['Level'] = deviceStatus.response.level;
-                                            if (deviceStatus.response.level == 0) {
-                                                deviceData['Power'] = 'off';
-                                            } else {
-                                                deviceData['Power'] = 'on';
+                                        if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
+                                            switch (opent2tInfo.schema) {
+                                                case 'org.opent2t.sample.thermostat.superpopular':
+                                                    for (var status in deviceStatus.response) {
+                                                        deviceData[status] = deviceStatus.response[status];
+                                                    }
+                                                    break;
+                                                default:
+                                                    deviceData['Level'] = deviceStatus.response.level;
+                                                    if (deviceStatus.response.level == 0) {
+                                                        deviceData['Power'] = 'off';
+                                                    } else {
+                                                        deviceData['Power'] = 'on';
+                                                    }
+                                                    break;
                                             }
+                                        } else {
+                                            console.log(deviceStatus);  //failed to get device status
                                         }
-
+                                        
                                         // Create a translator for this device and get the platform information, possibly expanded
                                         return OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                                             .then((translator) => {
@@ -100,6 +112,7 @@ class Translator {
                                                         return platformResponse;
                                                     });
                                             });
+                                        
                                     });
                             });
                     }
@@ -141,26 +154,36 @@ class Translator {
             .then((data) => {
 
                 var deviceData = data;
-                var postPaylaod =
-                {
+                var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                var postPaylaod = {
                     command: 'get_status',
                     device_id: deviceId
                 };
 
                 return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                     .then((response) => {                       
-                        return this._getCommandResponse(response.id, 3) // get device status
-                            .then((deviceStatus) => {
-
-                                if (deviceStatus !== undefined && deviceStatus.status == 'succeeded') {   
-                                    deviceData['Level'] = deviceStatus.response.level;
-                                    if (deviceStatus.response.level == 0) {
-                                        deviceData['Power'] = 'off';
-                                    } else {
-                                        deviceData['Power'] = 'on';
+                        return this._getCommandResponse(response.id, 10) // get device status
+                            .then((deviceStatus) => {                              
+                                if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
+                                    switch (opent2tInfo.schema) {
+                                        case 'org.opent2t.sample.thermostat.superpopular':
+                                            for (var status in deviceStatus.response) {
+                                                deviceData[status] = deviceStatus.response[status];
+                                            }
+                                            break;
+                                        default:
+                                            deviceData['Level'] = deviceStatus.response.level;
+                                            if (deviceStatus.response.level == 0) {
+                                                deviceData['Power'] = 'off';
+                                            } else {
+                                                deviceData['Power'] = 'on';
+                                            }
+                                            break;
                                     }
+                                } else {
+                                    this._throwError(JSON.stringify(deviceStatus, null, 2));
                                 }
-                                return Promise.resolve(deviceData);
+                                return deviceData;
                             });
                     });
             });
@@ -170,7 +193,7 @@ class Translator {
      * Puts device details (all fields) payload formatted per http://docs.insteon.apiary.io/#reference/devices
      */
     putDeviceDetailsAsync(deviceId, putPayload) {
-        console.log(putPayload);
+
         // build request path and body
         var statusChanges = { device_id: deviceId };
         var nonStatusChanges = {};
@@ -187,28 +210,26 @@ class Translator {
 
         if (Object.keys(statusChanges).length > 0) {
             var statePromise = this._makeRequest(this._commandPath, 'POST', JSON.stringify(statusChanges))
-                    .then((response) => {
-                        return this._getCommandResponse(response.id, 3) // get command status
-                            .then((commandResult) => {
-                                return Promise.resolve(commandResult);
-                            });
-                    });
+                .then((response) => {
+                    return this._getCommandResponse(response.id, 10) // get command status
+                        .then((commandResult) => {
+                            return Promise.resolve(commandResult);
+                        });
+                });
             promises.push(statePromise);
         }
 
         if (Object.keys(nonStatusChanges).length > 0) {
             var nonStatePromise = this._makeRequest(this._devicesPath + '/' + deviceId, 'GET')
-                    .then((details) => {
-
-                        for (var item in nonStatusChanges) {
-                            details[item] = nonStatusChanges[item];
-                        }
-
-                        return this._makeRequest(this._devicesPath + '/' + deviceId, 'PUT', JSON.stringify(details))
-                                .then(function (response) {
-                                    return Promise.resolve(response);
-                                });
-                    });
+                .then((details) => {
+                    for (var item in nonStatusChanges) {
+                        details[item] = nonStatusChanges[item];
+                    }
+                    return this._makeRequest(this._devicesPath + '/' + deviceId, 'PUT', JSON.stringify(details))
+                            .then(function (response) {
+                                return Promise.resolve(response);
+                            });
+                });
             promises.push(nonStatePromise);
         }
 
@@ -219,14 +240,36 @@ class Translator {
             
             for (var i = 0; i < responses.length ; i++) {
                 if ( responses[i] !== undefined && responses[i].status == 'succeeded') {
-                    if (responses[i].command !== undefined)
-                    {
+                    if (responses[i].command !== undefined) {
+                        if (responses[i].command !== undefined ) {
+                            switch(responses[i].command.command) {
+                                case 'on':
+                                case 'off':
+                                    device['Power'] = responses[i].command.command;
+                                    break;
+                                case 'cool':
+                                case 'heat':
+                                case 'auto':
+                                case 'all_off':
+                                    device['mode'] = responses[i].command.command;
+                                    break;
+                                case 'fan_on':
+                                case 'fan_auto':
+                                    device['fan'] = responses[i].command.command;
+                                    break;
+                                case 'set_cool_to':
+                                    device['cool_point'] = responses[i].command.temp;
+                                    break;
+                                case 'set_heat_to':
+                                    device['heat_point'] = responses[i].command.temp;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        
                         if( responses[i].command.level !== undefined) {
                             device['Level'] = responses[i].command.level;
-                        }
-
-                        if (responses[i].command !== undefined && responses[i].command.command !== undefined) {
-                            device['Power'] = responses[i].command.command;
                         }
                     }
 
@@ -272,6 +315,14 @@ class Translator {
                     };
                 }
                 return undefined;
+            case 5:
+                if (this._subCatMap.thermostats.indexOf(subCat) >= 0) {
+                    return {
+                        "schema": 'org.opent2t.sample.thermostat.superpopular',
+                        "translator": "opent2t-translator-com-insteon-thermostat"
+                    };
+                }
+                return undefined;
             default:
                 return undefined;
         }
@@ -279,11 +330,10 @@ class Translator {
     
     _isDeviceStatus(propertyName){
         switch (propertyName) {
-            case "command":
-            case "level":
-                return true;
-            default:
+            case 'DeviceName':
                 return false;
+            default:
+                return true;
         }
     }
 
@@ -302,21 +352,29 @@ class Translator {
                     if(response.status === 'pending')
                     {
                         if(count > 1){
-                            return this._getCommandResponse(commandId, --count)
+                            return this._getCommandResponse(commandId, --count);
                         } else {
-                            var errMsg = {
-                                statusCode: '500',
-                                response: { statusMessage: 'Internal Error - Insteon command timeout.' }
-                            };
-                            throw errMsg;
+                            this._throwError('Internal Error - Insteon command timeout.');
                         }
+                    } else {
+                        return response;
                     }
-                    else return response;
                 })
                 .catch((err) => { console.log(err); });
         });
     }
 
+    /**
+     * Internal helper to throw a error with with a specific error message
+     */
+    _throwError(message){
+        var errMsg = {
+            statusCode: '500',
+            response: { statusMessage: message }
+        };
+        throw errMsg;
+    }
+    
     /**
      * Internal helper method which makes the actual request to the insteon service
      */
