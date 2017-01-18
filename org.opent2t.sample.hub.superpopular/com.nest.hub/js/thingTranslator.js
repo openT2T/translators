@@ -40,6 +40,17 @@ class Translator {
     }
 
     /* eslint no-unused-vars: "off" */
+
+    /**
+     * Refreshes the OAuth token for the hub by returning the existing access token. 
+     * does not support refresh tokens, because Nest access tokens are effectively non-expiring (about 10 years)
+     * https://developers.nest.com/documentation/cloud/authorization-reference
+     */
+    refreshAuthToken(authInfo) {
+        return this._accessToken;
+    }
+
+
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
