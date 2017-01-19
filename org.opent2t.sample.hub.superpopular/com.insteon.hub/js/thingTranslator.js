@@ -63,7 +63,7 @@ class Translator {
 
                     // get the opent2t schema and translator for the insteon device
                     var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
-                    if (opent2tInfo !== undefined && opent2tInfo.schema === 'org.opent2t.sample.thermostat.superpopular') // we support the device
+                    if (opent2tInfo !== undefined) // we support the device
                     {
                         // set the opent2t info for the wink device
                         var deviceInfo = {};
@@ -136,6 +136,57 @@ class Translator {
                 return toReturn;
             });
 
+    }
+
+    /**
+     * An Internal helper function that add the input amount of seconds to current Linux standard time.
+     */
+    _add2CurrentUTC(seconds) {
+        var t = parseInt(Math.floor(new Date().getTime() / 1000));
+        t += parseInt(seconds);
+        return t;
+    }
+
+    /**
+     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
+     */
+    refreshAuthToken(authInfo) {
+        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object with clientId + user account credentials to allow the oAuth token to be refreshed";
+
+        if (authInfo == undefined || authInfo == null) {
+            throw new Error(invalidAuthErrorMessage);
+        }
+
+        if (authInfo.length !== 2) {
+            // We expect the original authInfo object used in the onboarding flow
+            // not defining a brand new type for the Refresh() contract and re-using
+            // what is defined for Onboarding()
+            throw new Error(invalidAuthErrorMessage);
+        }
+
+        var options = {
+            url: 'https://connect.insteon.com/api/v2/oauth2/token',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'grant_type=refresh_token&refresh_token=' + this._accessToken.refreshToken + '&client_id=' + authInfo[1].client_id
+        };
+
+        return request(options).then((body) => {
+                var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
+
+                // 'expires_in is in minutes', according to http://docs.insteon.apiary.io/#reference/authorization/authorization-grant
+                return new accessTokenInfo(
+                    tokenInfo.access_token,
+                    tokenInfo.refresh_token,
+                    authInfo[1].client_id,
+                    tokenInfo.token_type,
+                    this._add2CurrentUTC(tokenInfo.expires_in * 60)
+                );
+            }).catch(function (err) {
+                console.log('Request failed to: ' + options.method + ' - ' + options.url);
+                console.log('Error            : ' + err.statusCode + ' - ' + err.response.statusMessage);
+                throw err;
+            });
     }
 
     /**
@@ -328,6 +379,10 @@ class Translator {
         }
     }
     
+
+    /**
+     *  Internal helper method to determine if a property name belongs to device status or not.
+     */
     _isDeviceStatus(propertyName){
         switch (propertyName) {
             case 'DeviceName':
