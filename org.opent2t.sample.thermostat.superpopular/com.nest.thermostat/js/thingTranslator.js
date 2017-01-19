@@ -1,4 +1,5 @@
 'use strict';
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -11,6 +12,14 @@ function validateArgumentType(arg, argName, expectedType) {
         throw new Error('Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
+}
+
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Nest' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
 }
 
 var deviceHvacModeToTranslatorHvacModeMap = {
@@ -140,13 +149,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan_timer_active']
     });
 
+    var guid = generateGUID(providerSchema['device_id']);
+
     return {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-nest-thermostat',
             controlId: providerSchema['device_id']
         },
-        pi: providerSchema['device_id'],
+        pi: guid,
         mnmn: 'Nest',
         mnmo: 'Undefined',
         n: providerSchema['name_long'],
@@ -154,7 +165,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.thermostat'],
-                di: providerSchema['device_id'],
+                di: guid,
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -254,7 +265,7 @@ function getDeviceResource(translator, di, resourceId) {
 }
 
 function postDeviceResource(di, resourceId, payload) {
-    if (di === controlId)
+    if (di === generateGUID(controlId))
     {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
