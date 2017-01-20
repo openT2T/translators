@@ -88,10 +88,14 @@ class Translator {
 
             var nestThermostatIds = Object.keys(providerSchemas.thermostats);
             nestThermostatIds.forEach((nestThermostatId) => {
+
+                var nestThermostat = providerSchemas.thermostats[nestThermostatId];
+
                 // set the opent2t info for the Nest Device
                 var deviceInfo = {};
                 deviceInfo.opent2t = {};
                 deviceInfo.opent2t.controlId = nestThermostatId;
+                deviceInfo.opent2t.structureId = nestThermostat['structure_id'];
 
                 // Create a translator for this device and get the platform information, possibly expanded
                 platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
@@ -99,9 +103,9 @@ class Translator {
                         // Use get to translate the Nest formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
                         var deviceSchema = providerSchemas.thermostats[nestThermostatId];
-                        return this._getAwayStatus(deviceSchema['structure_id']).then((result) => {
+                        return this._getAwayMode(nestThermostat['structure_id']).then((result) => {
                             deviceSchema.away = result;
-                            return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceSchema ])
+                            return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
                                 .then((platformResponse) => {
                                     return platformResponse;
                                 });
@@ -132,7 +136,7 @@ class Translator {
     getDeviceDetailsAsync(deviceType, deviceId) {
         return this._firebaseRef.child(this._devicesPath + deviceType + '/' +deviceId).once('value').then((snapshot) => {
             var deviceSchema = snapshot.val();
-            return this._getAwayStatus(deviceSchema['structure_id']).then((result) => {
+            return this._getAwayMode(deviceSchema['structure_id']).then((result) => {
                 deviceSchema.away = result;
                 return deviceSchema;
             });
@@ -170,9 +174,30 @@ class Translator {
     /**
      * Internal Helper function to get the away status for structure with structureId
      */
-    _getAwayStatus(structureId) {
+    _getAwayMode(structureId) {
         return this._firebaseRef.child(this._structPath + structureId + '/away').once('value').then((snapshot) => {
             return snapshot.val();
+        });
+    }
+
+    /**
+     * Set the away status for structure with structureId
+     */
+    setAwayMode(structureId, deviceId, mode) {
+        return this._firebaseRef.child(this._structPath + structureId + '/away').set(mode.away).then((response) => {
+            if (response === undefined) { //success
+                var result = {
+                    device_id: deviceId
+                };
+                result.away = mode.away;
+                return result;
+            }
+        }).catch(function (err) {
+            var str = err.toString();
+            var startInd = str.indexOf('{');
+            var endInd = str.lastIndexOf('}');
+            var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
+            throw new Error(errorMsg.error);
         });
     }
 }
