@@ -19,7 +19,7 @@ function runLampTests(settings) {
             translator = trans;
 			OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
-                    deviceId = response.opent2t.controlId;
+                    deviceId = response.entities[0].di;
                 }
 			});
         });
