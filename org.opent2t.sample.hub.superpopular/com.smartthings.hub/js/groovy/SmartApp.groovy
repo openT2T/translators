@@ -24,20 +24,29 @@ definition(
  *  locks                | lock           | lock, unlock             | locked, unlocked
  *  garageDoors          | door           | open, close              | unknown, closed, open, closing, opening
  *  cameras              | image          | take                     | <String>
+ *  thermostats          | thermostat     | setHeatingSetpoint,      | temperature, heatingSetpoint, coolingSetpoint,
+ *                       |                | setCoolingSetpoint,      | thermostatSetpoint, thermostatMode,
+ *                       |                | off, heat, cool, auto,   | thermostatFanMode, thermostatOperatingState
+ *                       |                | emergencyHeat,           |
+ *                       |                | setThermostatMode,       |
+ *                       |                | fanOn, fanAuto,          |
+ *                       |                | fanCirculate,            |
+ *                       |                | setThermostatFanMode     |
  *  ---------------------+----------------+--------------------------+------------------------------------
  */
 
 //Device Inputs
 preferences {
 section("Allow <PLACEHOLDER: Your App Name> to control these things...") {
-		input "switches", "capability.switch", title: "Which Switches and Lights?", multiple: true, required: false
+		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false
+        input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false
+ 		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false
+        input "cameras", "capability.videoCapture", title: "Which Cameras?",  multiple: true, required: false
 		input "motionSensors", "capability.motionSensor", title: "Which Motion Sensors?", multiple: true, required: false
 		input "presenceSensors", "capability.presenceSensor", title: "Which Presence Sensors", multiple: true, required: false
-        input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false
+		input "switches", "capability.switch", title: "Which Switches and Lights?", multiple: true, required: false
+        input "thermostats", "capability.thermostat", title: "Which Thermostat?", multiple: true, required: false
         input "waterSensors", "capability.waterSensor", title: "Which Water Leak Sensors?", multiple: true, required: false
-        input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false
-    	input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false
-		input "cameras", "capability.videoCamera", title: "Which Cameras?",  multiple: true, required: false
     }
 }
 
@@ -68,6 +77,12 @@ mappings {
           PUT: "updateDevice"
         ]
     }
+     path("/subscription/:id") {
+        action: [
+          POST: "registerDeviceChange",
+          DELETE: "unregisterDeviceChange"
+        ]
+    }
 }
 
 def installed() {
@@ -87,7 +102,7 @@ def initialize() {
 	registerSubscriptions()
 }
 
-//Register events for each device
+//Subscribe events for all devices
 def registerSubscriptions() {
 	registerChangeHandler(switches)
 	registerChangeHandler(motionSensors)
@@ -99,19 +114,46 @@ def registerSubscriptions() {
     registerChangeHandler(cameras)
 }
 
+//Subscribe to events from a list of devices
 def registerChangeHandler(myList) {
 	myList.each { myDevice ->
 		def theAtts = myDevice.supportedAttributes
 		theAtts.each {att ->
-		    subscribe(myDevice, att.name, eventHandler)
-    	log.debug "Registering ${myDevice.displayName}.${att.name}"
+            subscribe(myDevice, att.name, eventHandler)
+		    log.info "Registering ${myDevice.displayName}.${att.name}"
 		}
 	}
 }
 
+//Endpoints function: Subscribe to events from a specific device
+def registerDeviceChange() {
+	def myDevice = findDevice(params.id)
+	def theAtts = myDevice.supportedAttributes
+    try {
+        theAtts.each {att ->
+            subscribe(myDevice, att.name, eventHandler)
+            log.info "Registering ${myDevice.displayName}.${att.name}"
+        }
+        return ["succeed"]
+    } catch (e) {
+        httpError(500, "something went wrong: $e")
+    }
+}
+
+//Endpoints function: Unsubscribe to events from a specific device
+def unregisterDeviceChange() {
+    def myDevice = findDevice(params.id)
+    try {
+        unsubscribe(myDevice)
+        log.info "Unregistering ${myDevice.displayName}"
+        return ["succeed"]
+    } catch (e) {
+        httpError(500, "something went wrong: $e")
+    }
+}
+
 //When events are triggered, send HTTP post to web socket servers
 def eventHandler(evt) {
-
 	def evt_device_id = evt.deviceId
     def evt_device_value = evt.value
     def evt_name = evt.name
@@ -123,86 +165,102 @@ def eventHandler(evt) {
             name: evt_device.displayName,
             id: evt_device.id,
             deviceType:evt_deviceType, 
+            manufacturer:evt_device.getManufacturerName(), 
+            model:evt_device.getModelName(),
             attributes: deviceAttributeList(evt_device) 
         ]
     ]
     try {
-        log.debug "POST URI: ${params.uri}"
-        log.debug "Payload: ${params.body}"
+        log.trace "POST URI: ${params.uri}"
+        log.trace "Payload: ${params.body}"
         httpPostJson(params) { resp ->
             resp.headers.each {
                 log.debug "${it.name} : ${it.value}"
             }
-            log.debug "response status code: ${resp.status}"
-            log.debug "response data: ${resp.data}"
+            log.trace "response status code: ${resp.status}"
+            log.trace "response data: ${resp.data}"
         }
     } catch (e) {
         log.debug "something went wrong: $e"
     }
 }
 
-//Endpoints function; update subcription endpoint url [state.endpoint]
+//Endpoints function: update subcription endpoint url [state.endpoint]
 void updateEndpointURL() {
     state.endpointURL = params.url
-    log.debug "Updated EndpointURL to ${state.endpointURL}"
+    log.info "Updated EndpointURL to ${state.endpointURL}"
 }
 
-//Endpoints function; update global variable [state.connectionId]
+//Endpoints function: update global variable [state.connectionId]
 void updateConnectionId() {
     def connId = params.connId
     state.connectionId = connId
-    log.debug "Updated ConnectionID to ${state.connectionId}"
+    log.info "Updated ConnectionID to ${state.connectionId}"
 }
 
-//Endpoints functions; return device data in json format
+//Endpoints function: return all device data in json format
 def getDevices() {
 	def deviceData = [] 
-    switches.each {
+    
+	cameras.each  {  
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
-    }     
-    motionSensors.each  {
-   		def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
-    } 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
+    }
     contactSensors.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
+	garageDoors.each  {  
+    	def deviceType = getDeviceType(it)
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
+    } 
+    locks.each  {  
+    	def deviceType = getDeviceType(it)
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
+    } 
+    motionSensors.each  {
+   		def deviceType = getDeviceType(it)
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
+    } 
     presenceSensors.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
+    }
+    switches.each {
+    	def deviceType = getDeviceType(it)
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
+    }
+    thermostats.each {
+    	def deviceType = getDeviceType(it)
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it), locationMode: getLocationModeInfo()] 
     }
     waterSensors.each {
     	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
+        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)] 
     }
-    locks.each  {  
-    	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
-    } 
-    garageDoors.each  {  
-    	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
-    } 
-	cameras.each  {  
-    	def deviceType = getDeviceType(it)
-        deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)] 
-    } 
+ 
     log.debug "getDevices, return: ${deviceData}"
     return deviceData 
 }
 
-//Endpoints functions; update device data
+//Endpoints function: get device data
 def getDevice() {    
     def it = findDevice(params.id)
     def deviceType = getDeviceType(it)
-    def device = [name: it.displayName, id: it.id, deviceType:deviceType, attributes: deviceAttributeList(it)]
+    def device
+    if(deviceType == "thermostat")
+    {
+    	device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it), locationMode: getLocationModeInfo()] 
+    }
+    else
+    {
+    	device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
+    }   
     log.debug "getDevice, return: ${device}"
     return device
 }
 
-//Endpoints functions; update device data
+//Endpoints function: update device data
 void updateDevice() {    
     def device = findDevice(params.id)
     request.JSON.each {   
@@ -212,24 +270,46 @@ void updateDevice() {
             def commandList = mapDeviceCommands(command, value)
             command = commandList[0]
             value = commandList[1]
-            if (!device) {
-                log.debug "updateDevice, Device not found"
+            
+            if (command == "setAwayMode") {
+                log.info "Setting away mode to ${value}"
+                if (location.modes?.find {it.name == value}) {
+                    location.setMode(value)
+                }
+            }else if (command == "thermostatSetpoint"){
+            	switch(device.currentThermostatMode){
+                	case "cool":
+                    	log.info "Update: ${device.displayName}, [${command}, ${value}]"
+                    	device.setCoolingSetpoint(value)
+                    	break
+                    case "heat":
+                    case "emergency heat":
+                    	log.info "Update: ${device.displayName}, [${command}, ${value}]"
+                    	device.setHeatingSetpoint(value)
+                    	break
+                    default:
+                    	httpError(501, "this mode: ${device.currentThermostatMode} does not allow changing thermostat setpoint.")
+                    	break
+                }
+            }else if (!device) {
+                log.error "updateDevice, Device not found"
                 httpError(404, "Device not found")
             } else if (!device.hasCommand(command)) {
-                log.debug "updateDevice, Device does not have the command"        	
-                httpError(404, "Device does not have the command")
+                log.error "updateDevice, Device does not have the command"        	
+                httpError(404, "Device does not have such command")
             } else {
                 if (command == "setColor") {
-                    log.debug "Update: [${command}, ${value}], device: ${device}"
+                    log.info "Update: ${device.displayName}, [${command}, ${value}]"
                     device."$command"(hex: value)
                 } else if(value.isNumber()) {
                 	def intValue = value as Integer
-                    log.debug "Update: [${command}, ${intValue}(int)]"
+                    log.info "Update: ${device.displayName}, [${command}, ${intValue}(int)]"
                     device."$command"(intValue)
                 } else if (value){
-                    log.debug "Update: [${command}, ${value}]"
+                    log.info "Update: ${device.displayName}, [${command}, ${value}]"
                     device."$command"(value)
                 } else {
+                	log.info "Update: ${device.displayName}, [${command}]"
                     device."$command"()
                 }
             }
@@ -237,64 +317,90 @@ void updateDevice() {
 	}
 }
 
-//Private Functions; manually map each device to a type given it's capabilities
+/*** Private Functions ***/
+
+//Return current location mode info
+private getLocationModeInfo() {
+    return [mode: location.mode, supported: location.modes.name]
+}
+
+//Map each device to a type given it's capabilities
 private getDeviceType(device) {
 	def deviceType
     def caps = device.capabilities
+    log.debug "capabilities: [${device}, ${caps}]"
+    log.debug "supported commands: [${device}, ${device.supportedCommands}]"
 	caps.each {
-    	log.debug "capabilities: [${device}, ${caps}]"
-		if(it.name.toLowerCase().contains("switch")) {
-        	deviceType = "switch"
+        switch(it.name.toLowerCase())
+        {
+        	case "switch":
+            	deviceType = "switch"
+            	break
+            case "switch level":
+            	deviceType = "light"
+            	break
+            case "contact sensor":
+            	deviceType = "contactSensor"
+            	break
+            case "garageDoorControl":
+            	deviceType = "garageDoor"
+            	break
+            case "lock":
+            	deviceType = "lock"
+            	break
+            case "video camera":
+            	deviceType = "camera"
+            	break
+            case "motion sensor":
+            	deviceType = "motionSensor"
+            	break
+            case "presence sensor":
+            	deviceType = "presenceSensor"
+            	break
+            case "thermostat":
+            	deviceType = "thermostat"
+            	break
+            case "water sensor":
+            	deviceType = "waterSensor"
+            	break   
+            default:
+            	break
         }
-        if(it.name.toLowerCase().contains("water")) {
-        	deviceType = "waterSensor"
-        }
-        if(it.name.toLowerCase().contains("motion")) {
-        	deviceType = "motionSensor"
-        }
-        if(it.name.toLowerCase().contains("presence")) {
-        	deviceType = "presenceSensor"
-        }
-        if(it.name.toLowerCase().contains("contact")) {
-        	deviceType = "contactSensor"
-        }
-        if(it.name.toLowerCase().contains("lock")) {
-        	deviceType = "lock"
-        }
-        if(it.name.toLowerCase().contains("level")) {
-        	deviceType = "light"
-        }
-        if(it.name.toLowerCase().contains("garageDoorControl")) {
-        	deviceType = "garageDoor"
-        }
-        if(it.name.toLowerCase().contains("video")) {
-        	deviceType = "camera"
-        }	
     }
     return deviceType
 }
 
-//Private Functions; return device
+//Return a specific device give the device ID.
 private findDevice(deviceId) {
 	def device = switches.find { it.id == deviceId }
   	if (device) return device
-	device = motionSensors.find { it.id == deviceId }
+	
+    device = motionSensors.find { it.id == deviceId }
     if (device) return device
-	device = waterSensors.find { it.id == deviceId }
-	if (device) return device
+	
+    device = waterSensors.find { it.id == deviceId }	
+    if (device) return device
+   
     device = contactSensors.find { it.id == deviceId }
 	if (device) return device
+    
     device = presenceSensors.find { it.id == deviceId }
 	if (device) return device
-  	device = locks.find { it.id == deviceId }
+  	
+    device = locks.find { it.id == deviceId }
 	if (device) return device
-  	device = garageDoors.find { it.id == deviceId }
+  	
+    device = garageDoors.find { it.id == deviceId }
    	if (device) return device
+    
     device = cameras.find { it.id == deviceId }
+	if (device) return device
+    
+    device = thermostats.find { it.id == deviceId }
 	return device
  }
  
-//Private Functions; return a list of device attributes
+//Return a list of device attributes
 private deviceAttributeList(device) {
     device.supportedAttributes.collectEntries { attribute->
         try {
@@ -309,7 +415,7 @@ private deviceAttributeList(device) {
     }
 }
 
-//Private Functions; map device command and value. 
+//Map device command and value. 
 //input command and value are from UWP,
 //returns resultCommand and resultValue that corresponds with function and value in SmartApps
 private mapDeviceCommands(command, value) {
@@ -326,6 +432,7 @@ private mapDeviceCommands(command, value) {
                 resultValue = ""
             }
             break
+        // light attributes
     	case "level":
         	resultCommand = "setLevel"
             resultValue = value
@@ -339,9 +446,39 @@ private mapDeviceCommands(command, value) {
         	resultCommand = "setSaturation"
             resultValue = value
             break
+        case "ct":
+        	resultCommand = "setColorTemperature"
+            resultValue = value
+            break
         case "color":    
         	resultCommand = "setColor"
             resultValue = value
+        // thermostat attributes
+    	case "hvacMode":
+        	resultCommand = "setThermostatMode"
+            resultValue = value
+            break
+    	case "fanMode":
+        	resultCommand = "setThermostatFanMode"
+            resultValue = value
+            break
+        case "awayMode":
+            resultCommand = "setAwayMode"
+            resultValue = value
+            break
+        case "coolingSetpoint":
+        	resultCommand = "setCoolingSetpoint"
+            resultValue = value
+            break
+        case "heatingSetpoint":    
+        	resultCommand = "setHeatingSetpoint"
+            resultValue = value
+            break
+        case "thermostatSetpoint":
+        	resultCommand = "thermostatSetpoint"
+            resultValue = value
+            break
+        // lock attributes
         case "locked":
         	if (value == 1 || value == "1" || value == "lock") {
                 resultCommand = "lock"
@@ -352,8 +489,9 @@ private mapDeviceCommands(command, value) {
                 resultValue = ""
             }
             break
+        default:
+        	break
      }
      
      return [resultCommand,resultValue]
-
 }

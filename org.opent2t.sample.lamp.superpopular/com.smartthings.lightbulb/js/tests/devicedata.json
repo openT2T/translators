@@ -1,0 +1,33 @@
+{   "base_state" :
+    {   "attributes" :
+        {
+            "switch" : "on",
+            "level" : 20
+        },
+        "id" : "Mock Id",
+        "manufacturer" : "Mock Manufacturer",
+        "model" : "Mock Model",
+        "name" : "Mock Name"
+    },
+    "test_data" :
+    {
+        "SetPower" :
+            [
+                {
+                    "switch" : "on"
+                },
+                {
+                    "switch" : "off"
+                }
+            ],
+        "SetDimming" :
+            [
+                {
+                    "level" : 10
+                },
+                {
+                    "level" : 50
+                }
+            ]
+    }
+}

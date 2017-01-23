@@ -6,6 +6,9 @@
 
 "use strict";
 var request = require('request-promise');
+var OpenT2T = require('opent2t').OpenT2T;
+var Crypto = require('crypto');
+var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -16,52 +19,50 @@ class Translator {
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
+        this._oAuthPath = '/oauth2/token';
 
         this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
     }
 
     /**
-     * Get the list of devices discovered through the hub.
+     * Get the hub definition and devices
      */
-    getHubResURI() {
-        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+    get(expand, payload, verification) {
+        return this.getPlatforms(expand, payload, verification);
+    }
 
-            var toReturn = {};
-            var devices = response.data;
+    /**
+     * Get the list of devices discovered through the hub.
+     * 
+     * @param {bool} expand - True to include the current state of the resources.
+     * @param {Buffer} payload - POST content for a subscribed notification
+     * @param {Object} verification - Information used to authenticate that the post is valid
+     * @param {Array} verification.header - Header information that came with the payload POST.
+     *      Should include X-Hub-Signature
+     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
+     */
+    getPlatforms(expand, payload, verification) {
 
-            var filteredDevices = [];
-            devices.forEach((winkDevice) => {
-                // get the opent2t schema and translator for the wink device
-                var opent2tInfo = this._getOpent2tInfo(winkDevice);
-
-                // Do not return the physical hub device, nor any devices for which there are not translators.
-                // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
-                // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
-                // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
-                if ((winkDevice.model_name !== 'HUB')  && 
-                    opent2tInfo != undefined &&
-                    (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
-                {
-                    // &&
-                    // isNaN(winkDevice.hidden_at)
-                    // we only need to return certain properties back
-                    var device = {};
-                    device.name = winkDevice.name;
-
-                    // set the specific device object id to be the id
-                    device.id = this._getDeviceId(winkDevice);
-
-                    // set the opent2t info for the wink device
-                    device.openT2T = opent2tInfo;
-                    
-                    filteredDevices.push(device);
+        // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
+        // converted to the opent2t/ocf representation.
+        if (payload !== undefined) {
+            // Calculate the HMAC for the payload using the secret
+            if (verification !== undefined && verification.key !== undefined) {
+                
+                var hashFromWink = verification.header("X-Hub-Signature");
+                if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
+                    throw new Error("Payload signature doesn't match.");
                 }
+            }
+
+            // Return the verified payload 
+            return this._providerSchemaToPlatformSchema(payload, expand);
+        }
+        else {
+            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+                return this._providerSchemaToPlatformSchema(response.data, expand);
             });
-
-            toReturn.devices = filteredDevices;
-
-            return toReturn;
-        });
+        }
     }
 
     /**
@@ -95,7 +96,99 @@ class Translator {
         // Make the async request
         return this._makeRequest(requestPath, 'PUT', putPayloadString);
     }
-    
+
+    /**
+     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
+     */
+    refreshAuthToken(authInfo) {
+        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
+        
+        if (authInfo == undefined || authInfo == null){
+            throw new Error(invalidAuthErrorMessage); 
+        }
+
+        if (authInfo.length !== 2)
+        {
+            // We expect the original authInfo object used in the onboarding flow
+            // not defining a brand new type for the Refresh() contract and re-using
+            // what is defined for Onboarding()
+            throw new Error(invalidAuthErrorMessage);
+        }
+
+        // POST oauth2/token
+        var postPayloadString = JSON.stringify({
+            'client_id': authInfo[1].client_id,
+            'client_secret': authInfo[1].client_secret,
+            'grant_type': 'refresh_token',
+            'refresh_token': this._accessToken.refreshToken,
+        });
+
+        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
+        {
+            // _makeRequest() already returns a JSON representation of the POST response body
+            // return the auth properties out in our own response back
+             return new accessTokenInfo(
+                    body.access_token,
+                    body.refresh_token,
+                    body.token_type,
+                    body.scopes
+                );
+            // there isn't a 'scopes' property returned as a result of this request according to
+            // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
+            // so am assuming the caller of this API will expect nulls
+        });
+    }
+
+    /**
+     * Translates an array of provider schemas into an opent2t/OCF representations
+     */
+    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+        var platformPromises = [];
+
+        // Ensure that we have an array of provider schemas, even if a single object was given.
+        var winkDevices = [].concat(providerSchemas);
+
+        winkDevices.forEach((winkDevice) => {
+            // get the opent2t schema and translator for the wink device
+            var opent2tInfo = this._getOpent2tInfo(winkDevice);
+            
+            // Do not return the physical hub device, nor any devices for which there are not translators.
+            // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
+            // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
+            // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
+            if ((winkDevice.model_name !== 'HUB')  && 
+                typeof opent2tInfo !== 'undefined' &&
+                (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
+            {
+                // set the opent2t info for the wink device
+                var deviceInfo = {};
+                deviceInfo.opent2t = {};
+                deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
+                
+                // Create a translator for this device and get the platform information, possibly expanded
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                    .then((translator) => {
+
+                        // Use get to translate the Wink formatted device that we already got in the previous request.
+                        // We already have this data, so no need to make an unnecesary request over the wire.
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
+                            .then((platformResponse) => {
+                                return platformResponse; 
+                            });
+                    }));
+            }
+        });
+
+        // Return a promise for all platform translations.
+        return Promise.all(platformPromises)
+            .then((platforms) => {
+                var toReturn = {};
+                toReturn.schema = "org.opent2t.sample.hub.superpopular";
+                toReturn.platforms = platforms;
+                return toReturn;
+            });
+    }
+
     /**
      * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
      * The first call will contain just the callbackUrl, which will be subscribed for postbacks
@@ -114,23 +207,68 @@ class Translator {
      * currently 24 hours.  Subsequent calls to subscribe will refresh the expiration time, and in the
      * case of Wink/Pubsubhubbub will not require verification.
      * 
+     * @typedef {Object} SubscriptionResponse
+     * @property {number} expiration - Expiration time for the subscription.
+     * @property {string} response - Response payload for the verification request.
+     * 
      * @param {string} deviceType - Device Type (e.g. 'thermostats')
      * @param {string|number} deviceId - Id for the specific device
-     * @param {string} callbackUrl - Callback url for feed postbacks
-     * @param {HttpRequest} verificationRequest - GET request received by the server at a previously subscribed
-     *      callback URL.  This completes the verification half of the subscription.
-     * @param {HttpResponse} verificationResponseContent - Content that should be provided in the response to the
-     *      verification request as {'Content-Type': 'text/plain'}.  All responses should use code 200 unless an
-     *      error is caught.
-     * @returns {number} Object containing the subscription expiration time, and any content that
-     *      needs to be included in a response to the original request.
+     * @param {Object} subscriptionInfo - Subscription information
+     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint. This URL will receive verification, and updates.
+     * @param {string} subscriptionInfo.key - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
+     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to (not required for verification)
+     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to (not required for verification)
+     * @param {Object} subscriptionInfo.verificationRequest - The contents of a verification request made to the callbackURl, if 
+     *      verification is being used.
+     * @returns {SubscriptionResponse} - Object containing the subscription expiration time, and any content that
+     *      needs to be included in a response to the original request. Content that should be provided in the response to the
+     *      verification request as {'Content-Type': 'text/plain'}.
      */
-    _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
+    postSubscribe(subscriptionInfo) {
+        if (subscriptionInfo.verificationRequest) {
+            // Verify a subscription request by constructing the appropriate response
 
-        if (callbackUrl) {
-            // Subscribe to notifications
+            var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
+        
+            switch(params.query['hub.mode']) {
+                case "denied":
+                    // The subscription cannot be completed, access was denied.
+                    // This is likely due to a bad access token.
+                    throw new Error("Access denied");
+                case "unsubscribe":
+                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
+                    // with no verification.
+                    return {
+                        expiration: 0,
+                        response: ""
+                    }
+                case "subscribe":
+                    // Successful subscription/unsubscription requires a response to contain the same
+                    // challenge that was included in the request.
+                    return {
+                        expiration: params.query['hub.lease_seconds'],
+                        response: params.query['hub.challenge']
+                    }
+                default:
+                    // Hub mode is unknown.
+                    throw new Error("Unknown request");
+            }
+        }
+        else if (subscriptionInfo.callbackUrl) {
+            // If a callbackUrl is provided without a verification request, then it is a new subscription or a refresh.
 
-            var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
+            var requestPath = "";
+
+            if (subscriptionInfo.deviceType && subscriptionInfo.deviceId) {
+                // Platform level subscription
+                requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions';
+            }
+            else {
+                // Provider/Hub level subscription
+                // Subscribing to Wink as a provider (to receive notification of device add/delete etc.) will likely be
+                // possible in the future.  This should just require a different request path, but for now it's an error
+                throw new Error("Must subscribe to a device.");
+            }
 
             // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
             // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
@@ -140,7 +278,13 @@ class Translator {
             // with another call to this function.
 
             var postPayload = {
-                callback: callbackUrl,
+                callback: subscriptionInfo.callbackUrl
+            }
+
+            // Secret provided for computing HMAC verification of the payload
+            // this is optional to Wink
+            if (subscriptionInfo.key) {
+                postPayload.secret = subscriptionInfo.key;
             }
 
             var postPayloadString = JSON.stringify(postPayload);
@@ -148,43 +292,10 @@ class Translator {
             return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
                 // Return the expiration time for the subscription
                 return {
-                    expiration: response.data.expires_at,
-                    response: ""
+                    expiration: response.data.expires_at
                 };
             })
-
-        } else if (verificationRequest) {
-            // Verify a subscription request by constructing the appropriate response
-
-            var params = require('url').parse(verificationRequest.url, true, true);
-            // This is a subscription validation, populate the response
-            switch(params.query['hub.mode']) {
-                case "denied":
-                    // The subscription cannot be completed, access was denied.
-                    // This is likely due to a bad access token.
-                    throw new Error("Access denied");
-                case "unsubscribe": // Could remove this, see below.
-                case "subscribe":
-                    // Successful subscription/unsubscription requires a response to contain the same
-                    // challenge that was included in the request.
-                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
-                    // with no verification.
-
-                    // Verify that this subscription is for the correct topic
-                    if (params.query['hub.topic'].endsWith(deviceType + '/' + deviceId)) {
-                        return {
-                            expiration: params.query['hub.lease_seconds'],
-                            response: params.query['hub.challenge']
-                        }
-                    } else {
-                        // There is a mistmatch.  This subscription doesn't match this device.
-                        throw new Error("Subscription cannot be verified");
-                    }
-                default:
-                    // Hub mode is unknown.
-                    throw new Error("Unknown request");
-            }
-        }
+        } 
     }
 
     /**
@@ -196,31 +307,33 @@ class Translator {
      * Wink's pubsubhubbub is slightly different than standard as it uses DELETE along
      * with a subscriptionID rather than another GET with a hub.mode of 'unsubscribe'
      * 
-     * @param {string} deviceType - Device Type (e.g. 'thermostats')
-     * @param {string|number} deviceId - Id for the specific device
-     * @param {string} callbackUrl - URL that will be unsubscribed
-     * @returns {request} Promise that supplies the server response
-     * 
+     * @param {Object} subscriptionInfo - Subscription information
+     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint.
+     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to
+     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to
+     * @returns {Object} Expiration of the subscription (expired)
      */
-    _unsubscribe(deviceType, deviceId, callbackUrl)
-    {
+     _unsubscribe(subscriptionInfo) {
+        var subscriptionsToDelete = [];
         // Find the subscription ID for this callback URL
-        return this._getSubscriptions(deviceType, deviceId).then((subscriptions) => {
+        return this._getSubscriptions(subscriptionInfo.deviceType, subscriptionInfo.deviceId).then((subscriptions) => {
             subscriptions.forEach((sub) => {
                 // Find the subscription id for this callback URL and device
-                if (sub.callback == callbackUrl &&
-                    sub.topic.endsWith(deviceType + '/' + deviceId)) {
-                    var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions/' + sub.subscription_id;
+                if (sub.callback == subscriptionInfo.callbackUrl &&
+                    sub.topic.endsWith(subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId)) {
+                    var requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions/' + sub.subscription_id;
 
                     // Do the actual unsubscribe
-                    return this._makeRequest(requestPath, 'DELETE').then(() => {
-                        return {};
-                    })
+                    subscriptionsToDelete.push(this._makeRequest(requestPath, 'DELETE'));
                 }
             });
 
-            // Subscription wasn't found so there's nothing to do
-            return {};
+            // Return all delete requests.
+            return Promise.all(subscriptionsToDelete).then(() => {
+                return {
+                    expiration: 0
+                }
+            });
         });
     }
 
@@ -264,12 +377,6 @@ class Translator {
                 "translator": "opent2t-translator-com-wink-lightbulb"
             };
         }
-        else if (winkDevice.binary_switch_id) {
-            return {
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                "translator": "opent2t-translator-com-wink-binaryswitch"
-            }
-        }
         
         return undefined;
     }
@@ -277,14 +384,19 @@ class Translator {
     /**
      * Internal helper method which makes the actual request to the wink service
      */
-    _makeRequest(path, method, content) {
+    _makeRequest(path, method, content, includeBearerHeader) {
+       
+        includeBearerHeader = (includeBearerHeader !== undefined) ?  includeBearerHeader : true;
+
         // build request URI
         var requestUri = this._baseUrl + path;
 
+        var headers = [];
+
         // Set the headers
-        var headers = {
-            'Authorization': 'Bearer ' + this._accessToken.accessToken,
-            'Accept': 'application/json'
+        if (includeBearerHeader) {
+            headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
+            headers['Accept'] = 'application/json';
         }
 
         if (content) {
@@ -311,7 +423,6 @@ class Translator {
             .catch(function (err) {
                 console.log("Request failed to: " + options.method + " - " + options.url);
                 console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
                 throw err;
             });
     }
@@ -351,6 +462,18 @@ class Translator {
             winkDevice.robot_id;
 
         return deviceId;
+    }
+
+    /** 
+     * Calculates a new hash of contents using key, and compares it to the master hash.
+     * Returns true is the contents can be verified.
+     */
+    _verifyHmac(hash, key, contents) {
+        var hmac = Crypto.createHmac("sha1", key);
+        hmac.update(contents);
+        var crypted = hmac.digest("hex");
+
+        return (crypted == hash);
     }
 }
 

@@ -1,97 +1,339 @@
 {
-  "id": "http://schemas.opentranslatorstothings.org/org.opent2t.sample.thermostat.superpopular#",
+  "id": "http://schemas.microsoft.com/org.opent2t.sample.thermostat.superpopular#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description": "",
-  "title": "OpenT2T SuperPopular Thermostat",
+  "title": "opent2t thermostat",
   "definitions": {
-    "org.opent2t.sample.thermostat.superpopular": {
+
+    "ambientTemperature": {
+      "description": "ReadOnly, Current temperature measured by the thermostat.(OCF Smarthome definition)",
+      "type": "object",
+      "default": {
+        "id": "ambientTemperature",
+        "href": "/ambientTemperature",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.s", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "targetTemperature":{
+      "description": "Target temperature.(OCF Smarthome definition)",
+      "type": "object",
+      "default": {
+        "id": "targetTemperature",
+        "href": "/targetTemperature",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.a", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "humidity":{
+      "description": "ReadOnly, humidity measured by the device.",
+      "type": "object",
+      "default": {
+        "id": "humidity",
+        "href": "/humidity",
+        "rt": [ "oic.r.humidity" ],
+        "if": [ "oic.if.s", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.humidity.json#/definitions/oic.r.humidity"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "targetTemperatureHigh":{
+      "description": "Maximum target temperature.",
+      "type": "object",
+      "default": {
+        "id": "targetTemperatureHigh",
+        "href": "/targetTemperatureHigh",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.a", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "targetTemperatureLow":{
+      "description": "Minimum target temperature.",
+      "type": "object",
+      "default": {
+        "id": "targetTemperatureLow",
+        "href": "/targetTemperatureLow",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.a", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "awayMode":{
+      "description": "Users away, use lower temperature settings.",
+      "type": "object",
+      "default": {
+        "id": "awayMode",
+        "href": "/awayMode",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "awayTemperatureHigh":{
+      "description": "Maximum target away temperature.",
+      "type": "object",
+      "default": {
+        "id": "awayTemperatureHigh",
+        "href": "/awayTemperatureHigh",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.a", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "awayTemperatureLow":{
+      "description": "Minimum target away temperature.",
+      "type": "object",
+      "default": {
+        "id": "awayTemperatureLow",
+        "href": "/awayTemperatureLow",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.a", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "ecoMode":{
+      "description": "ReadOnly, Is the thermostat running in an energy efficient mode.",
+      "type": "object",
+      "default": {
+        "id": "ecoMode",
+        "href": "/ecoMode",
+        "rt": ["oic.r.sensor"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "hvacMode":{
+      "description": "Active & Supported heating/Cooling modes supported the device.",
+      "type": "object",
+      "default": {
+        "id": "hvacMode",
+        "href": "/hvacMode",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "heatingFuelSource":{
+      "description": "ReadOnly, hvac fuel type.",
+      "type": "object",
+      "default": {
+        "id": "heatingFuelSource",
+        "href": "/heatingFuelSource",
+        "rt": ["opent2t.r.heatingFuel"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "#/definitions/opent2t.r.heatingFuel"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "hasFan":{
+      "description": "ReadOnly, Does the system have a fan.",
+      "type": "object",
+      "default": {
+        "id": "hasFan",
+        "href": "/hasFan",
+        "rt": ["oic.r.sensor"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "fanActive":{
+      "description": "ReadOnly, Is the fan running.",
+      "type": "object",
+      "default": {
+        "id": "fanActive",
+        "href": "/fanActive",
+        "rt": ["oic.r.sensor"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "fanTimerActive":{
+      "description": "ReadOnly, Is the fan timer running.",
+      "type": "object",
+      "default": {
+        "id": "fanTimerActive",
+        "href": "/fanTimerActive",
+        "rt": ["oic.r.sensor"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "fanTimerTimeout":{
+      "description": "Timestamp indicating when fan will stop.",
+      "type": "object",
+      "default": {
+        "id": "fanTimerTimeout",
+        "href": "/fanTimerTimeout",
+        "rt": ["oic.r.clock"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.clock.json#/definitions/oic.r.clock"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "fanMode":{
+      "description": "Active & Supported fan modes supported the device.",
+      "type": "object",
+      "default": {
+        "id": "fanMode",
+        "href": "/fanMode",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "opent2t.r.heatingFuel": {
       "type": "object",
       "properties": {
-        "ambientTemperature": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "ReadOnly, Current temperature measured by the thermostat."
-        },
-        "externalTemperature": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "ReadOnly, External temperature."
-        },
-        "humidity": {
-          "$ref": "oic.r.humidity.json#/definitions/oic.r.humidity",
-          "description": "ReadOnly, Humidity measured at the device."
-        },
-        "targetTemperature": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Target temperature."
-        },
-        "targetTemperatureHigh": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Maximum target temperature."
-        },
-        "targetTemperatureLow": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Minimum target temperature."
-        },
-        "awayMode": {
-          "type": "boolean",
-          "description": "User is away, use lower temperature settings."
-        },
-        "awayTemperatureHigh": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Minimum target temperature when user is away."
-        },
-        "awayTemperatureLow": {
-          "$ref": "oic.r.temperature.json#/definitions/oic.r.temperature",
-          "description": "Maximum target temperature when user is away."
-        },
-        "ecoMode": {
-          "type": "boolean",
-          "description": "ReadOnly, Is the thermostat running in an energy efficient mode."
-        },
-        "hvacMode": {
-          "$ref": "oic.r.mode.json#/definitions/oic.r.mode",
-          "description": "Active & Supported heating/Cooling modes supported the device. Should be one of ['coolOnly', 'heatOnly', 'auto', 'off']"
-        },
-        "heatingFuelSource": {
+        "fuelType":{ 
           "type": "string",
-          "enum": [
-            "electric",
-            "gas"
-          ],
+          "enum": [ "electric", "gas" ],
           "description": "hvac fuel type."
-        },
-        "hasFan": {
-          "type": "boolean",
-          "description": "ReadOnly, Does the thermostat have a fan."
-        },
-        "fanActive": {
-          "type": "boolean",
-          "description": "ReadOnly, Is the fan running."
-        },
-        "fanTimerActive": {
-          "type": "boolean",
-          "description": "Is the fan timer running."
-        },
-        "fanTimerTimeout": {
-          "$ref": "oic.r.clock.json#/definitions/oic.r.clock",
-          "description": "Timestamp showing when fan will stop."
-        },
-        "fanMode": {
-          "$ref": "oic.r.mode.json#/definitions/oic.r.mode",
-          "description": "Active & Supported fan modes supported the device."
         }
       }
+    },
+
+
+    "oic.d.thermostat": {
+      "description": "The OCF Smarthome defined thermostat device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/ambientTemperature"},
+              {"$ref": "#/definitions/targetTemperature"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+     ]
+    },
+
+
+    "opent2t.d.thermostat": {
+      "description": "The opent2t thermostat device; extends oic.d.thermostat",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/humidity"},
+              {"$ref": "#/definitions/targetTemperatureHigh"},
+              {"$ref": "#/definitions/targetTemperatureLow"},
+              {"$ref": "#/definitions/awayMode"},
+              {"$ref": "#/definitions/awayTemperatureHigh"},
+              {"$ref": "#/definitions/awayTemperatureLow"},
+              {"$ref": "#/definitions/ecoMode"},
+              {"$ref": "#/definitions/hvacMode"},
+              {"$ref": "#/definitions/heatingFuelSource"},
+              {"$ref": "#/definitions/hasFan"},
+              {"$ref": "#/definitions/fanActive"},
+              {"$ref": "#/definitions/fanTimerActive"},
+              {"$ref": "#/definitions/fanTimerTimeout"},
+              {"$ref": "#/definitions/fanMode"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "#/definitions/oic.d.thermostat"},
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+     ]
+    },
+
+
+    "org.opent2t.sample.thermostat.superpopular": {
+      "description": "The opent2t thermostat platform",
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/oic.d.thermostat"},
+              {"$ref": "#/definitions/opent2t.d.thermostat"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.platform"}      
+      ]
     }
   },
+
   "type": "object",
   "allOf": [
-    {
-      "$ref": "oic.core.json#/definitions/oic.core"
-    },
-    {
-      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
-    },
-    {
-      "$ref": "#/definitions/org.opent2t.sample.thermostat.superpopular"
-    }
+    {"$ref": "oic.core.json#/definitions/oic.core"},
+    {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
+    {"$ref": "#/definitions/org.opent2t.sample.thermostat.superpopular"}
   ]
 }

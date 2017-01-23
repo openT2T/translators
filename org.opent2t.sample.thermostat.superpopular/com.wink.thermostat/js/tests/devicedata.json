@@ -29,46 +29,34 @@
                 "external_temperature" : 200
             },
             "object_type" : "Mock Type",
-            "object_id" : "Mock Id",
+            "object_id" : "D5D37EB6-F428-41FA-AC5D-918F084A4C93",
             "name" : "Mock Name"
         }
     },
     "test_data" :
     {
-        "TargetTemperatureHigh" :
+        "SetAwayMode" :
+            [
+                {
+                    "users_away" : true
+                }
+            ],
+        "SetTargetTemperature" :
+            [
+                {
+                    "max_set_point" : 30
+                }
+            ],
+        "SetTargetTemperatureHigh" :
             [
                 {
                     "max_set_point" : 22
                 }
             ],
-        "TargetTemperatureLow" :
+        "SetTargetTemperatureLow" :
             [
                 {
                     "min_set_point" : 19
-                }
-            ],
-        "TargetTemperatureHigh_TargetTemperatureLow_Post_Get" :
-            [
-                {
-                    "max_set_point" : 22,
-                    "min_set_point" : 19
-                }
-            ],
-        "PostThermostatResURI_Set_HvacMode" :
-            [
-                {
-                    "mode" : "auto",
-                    "powered" : true
-                }
-            ],
-        "PostThermostatResURI_Set_HvacMode_Off_Then_HeatOnly" :
-            [
-                {
-                   "powered" : false
-                },
-                {
-                    "mode" : "heat_only",
-                    "powered" : true
                 }
             ]
     }

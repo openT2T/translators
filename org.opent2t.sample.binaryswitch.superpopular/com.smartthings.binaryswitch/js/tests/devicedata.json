@@ -1,0 +1,23 @@
+{   "base_state" :
+    {   "attributes" :
+        {
+            "switch" : "on"
+        },
+        "id" : "Mock Id",
+        "manufacturer" : "Mock Manufacturer",
+        "model" : "Mock Model",
+        "name" : "Mock Name"
+    },
+    "test_data" :
+    {
+        "SetPower" :
+            [
+                {
+                    "switch" : "on"
+                },
+                {
+                    "switch" : "off"
+                }
+            ]
+    }
+}

@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-com-wink-lightbulb",
-    "version": "0.1.7",
+    "version": "0.2.0",
     "description": "Wink Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
@@ -10,7 +10,8 @@
     "main": "thingTranslator.js",
     "license": "MIT",
     "scripts": {
-        "test": "ava"
+        "test": "ava tests/test.js",
+        "unittest": "ava tests/unitTests.js"
     },
     "ava": {
         "files": [
@@ -18,14 +19,16 @@
         ]
     },
     "dependencies": {
-        "opent2t-translator-com-wink-hub": "*"
+        "opent2t-translator-com-wink-hub": "^1.2.0"
     },
     "devDependencies": {
         "optimist": "*",
         "opent2t": "*",
-        "opent2t-translator-com-wink-hub": "*",
+        "opent2t-translator-com-wink-hub": "^1.2.0",
         "jshint": "^2.9.2",
         "ava": "^0.15.2",
-        "es6-sleep": "*"
+        "es6-sleep": "*",
+        "opent2t-device-winkhub": "file:../../../org.opent2t.sample.hub.superpopular/com.wink.hub/test",
+        "opent2t-device-lamp": "file:../../test"
     }
 }

@@ -23,7 +23,9 @@ This translator comes with some automated tests. Here's how you can run them:
 
 ### 1. Run onboarding to get credentials
 
-Using the opent2t-cli, following its readme to setup and perform onboarding, you perform onboarding with this commmand:
+**Using OpenT2T CLI**
+
+Using the opent2t-cli, following its README to setup and perform onboarding, you perform onboarding with this commmand:
 
 ```bash
 node index.js -o opent2t-translator-com-smartthings-hub
@@ -35,9 +37,13 @@ for this translator to be org.opent2t.onboarding.smartthings. This basically jus
 auth information is required to interact with the device. In the case of this onboarding type, success means you get
 an access token. These parameters are provided to the translator for it to work.
 
+**Running the Unit Test**
+
+Follow the instruction on runnning the unit test in the README for [Onboarding SmartThings](https://github.com/openT2T/onboarding/tree/master/org.opent2t.onboarding.smartthings/js/README.md#running-the-unit-test) to get the credentials to access to hub.
+
 ### 2. Create the `tests/testConfig.json` file
 This is where you can put credentials/config to drive this test (this file is added to .gitignore
-to prevent inadvertent check-in). Copy the generated json file as the testconfig.json.
+to prevent inadvertent check-in). Copy the generated json file as the testConfig.json.
 
 ### 3. Run the tests
 

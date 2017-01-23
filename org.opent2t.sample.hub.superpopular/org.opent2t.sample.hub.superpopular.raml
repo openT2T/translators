@@ -3,24 +3,23 @@ title: org.opent2t.sample.hub.superpopular
 version: v1.0
 
 schemas:
-  - Hub: !include org.opent2t.sample.hub.superpopular.json
+  - Platform: !include org.opent2t.sample.hub.superpopular.json
 
 traits:
-  - interface:
+  - interface-sensor:
       queryParameters:
         if:
-          enum: ["oic.if.a"]
+          enum: ["oic.if.s", "oic.if.baseline"]
 
-/HubResURI:
+/:
   description: |
-   This resource describes the properties associated with the hub.
-   The resource is a composite resource.
-  displayName: Hub
-  is: [ interface ]
+   Gets a list of platforms connected to a hub.
+  displayName: Platforms
+  is: [ interface-sensor ]
 
   get:
     description: |
-        Retrieves the current resource representation
+        Retrieves the platform and their current state.
     responses:
       200:
         body:
@@ -30,7 +29,107 @@ traits:
               {
                 "schema": "org.opent2t.sample.hub.superpopular",
                 "id": "unique_example_id",
-                "devices": {
-                },
-            }
+                "platforms": {
+                }
+             }
+
+/?$expand
+  description: |
+    Gets a list of platforms connected to a hub along with their current state.
+  displayName: Platform
+  is: [interface-sensor]
+
+  get:
+    description: |
+      Retrieves the platforms and their current state.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Platform
+            example: |
+              {
+                "schema": "org.opent2t.sample.hub.superpopular",
+                "id": "unique_example_id",
+                "platforms": {
+                }
+             }
+
+/platforms:
+  description: |
+   Gets a list of platforms connected to a hub.
+  displayName: Platforms
+  is: [ interface-sensor ]
+
+  get:
+    description: |
+        Retrieves the platform and their current state.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Hub
+            example: |
+              {
+                "schema": "org.opent2t.sample.hub.superpopular",
+                "id": "unique_example_id",
+                "platforms": {
+                }
+             }
+
+/platforms/?$expand
+  description: |
+    Gets a list of platforms connected to a hub along with their current state.
+  displayName: Platform
+  is: [interface-sensor]
+
+  get:
+    description: |
+      Retrieves the platforms and their current state.
+    responses:
+      200:
+        body:
+          application/json:
+            schema: Platform
+            example: |
+              {
+                "schema": "org.opent2t.sample.hub.superpopular",
+                "id": "unique_example_id",
+                "platforms": {
+                }
+             }
     
+/subscribe:
+  description: |
+    This resource manages subscriptions to platforms connected to this hub.
+  displayName: Subscribe
+    
+  post:
+    description: |
+       Verifies a subscription to a platform on this hub.
+    body:
+      application/json:
+        schema: Subscription
+        example: |
+          {
+            "verificationRequest": "..."
+          }    
+    responses:
+       200:
+        body:
+          application/json:
+            schema: Subscription
+            example: |
+                {
+                  "callbackUrl":"http://myserver.com",
+                  "expiration": "123456678",
+                  "response": { "plain text response" }
+                }
+       400:
+          body:
+            application/json:
+              example: { "message": "Bad request" }
+       403:
+          body:
+            application/json:
+              example: { "message": "Subscription is denied" }

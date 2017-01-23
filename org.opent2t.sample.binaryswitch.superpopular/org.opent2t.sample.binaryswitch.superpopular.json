@@ -4,26 +4,62 @@
   "description": "",
   "title": "OpenT2T SuperPopular Binary Switch",
   "definitions": {
+
+    "power":{
+      "description": "outlet on/off.",
+      "type": "object",
+      "default": {
+        "id": "power",
+        "href": "/power",
+        "rt": ["oic.r.switch.binary"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+       },
+      "allOf": [
+        {"$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "oic.d.smartplug": {
+      "description": "The OCF Smarthome defined smartplug",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/power"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+     ]
+    },
+
     "org.opent2t.sample.binaryswitch.superpopular": {
+      "description": "The opent2t outlet platform",
       "type": "object",
       "properties": {
-        "power": {
-          "$ref": "oic.r.switch.binary.json#/definitions/oic.r.switch.binary",
-          "description": "Status of the switch."
+        "entities": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/oic.d.smartplug"}
+            ]
+          }
         }
-      }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.platform"}
+      ]
     }
   },
+
   "type": "object",
   "allOf": [
-    {
-      "$ref": "oic.core.json#/definitions/oic.core"
-    },
-    {
-      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
-    },
-    {
-      "$ref": "#/definitions/org.opent2t.sample.binaryswitch.superpopular"
-    }
+    {"$ref": "oic.core.json#/definitions/oic.core"},
+    {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
+    {"$ref": "#/definitions/org.opent2t.sample.binaryswitch.superpopular"}
   ]
 }

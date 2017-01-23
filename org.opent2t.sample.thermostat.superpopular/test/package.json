@@ -10,11 +10,6 @@
   "main": "thermostat.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "1.0.1",
-    "q": "^1.4.1"
-  },
-  "devDependencies": {
-    "opent2t": "*",
-    "q": "^1.4.1"
+    "opent2t": "1.0.1"
   }
 }
