@@ -121,7 +121,6 @@ function postDeviceResource(di, resourceId, payload) {
 }
 
 var controlId;
-var deviceType = 'binary_switches';
 var insteonHub;
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.

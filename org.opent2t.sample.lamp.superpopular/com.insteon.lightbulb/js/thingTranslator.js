@@ -135,7 +135,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;;
+        controlId = deviceInfo.deviceInfo.opent2t.controlId;
         insteonHub = deviceInfo.hub;
 
         console.log('Insteon Lightbulb initializing...Done');

@@ -4,8 +4,6 @@ var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
 var config = require('./testConfig');
 var translatorPath = require('path').join(__dirname, '..');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.insteon.hub/js');
-var http = require('http');
-var q = require('q');
 var deviceInfo = {};
 
 function getThermostat(platforms) {
