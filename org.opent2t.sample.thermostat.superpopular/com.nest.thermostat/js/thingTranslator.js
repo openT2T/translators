@@ -155,7 +155,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-nest-thermostat',
-            controlId: providerSchema['device_id']
+            controlId: providerSchema['device_id'],
+            structureId: providerSchema['structure_id']
         },
         pi: guid,
         mnmn: 'Nest',
@@ -211,12 +212,14 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerActive':
             result['fan_timer_active'] = resourceSchema.value;
             break;
+        case 'awayMode':
+            result['away'] = resourceSchema.modes[0];
+            break;
         case 'ambientTemperature':
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'humidity':
         case 'ecoMode':
-        case 'awayMode':
         case 'fanTimerTimeout':
             throw new Error('NotMutable');
         default:
@@ -269,16 +272,25 @@ function postDeviceResource(di, resourceId, payload) {
     {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-        return nestHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response, true);
-                return findResource(schema, di, resourceId);
-            });
+        if (resourceId === 'awayMode') {
+            return nestHub.setAwayMode(structureId, controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            return nestHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
+                });
+        }
     } else {
         throw new Error('NotFound');
     }
 }
 
+var structureId;
 var controlId;
 var deviceType = 'thermostats';
 var nestHub;
@@ -291,6 +303,7 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        structureId = deviceInfo.deviceInfo.opent2t.structureId;
         nestHub = deviceInfo.hub;
 
         console.log('Nest Thermostat initializing...Done');
