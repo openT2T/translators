@@ -1,4 +1,4 @@
-ml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <manifest>
   <!-- associated voice handler -->
   <voice id="org.opent2t.sample.lightcontrol.cortana.vcd.superpopular" />
@@ -11,4 +11,7 @@ ml version="1.0" encoding="utf-8"?>
       <schema id="oic.oic-link" type="OCF" />
       <schema id="oic.r.switch.binary" type="OCF" />
   </schemas>
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.wifi.wemo">
+  </onboarding>
 </manifest>
