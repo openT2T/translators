@@ -1,0 +1,16 @@
+{
+  "name": "opent2t-device-nesthub",
+  "version": "0.1.1",
+  "description": "Nest hub device",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "mockNestHub.js",
+  "license": "MIT",
+  "dependencies": {
+    "opent2t": "*",
+    "opent2t-device-hub": "file:../../test"
+  }
+}
