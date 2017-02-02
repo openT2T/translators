@@ -15,14 +15,6 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
- * Generate a GUID for given an ID.
- */
-function generateGUID(stringID) {
-    var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
-}
-
-/**
  * Finds a resource for an entity in a schema
  */
 function findResource(schema, di, resourceId) {
@@ -32,15 +24,23 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('NotFound');
+        throw new Error('Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('NotFound');
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
     return resource;
+}
+
+/**
+ * Generate a GUID for a given ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
 }
 
 /**

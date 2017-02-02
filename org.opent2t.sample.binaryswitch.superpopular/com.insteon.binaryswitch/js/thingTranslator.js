@@ -24,19 +24,19 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('NotFound');
+        throw new Error('Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('NotFound');
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
     return resource;
 }
 
 /**
- * Generate a GUID for given an ID.
+ * Generate a GUID for a given ID.
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');

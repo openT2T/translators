@@ -15,7 +15,28 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
- * Generate a GUID for given an ID.
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    if (!entity) {
+        throw new Error('Entity - '+ di +' not found.');
+    }
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
+    return resource;
+}
+
+/**
+ * Generate a GUID for a given ID.
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
@@ -221,26 +242,6 @@ function validateResourceGet(resourceId) {
         case 'ecoMode':
             throw new Error('NotImplemented');
     }
-}
-
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new Error('NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new Error('NotFound');
-    }
-
-    return resource;
 }
 
 function getDeviceResource(translator, di, resourceId) {
