@@ -35,13 +35,13 @@ definition(
  *  garageDoors         | door          | open, close           | unknown, closed, open, closing, opening
  *  cameras             | image         | take                  | <String>
  *  thermostats         | thermostat    | setHeatingSetpoint,   | temperature, heatingSetpoint, coolingSetpoint,
- *	                    |				| setCoolingSetpoint,   | thermostatSetpoint, thermostatMode,
- *                      |				| off, heat, cool, auto,| thermostatFanMode, thermostatOperatingState
- *                      |				| emergencyHeat,        |
- *                      |				| setThermostatMode,    |
- *                      |				| fanOn, fanAuto,       |
- *                      |				| fanCirculate,         |
- *                      |				| setThermostatFanMode  |
+ *                      |               | setCoolingSetpoint,   | thermostatSetpoint, thermostatMode,
+ *                      |               | off, heat, cool, auto,| thermostatFanMode, thermostatOperatingState
+ *                      |               | emergencyHeat,        |
+ *                      |               | setThermostatMode,    |
+ *                      |               | fanOn, fanAuto,       |
+ *                      |               | fanCirculate,         |
+ *                      |               | setThermostatFanMode  |
  *  --------------------+---------------+-----------------------+------------------------------------
  */
 
