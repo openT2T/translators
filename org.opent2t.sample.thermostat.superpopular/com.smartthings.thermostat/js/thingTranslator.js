@@ -123,7 +123,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-smartthings-thermostat',
-            controlId: controlId
+            controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
         mnmn: validateValue(providerSchema['manufacturer']),
