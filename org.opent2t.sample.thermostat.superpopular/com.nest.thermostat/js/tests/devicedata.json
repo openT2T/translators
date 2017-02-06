@@ -1,52 +1,43 @@
-{
-    "base_state" :
-    {
-        "device_id" : "Mock Id",
-        "name" : "Mock Name",
-        "target_temperature_c": 50,
-        "target_temperature_high_c": 100,
-        "target_temperature_low_c": 2,
-        "ambient_temperature_c": 75,
-        "has_fan": true,
-        "has_leaf": false,
-        "fan_timer_active": true,
-        "can_heat": true,
-        "can_cool": false
+{   "base_state" :
+    {   "attributes" :
+        {
+            "switch" : "on",
+            "temperature" : 50
+        },
+        "locationMode" :
+        {
+            "supported" : ["home", "away"],
+            "mode" : "away"
+        },
+        "id" : "Mock Id",
+        "manufacturer" : "Mock Manufacturer",
+        "model" : "Mock Model",
+        "name" : "Mock Name"
     },
     "test_data" :
     {
-        "TargetTemperatureHigh" :
+        "SetAwayMode" :
             [
                 {
-                    "target_temperature_high_c" : 22
+                    "awayMode" : "Away"
                 }
             ],
-        "TargetTemperatureLow" :
+        "SetTargetTemperature" :
             [
                 {
-                    "target_temperature_low_c" : 19
+                    "coolingSetpoint" : 30
                 }
             ],
-        "TargetTemperatureHigh_TargetTemperatureLow_Post_Get" :
+        "SetTargetTemperatureHigh" :
             [
                 {
-                    "target_temperature_high_c" : 22,
-                    "target_temperature_low_c" : 19
+                    "coolingSetpoint" : 22
                 }
             ],
-        "PostThermostatResURI_Set_HvacMode" :
+        "SetTargetTemperatureLow" :
             [
                 {
-                    "hvac_mode" : "heat-cool"
-                }
-            ],
-        "PostThermostatResURI_Set_HvacMode_Off_Then_HeatOnly" :
-            [
-                {
-                   "hvac_mode" : "off"
-                },
-                {
-                    "hvac_mode" : "heat"
+                    "heatingSetpoint" : 19
                 }
             ]
     }
