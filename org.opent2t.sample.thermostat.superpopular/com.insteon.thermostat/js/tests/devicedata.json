@@ -1,0 +1,63 @@
+{   "base_state" :
+    {   "data" :
+        {
+            "desired_state" : {
+                "max_set_point" : 100,
+                "min_set_point" : 0,
+                "units" : "C",
+                "temperature" : 50,
+                "users_away" : false,
+                "has_fan" : true,
+                "eco_target" : false,
+                "modes_allowed" : ["heat", "cool"],
+                "mode" : "cool",
+                "fan_timer_active" : false,
+                "external_temperature" : 200,
+            "powered" : false
+            },
+            "last_reading" : {
+                "max_set_point" : 100,
+                "min_set_point" : 0,
+                "units" : "C",
+                "temperature" : 50,
+                "users_away" : false,
+                "has_fan" : true,
+                "eco_target" : false,
+                "modes_allowed" : ["heat", "cool"],
+                "mode" : "cool",
+                "fan_timer_active" : false,
+                "external_temperature" : 200
+            },
+            "object_type" : "Mock Type",
+            "object_id" : "D5D37EB6-F428-41FA-AC5D-918F084A4C93",
+            "name" : "Mock Name"
+        }
+    },
+    "test_data" :
+    {
+        "SetAwayMode" :
+            [
+                {
+                    "users_away" : true
+                }
+            ],
+        "SetTargetTemperature" :
+            [
+                {
+                    "max_set_point" : 30
+                }
+            ],
+        "SetTargetTemperatureHigh" :
+            [
+                {
+                    "max_set_point" : 22
+                }
+            ],
+        "SetTargetTemperatureLow" :
+            [
+                {
+                    "min_set_point" : 19
+                }
+            ]
+    }
+}
