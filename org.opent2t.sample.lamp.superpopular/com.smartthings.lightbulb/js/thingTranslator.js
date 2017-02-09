@@ -269,7 +269,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-// This translator class implements the 'opent2t.d.light' interface.
 class Translator {
         
     constructor(deviceInfo) {
@@ -287,7 +286,7 @@ class Translator {
 
     /**
      * Queries the entire state of the lamp
-     * and returns an object that maps to the json schema opent2t.d.light
+     * and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
      */
     get(expand, payload) {
         if (payload) {
