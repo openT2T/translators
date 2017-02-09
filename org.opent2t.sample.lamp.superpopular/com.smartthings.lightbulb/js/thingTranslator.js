@@ -269,6 +269,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
+// This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
         
     constructor(deviceInfo) {
@@ -281,8 +282,6 @@ class Translator {
 
         console.log('SmartThings Lightbulb initializing...Done');
     }
-
-    // exports for the entire schema object
 
     /**
      * Queries the entire state of the lamp

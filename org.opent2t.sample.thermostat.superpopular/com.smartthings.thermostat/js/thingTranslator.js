@@ -232,8 +232,6 @@ class Translator {
         console.log('SmartThings Thermostat initializing...Done');
     }
     
-    // exports for the entire schema object
-
     /**
      * Queries the entire state of the thermostat
      * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular

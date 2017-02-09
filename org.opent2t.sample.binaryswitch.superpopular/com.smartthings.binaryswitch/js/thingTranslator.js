@@ -105,8 +105,6 @@ class Translator {
         console.log('SmartThings Binary Switch initializing...Done');
     }
 
-    // exports for the entire schema object
-
     /**
      * Queries the entire state of the binary switch
      * and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
