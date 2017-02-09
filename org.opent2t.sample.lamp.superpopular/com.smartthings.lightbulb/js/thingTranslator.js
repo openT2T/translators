@@ -24,24 +24,35 @@ function validateValue(value) {
     return value;
 }
 
-
 /**
  * Finds a resource for an entity in a schema
  */
-function findResource(schema, di, resourceId) {
-    // Find the entity by the unique di
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
+function findResource(schema, di, resourceId) { 
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => { 
+        return d.di === di; 
+    }); 
+    
+    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    
+    var resource = entity.resources.find((r) => { 
+        return r.id === resourceId;  
+    }); 
 
-    // Find the resource
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    return resource;
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    return resource; 
 }
 
+/**
+ * Return the string "Undefined" if the value is undefined and null.
+ * Otherwise, return the value itself.
+ */
+function validateValue(value) {
+    if (value === undefined || value === null) {
+        return 'Undefined';
+    }
+    return value;
+}
 
 /**
  * Colour Conversion Funcitons
@@ -86,7 +97,6 @@ function HSVtoRGB(hue, saturation, lumosity) {
             result = [c, 0, x];
             break;
     }
-
     return [(result[0] + m) * MaxColor, (result[1] + m) * MaxColor, (result[2] + m) * MaxColor]
 }
 
@@ -270,19 +280,16 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-var controlId;
-var smartThingsHub;
-
 // This translator class implements the 'opent2t.d.light' interface.
 class Translator {
-
+        
     constructor(deviceInfo) {
         console.log('SmartThings Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        smartThingsHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Lightbulb initializing...Done');
     }
@@ -298,7 +305,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return smartThingsHub.getDeviceDetailsAsync(controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -319,13 +326,12 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === controlId) {
+        if (di === this.controlId) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
-
                     return findResource(schema, di, resourceId);
                 });
         } else {
@@ -333,50 +339,50 @@ class Translator {
         }
     }
 
-    getDevicesPower(controlId) {
-        return this.getDeviceResource(controlId, "power");
+    getDevicesPower(di) {
+        return this.getDeviceResource(di, "power");
     }
 
-    postDevicesPower(controlId, payload) {
-        return this.postDeviceResource(controlId, "power", payload)
+    postDevicesPower(di, payload) {
+        return this.postDeviceResource(di, "power", payload)
     }
 
-    getDevicesColourMode(controlId) {
-        return this.getDeviceResource(controlId, "colourMode");
+    getDevicesColourMode(di) {
+        return this.getDeviceResource(di, "colourMode");
     }
 
-    getDevicesColourRGB(controlId) {
-        return this.getDeviceResource(controlId, "colourRGB");
+    getDevicesColourRGB(di) {
+        return this.getDeviceResource(di, "colourRGB");
     }
 
-    postDevicesColourRGB(controlId, payload) {
-        return this.postDeviceResource(controlId, "colourRGB", payload);
+    postDevicesColourRGB(di, payload) {
+        return this.postDeviceResource(di, "colourRGB", payload);
     }
 
-    getDevicesDim(controlId) {
-        return this.getDeviceResource(controlId, "dim");
+    getDevicesDim(di) {
+        return this.getDeviceResource(di, "dim");
     }
 
-    postDevicesDim(controlId, payload) {
-        return this.postDeviceResource(controlId, "dim", payload);
+    postDevicesDim(di, payload) {
+        return this.postDeviceResource(di, "dim", payload);
     }
 
-    getDevicesColourChroma(controlId) {
-        return this.getDeviceResource(controlId, "colourChroma");
+    getDevicesColourChroma(di) {
+        return this.getDeviceResource(di, "colourChroma");
     }
 
-    postDevicesColourChroma(controlId, payload) {
-        return this.postDeviceResource(controlId, "colourChroma", payload);
+    postDevicesColourChroma(di, payload) {
+        return this.postDeviceResource(di, "colourChroma", payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }
 

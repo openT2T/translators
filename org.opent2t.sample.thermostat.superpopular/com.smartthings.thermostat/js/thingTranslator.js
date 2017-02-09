@@ -14,6 +14,25 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) { 
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => { 
+        return d.di === di; 
+    }); 
+    
+    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    
+    var resource = entity.resources.find((r) => { 
+        return r.id === resourceId;  
+    }); 
+
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    return resource; 
+}
+
+/**
  * Return the string "Undefined" if the value is undefined and null.
  * Otherwise, return the value itself.
  */
@@ -199,189 +218,175 @@ function validateResourceGet(resourceId) {
     }
 }
 
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new Error('NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new Error('NotFound');
-    }
-
-    return resource;
-}
-
-function getDeviceResource(translator, di, resourceId) {
-    validateResourceGet(resourceId);
-
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === controlId)
-    {
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response, true);
-
-                return findResource(schema, di, resourceId);
-            });
-    } else {
-        throw new Error('NotFound');
-    }
-}
-
-var controlId;
-var smartThingsHub;
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
-
+     
     constructor(deviceInfo) {
         console.log('SmartThings Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        smartThingsHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Thermostat initializing...Done');
     }
+    
+    // exports for the entire schema object
 
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema opent2t.p.thermostat
+    /**
+     * Queries the entire state of the lamp
+     * and returns an object that maps to the json schema opent2t.d.light
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return smartThingsHub.getDeviceDetailsAsync(controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
         }
     }
 
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(translator, di, resourceId) {
+        validateResourceGet(resourceId);
+
+        return translator.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === this.controlId)
+        {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            throw new Error('NotFound');
+        }
+    }
+    
     getDevicesAmbientTemperature(di) {
-        return getDeviceResource(this, di, 'ambientTemperature');
+        return this.getDeviceResource(this, di, 'ambientTemperature');
     }
 
     getDevicesTargetTemperature(di) {
-        return getDeviceResource(this, di, 'targetTemperature');
+        return this.getDeviceResource(this, di, 'targetTemperature');
     }
 
     postDevicesTargetTemperature(di, payload) {
-        return postDeviceResource(di, 'targetTemperature', payload);
+        return this.postDeviceResource(di, 'targetTemperature', payload);
     }
 
     getDevicesHumidity(di) {
-        return getDeviceResource(this, di, 'humidity');
+        return this.getDeviceResource(this, di, 'humidity');
     }
 
     getDevicesTargetTemperatureHigh(di) {
-        return getDeviceResource(this, di, 'targetTemperatureHigh');
+        return this.getDeviceResource(this, di, 'targetTemperatureHigh');
     }
 
     postDevicesTargetTemperatureHigh(di, payload) {
-        return postDeviceResource(di, 'targetTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'targetTemperatureHigh', payload);
     }
 
     getDevicesTargetTemperatureLow(di) {
-        return getDeviceResource(this, di, 'targetTemperatureLow');
+        return this.getDeviceResource(this, di, 'targetTemperatureLow');
     }
 
     postDevicesTargetTemperatureLow(di, payload) {
-        return postDeviceResource(di, 'targetTemperatureLow', payload);
+        return this.postDeviceResource(di, 'targetTemperatureLow', payload);
     }
 
     getDevicesAwayMode(di) {
-        return getDeviceResource(this, di, 'awayMode');
+        return this.getDeviceResource(this, di, 'awayMode');
     }
 
     postDevicesAwayMode(di, payload) {
-        return postDeviceResource(di, 'awayMode', payload);
+        return this.postDeviceResource(di, 'awayMode', payload);
     }
 
     getDevicesAwayTemperatureHigh(di) {
-        return getDeviceResource(this, di, 'awayTemperatureHigh');
+        return this.getDeviceResource(this, di, 'awayTemperatureHigh');
     }
 
     postDevicesAwayTemperatureHigh(di, payload) {
-        return postDeviceResource(di, 'awayTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'awayTemperatureHigh', payload);
     }
 
     getDevicesAwayTemperatureLow(di) {
-        return getDeviceResource(this, di, 'awayTemperatureLow');
+        return this.getDeviceResource(this, di, 'awayTemperatureLow');
     }
 
     postDevicesAwayTemperatureLow(di, payload) {
-        return postDeviceResource(di, 'awayTemperatureLow', payload);
+        return this.postDeviceResource(di, 'awayTemperatureLow', payload);
     }
 
     getDevicesEcoMode(di) {
-        return getDeviceResource(this, di, 'ecoMode');
+        return this.getDeviceResource(this, di, 'ecoMode');
     }
 
     getDevicesHvacMode(di) {
-        return getDeviceResource(this, di, 'hvacMode');
+        return this.getDeviceResource(this, di, 'hvacMode');
     }
 
     postDevicesHvacMode(di, payload) {
-        return postDeviceResource(di, 'hvacMode', payload);
+        return this.postDeviceResource(di, 'hvacMode', payload);
     }
 
     getDevicesHeatingFuelSource(di) {
-        return getDeviceResource(this, di, 'heatingFuelSource');
+        return this.getDeviceResource(this, di, 'heatingFuelSource');
     }
 
     getDevicesHasFan(di) {
-        return getDeviceResource(this, di, 'hasFan');
+        return this.getDeviceResource(this, di, 'hasFan');
     }
 
     getDevicesFanActive(di) {
-        return getDeviceResource(this, di, 'fanActive');
+        return this.getDeviceResource(this, di, 'fanActive');
     }
 
     getDevicesFanTimerActive(di) {
-        return getDeviceResource(this, di, 'fanTimerActive');
+        return this.getDeviceResource(this, di, 'fanTimerActive');
     }
 
     getDevicesFanTimerTimeout(di) {
-        return getDeviceResource(this, di, 'fanTimerTimeout');
+        return this.getDeviceResource(this, di, 'fanTimerTimeout');
     }
 
     postDevicesFanTimerTimeout(di, payload) {
-        return postDeviceResource(di, 'fanTimerTimeout', payload);
+        return this.postDeviceResource(di, 'fanTimerTimeout', payload);
     }
 
     getDevicesFanMode(di) {
-        return getDeviceResource(this, di, 'fanMode');
+        return this.getDeviceResource(this, di, 'fanMode');
     }
 
     postDevicesFanMode(di, payload) {
-        return postDeviceResource(di, 'fanMode', payload);
+        return this.postDeviceResource(di, 'fanMode', payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }
 
