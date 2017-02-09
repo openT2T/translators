@@ -318,18 +318,22 @@ private getLocationModeInfo() {
 //Map each device to a type given it's capabilities
 private getDeviceType(device) {
 	def deviceType
-	def caps = device.capabilities
-	log.debug "capabilities: [${device}, ${caps}]"
+	def capabilities = device.capabilities
+	log.debug "capabilities: [${device}, ${capabilities}]"
 	log.debug "supported commands: [${device}, ${device.supportedCommands}]"
-	caps.each {
-		switch(it.name.toLowerCase())
+    
+    //Loop through the device capability list to determine the device type.
+	capabilities.each {capability ->
+		switch(capability.name.toLowerCase())
 		{
 			case "switch":
             	deviceType = "switch"
-				if (caps.any{it.name.toLowerCase() == "power meter"}){
+                //If the device also contains "Power Meter" capability, identify it as a "switch" device.
+				if (capabilities.any{it.name.toLowerCase() == "power meter"}){
                 	return deviceType
                 }
-                if (caps.any{it.name.toLowerCase() == "switch level"}){
+                //If the device also contains "Switch Level" capability, identify it as a "light" device.
+                if (capabilities.any{it.name.toLowerCase() == "switch level"}){
                 	deviceType = "light"
                     return deviceType
                 }
