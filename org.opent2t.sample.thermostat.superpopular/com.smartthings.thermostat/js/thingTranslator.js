@@ -235,8 +235,8 @@ class Translator {
     // exports for the entire schema object
 
     /**
-     * Queries the entire state of the lamp
-     * and returns an object that maps to the json schema opent2t.d.light
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
      */
     get(expand, payload) {
         if (payload) {
