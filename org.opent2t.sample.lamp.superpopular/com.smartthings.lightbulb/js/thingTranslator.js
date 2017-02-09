@@ -14,17 +14,6 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
- * Return the string "Undefined" if the value is undefined and null.
- * Otherwise, return the value itself.
- */
-function validateValue(value) {
-    if (value === undefined || value === null) {
-        return 'Undefined';
-    }
-    return value;
-}
-
-/**
  * Finds a resource for an entity in a schema
  */
 function findResource(schema, di, resourceId) { 
