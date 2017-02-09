@@ -109,7 +109,7 @@ class Translator {
 
     /**
      * Queries the entire state of the lamp
-     * and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+     * and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
      */
     get(expand, payload) {
         if (payload) {
