@@ -2,6 +2,9 @@
 /* jshint node: true */
 'use strict';
 
+var Logger = require('opent2t').Logger;
+let logger = new Logger();
+
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
@@ -167,6 +170,9 @@ class Translator {
        
         deviceId = deviceInfo.deviceInfo.opent2t.controlId;
         winkHub = deviceInfo.hub;
+
+        logger.verbose("Logging from Translator");
+        logger.info("deviceId: ", deviceId);
 
         console.log('Wink Lightbulb initializing...Done');
     }
