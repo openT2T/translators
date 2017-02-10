@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
 'use strict';
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
