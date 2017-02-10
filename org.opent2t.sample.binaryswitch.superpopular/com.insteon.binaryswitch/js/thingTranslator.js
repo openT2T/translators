@@ -101,28 +101,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-function getDeviceResource(translator, di, resourceId) {
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === generateGUID(controlId)) {
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return insteonHub.putDeviceDetailsAsync(controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response, true);
-                return findResource(schema, di, resourceId);
-            });
-    }
-}
-
-var controlId;
-var insteonHub;
-
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
@@ -131,42 +109,67 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        insteonHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.insteonHub = deviceInfo.hub;
 
         console.log('Insteon Binary Switch initializing...Done');
     }
 
-    // exports for the entire schema object
-
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
+    /**
+     * Queries the entire state of the binary switch
+     * and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return  providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return insteonHub.getDeviceDetailsAsync(controlId)
+            return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
         }
     }
+ 
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(translator, di, resourceId) {
+        return translator.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === generateGUID(this.controlId)) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
+                });
+        }
+    }
 
     getDevicesPower(di) {
-        return getDeviceResource(this, di, 'power');
+        return this.getDeviceResource(this, di, 'power');
     }
 
     postDevicesPower(di, payload) {
-        return postDeviceResource(di, 'power', payload);
+        return this.postDeviceResource(di, 'power', payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        return insteonHub._subscribe(subscriptionInfo);
+        return this.insteonHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        return insteonHub._unsubscribe(subscriptionInfo);
+        return this.insteonHub._unsubscribe(subscriptionInfo);
     }
 }
 
