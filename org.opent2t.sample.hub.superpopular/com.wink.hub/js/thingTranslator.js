@@ -49,7 +49,6 @@ class Translator {
         if (payload !== undefined) {
             // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
-                
                 var hashFromWink = verification.header["X-Hub-Signature"];
                 if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
                     throw new OpenT2TErrorClass(400, "Payload signature doesn't match.");
