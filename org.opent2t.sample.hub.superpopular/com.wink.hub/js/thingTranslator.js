@@ -48,8 +48,7 @@ class Translator {
         if (payload !== undefined) {
             // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
-                
-                var hashFromWink = verification.header("X-Hub-Signature");
+                var hashFromWink = verification.header["X-Hub-Signature"];
                 if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
                     throw new Error("Payload signature doesn't match.");
                 }
@@ -470,7 +469,7 @@ class Translator {
      */
     _verifyHmac(hash, key, contents) {
         var hmac = Crypto.createHmac("sha1", key);
-        hmac.update(contents);
+        hmac.update(contents.toString());
         var crypted = hmac.digest("hex");
 
         return (crypted == hash);
