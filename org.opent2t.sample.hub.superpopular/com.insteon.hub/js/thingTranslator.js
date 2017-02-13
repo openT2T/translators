@@ -176,7 +176,7 @@ class Translator {
                     authToken.convertTtlToExpiration(tokenInfo.expires_in * 60)
                 );
 
-                this._authTokens['access'].apiKey = authInfo[1].client_id;
+                this._authTokens['access'].client_id = authInfo[1].client_id;
 
                 return this._authTokens;
                 

@@ -190,7 +190,7 @@ class Translator {
      * Get the endpoint URI associated to the account
      */
     _getEndpoint() {
-        var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this.authTokens['access'].clientId + '?access_token=' + this._authTokens['access'].token;
+        var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this.authTokens['access'].client_id + '?access_token=' + this._authTokens['access'].token;
 
         return this._makeRequest(endpointUrl, 'GET').then((responses) => {
             if (responses.length !== 0 && responses[0].uri !== undefined) {
