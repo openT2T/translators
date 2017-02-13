@@ -17,7 +17,7 @@ function runLampTests(settings) {
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
-			OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
                     deviceId = response.entities[0].di;
                 }

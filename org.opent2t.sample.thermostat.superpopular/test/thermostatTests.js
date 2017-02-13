@@ -17,9 +17,9 @@ function runThermostatTests(settings) {
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
-			OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+			return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
-                    deviceId = response.opent2t.controlId;
+                    deviceId = response.entities[0].di;
                 }
 			});
         });
@@ -88,7 +88,7 @@ function runThermostatTests(settings) {
     test.serial('SetTargetTemperature', t => {
         setData(t);
         return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((initialTemperature) => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureHigh', [deviceId, {'temperature': 30}]).then(() => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureHigh', [deviceId, { 'temperature': 30, 'units': 'c' }]).then(() => {
                 return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((targetTemperature) => {
                     t.not(targetTemperature.temperature, initialTemperature.temperature)
                     t.truthy(Math.abs(targetTemperature.temperature - 30) < 0.75);
@@ -100,7 +100,7 @@ function runThermostatTests(settings) {
     test.serial('SetTargetTemperatureHigh', t => {
         setData(t);
         return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((initialTemperature) => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureHigh', [deviceId, {'temperature': 22}]).then(() => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureHigh', [deviceId, { 'temperature': 22, 'units': 'c' }]).then(() => {
                 return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((targetTemperature) => {
                     t.not(targetTemperature.temperature, initialTemperature.temperature)
                     t.truthy(Math.abs(targetTemperature.temperature - 22) < 0.75);
@@ -112,7 +112,7 @@ function runThermostatTests(settings) {
     test.serial('SetTargetTemperatureLow', t => {
         setData(t);
         return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((initialTemperature) => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureLow', [deviceId, {'temperature': 19}]).then(() => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureLow', [deviceId, { 'temperature': 19, 'units': 'c' }]).then(() => {
                 return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((targetTemperature) => {
                     t.not(targetTemperature.temperature, initialTemperature.temperature)
                     t.truthy(Math.abs(targetTemperature.temperature - 19) < 0.75);
