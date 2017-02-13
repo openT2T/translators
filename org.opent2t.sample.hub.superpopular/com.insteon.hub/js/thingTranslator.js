@@ -4,15 +4,15 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
-var accessTokenInfo = require('./common').accessTokenInfo;
+var authToken = require('./common').authToken;
 var sleep = require('es6-sleep').promise;
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(accessToken) {
-        this._accessToken = accessToken;
+    constructor(authTokens) {
+        this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._subCatMap = {
             lightBulbs: ['3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
@@ -139,15 +139,6 @@ class Translator {
     }
 
     /**
-     * An Internal helper function that add the input amount of seconds to current Linux standard time.
-     */
-    _add2CurrentUTC(seconds) {
-        var t = parseInt(Math.floor(new Date().getTime() / 1000));
-        t += parseInt(seconds);
-        return t;
-    }
-
-    /**
      * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
     refreshAuthToken(authInfo) {
@@ -168,20 +159,27 @@ class Translator {
             url: 'https://connect.insteon.com/api/v2/oauth2/token',
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'grant_type=refresh_token&refresh_token=' + this._accessToken.refreshToken + '&client_id=' + authInfo[1].client_id
+            body: 'grant_type=refresh_token&refresh_token=' + this.authTokens['refresh'].token + '&client_id=' + authInfo[1].client_id
         };
 
         return request(options).then((body) => {
                 var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
 
                 // 'expires_in is in minutes', according to http://docs.insteon.apiary.io/#reference/authorization/authorization-grant
-                return new accessTokenInfo(
-                    tokenInfo.access_token,
-                    tokenInfo.refresh_token,
-                    authInfo[1].client_id,
-                    tokenInfo.token_type,
-                    this._add2CurrentUTC(tokenInfo.expires_in * 60)
+                
+                this._authTokens['refresh'].update(
+                    tokenInfo.refresh_token
                 );
+
+                this._authTokens['access'].update(
+                    tokenInfo.access_token,
+                    authToken.convertTtlToExpiration(tokenInfo.expires_in * 60)
+                );
+
+                this._authTokens['access'].apiKey = authInfo[1].client_id;
+
+                return this._authTokens;
+                
             }).catch(function (err) {
                 console.log('Request failed to: ' + options.method + ' - ' + options.url);
                 console.log('Error            : ' + err.statusCode + ' - ' + err.response.statusMessage);
@@ -439,8 +437,8 @@ class Translator {
 
         // Set the headers
         var headers = {
-            'Authorization': 'Bearer ' + this._accessToken.accessToken,
-            'Authentication': 'APIKey ' + this._accessToken.apiKey,
+            'Authorization': 'Bearer ' + this._authToken['access'].token,
+            'Authentication': 'APIKey ' + this._authToken['access'].apiKey,
             'Accept': 'application/json'
         }
 

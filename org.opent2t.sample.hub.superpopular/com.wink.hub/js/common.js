@@ -20,6 +20,14 @@ class authToken {
         this.type = type ? type : this.type;
         this.scopes = scopes ? scopes : this.scopes;
     }
+
+    /**
+     * Converts a timespan (from now) into a Unix timestamp
+     * (number of seconds from the epoch).
+     */
+    static convertTtlToExpiration(ttlInSeconds) {
+        new (Date().getTime() / 1000) + ttlInSeconds;
+    }
 }
 
 module.exports.authToken = authToken;

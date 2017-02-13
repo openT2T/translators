@@ -9,8 +9,8 @@ var OpenT2T = require('opent2t').OpenT2T;
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(accessTokenInfo) {
-        this._accessToken = accessTokenInfo;
+    constructor(authTokens) {
+        this._authTokens = authTokens;
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
@@ -87,8 +87,9 @@ class Translator {
      * Refreshes the OAuth token for the hub: Since SmartThings access token lasts for 50 years, simply return the input access token.
      */
     refreshAuthToken(authInfo) {
-        return this._accessToken;
+        return this._authTokens;
     }
+
     /* eslint no-unused-vars: "warn" */
 
     /**
@@ -189,7 +190,7 @@ class Translator {
      * Get the endpoint URI associated to the account
      */
     _getEndpoint() {
-        var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this._accessToken.clientId + '?access_token=' + this._accessToken.accessToken;
+        var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this.authTokens['access'].clientId + '?access_token=' + this._authTokens['access'].token;
 
         return this._makeRequest(endpointUrl, 'GET').then((responses) => {
             if (responses.length !== 0 && responses[0].uri !== undefined) {
