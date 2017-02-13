@@ -150,9 +150,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
-var deviceId;
-var deviceType = 'light_bulbs';
-var winkHub;
+const deviceType = 'light_bulbs';
 
 // Each device in the platform has is own unique static identifier
 const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
@@ -165,8 +163,8 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
-        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
-        winkHub = deviceInfo.hub;
+        this.winkControlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.winkHub = deviceInfo.hub;
 
         console.log('Wink Lightbulb initializing...Done');
     }
@@ -182,7 +180,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+            return this.winkHub.getDeviceDetailsAsync(deviceType, this.winkControlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);
                 });
@@ -205,7 +203,7 @@ class Translator {
     postDeviceResource(di, resourceId, payload) {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return this.winkHub.putDeviceDetailsAsync(deviceType, this.winkControlId, putPayload)
             .then((response) => {
                 var schema = providerSchemaToPlatformSchema(response.data, true);
 
@@ -250,15 +248,15 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceId = this.winkControlId;
         subscriptionInfo.deviceType = deviceType;
-        return winkHub.postSubscribe(subscriptionInfo);
+        return this.winkHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceId = this.winkControlId;
         subscriptionInfo.deviceType = deviceType;
-        return winkHub._unsubscribe(subscriptionInfo);
+        return this.winkHub._unsubscribe(subscriptionInfo);
     }
 }
 

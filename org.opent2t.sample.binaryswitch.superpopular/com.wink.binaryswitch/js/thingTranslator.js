@@ -56,7 +56,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.binaryswitch.superpopular',
             translator: 'opent2t-translator-com-wink-binaryswitch',
-            controlId: deviceId
+            controlId: providerSchema['object_id']
         },
         pi: providerSchema['uuid'],
         mnmn: providerSchema['device_manufacturer'],
@@ -101,29 +101,7 @@ function findResource(schema, di, resourceId) {
     return resource;
 }
 
-function getDeviceResource(translator, di, resourceId) {
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === smartplugDeviceDi) {
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response.data, true);
-
-                return findResource(schema, di, resourceId);
-            });
-    }
-}
-
-var deviceId;
-var deviceType = 'binary_switches';
-var winkHub;
+const deviceType = 'binary_switches';
 
 // Each device in the platform has its own static identifier
 const smartplugDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
@@ -136,8 +114,8 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
-        winkHub = deviceInfo.hub;
+        this.winkControlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.winkHub = deviceInfo.hub;
 
         console.log('Wink Binary Switch initializing...Done');
     }
@@ -151,7 +129,7 @@ class Translator {
             return  providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+            return this.winkHub.getDeviceDetailsAsync(deviceType, this.winkControlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);
                 });
@@ -159,23 +137,43 @@ class Translator {
     }
 
     getDevicesPower(di) {
-        return getDeviceResource(this, di, 'power');
+        return this.getDeviceResource(di, 'power');
     }
 
     postDevicesPower(di, payload) {
-        return postDeviceResource(di, 'power', payload);
+        return this.postDeviceResource(di, 'power', payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceId = this.winkControlId;
         subscriptionInfo.deviceType = deviceType;
-        return winkHub.postSubscribe(subscriptionInfo);
+        return this.winkHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
+        subscriptionInfo.deviceId = this.winkControlId;
         subscriptionInfo.deviceType = deviceType;
-        return winkHub._unsubscribe(subscriptionInfo);
+        return this.winkHub._unsubscribe(subscriptionInfo);
+    }
+
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    postDeviceResource(di, resourceId, payload) {
+        if (di === smartplugDeviceDi) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.winkHub.putDeviceDetailsAsync(deviceType, this.winkControlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response.data, true);
+
+                    return findResource(schema, di, resourceId);
+                });
+        }
     }
 }
 

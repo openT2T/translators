@@ -5,7 +5,7 @@
 
 class authToken {
     constructor(token, expiration, type, scopes) {
-        update(token, expiration, type, scopes);
+        this.update(token, expiration, type, scopes);
     }
 
     update(token, expiration, type, scopes) {

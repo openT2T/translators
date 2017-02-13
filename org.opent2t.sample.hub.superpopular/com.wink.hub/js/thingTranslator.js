@@ -119,7 +119,7 @@ class Translator {
             'client_id': authInfo[1].client_id,
             'client_secret': authInfo[1].client_secret,
             'grant_type': 'refresh_token',
-            'refresh_token': this._authTokens['refresh'],
+            'refresh_token': this._authTokens['refresh'].token,
         });
 
         return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
@@ -134,6 +134,7 @@ class Translator {
 
             this._authTokens['refresh'].update(
                 body.refresh_token,
+                Math.floor(new Date().getTime() / 1000) + 86400, // Default to 24 hours (in seconds)
                 body.token_type,
                 body.scopes
             );
@@ -142,6 +143,7 @@ class Translator {
                  body.access_token
             );
 
+            console.log(JSON.stringify(_authTokens, null ,2));
             return this._authTokens;
         });
     }
