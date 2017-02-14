@@ -170,10 +170,10 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(controlId)) {
+        if (di === lightbulbDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);

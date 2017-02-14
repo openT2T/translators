@@ -262,7 +262,7 @@ class Translator {
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return this.smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
 

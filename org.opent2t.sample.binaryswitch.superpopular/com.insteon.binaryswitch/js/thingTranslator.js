@@ -142,7 +142,7 @@ class Translator {
         if (di === switchDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
