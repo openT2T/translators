@@ -210,9 +210,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new OpenT2TErrorClass(501, 'Property NotImplemented');
+            throw new OpenT2TErrorClass(501, 'NotImplemented');
         default:
-            throw new OpenT2TErrorClass(404, 'Property NotFound');
+            throw new OpenT2TErrorClass(404, 'NotFound');
     }
 
     return result;
@@ -227,7 +227,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new OpenT2TErrorClass(501, 'Property NotImplemented');
+            throw new OpenT2TErrorClass(501, 'NotImplemented');
     }
 }
 
@@ -237,7 +237,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new OpenT2TErrorClass(404, 'Property NotFound');
+        throw new OpenT2TErrorClass(404, 'NotFound');
     }
 
     var resource = entity.resources.find((r) => {
@@ -245,7 +245,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!resource) {
-        throw new OpenT2TErrorClass(404, 'Property NotFound');
+        throw new OpenT2TErrorClass(404, 'NotFound');
     }
 
     return resource;
@@ -271,7 +271,7 @@ function postDeviceResource(di, resourceId, payload) {
                 return findResource(schema, di, resourceId);
             });
     } else {
-        throw new OpenT2TErrorClass(404, 'Device NotFound');
+        throw new OpenT2TErrorClass(404, 'NotFound');
     }
 }
 
