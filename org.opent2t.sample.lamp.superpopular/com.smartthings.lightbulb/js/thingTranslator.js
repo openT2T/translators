@@ -14,6 +14,25 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) { 
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => { 
+        return d.di === di; 
+    }); 
+    
+    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    
+    var resource = entity.resources.find((r) => { 
+        return r.id === resourceId;  
+    }); 
+
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    return resource; 
+}
+
+/**
  * Return the string "Undefined" if the value is undefined and null.
  * Otherwise, return the value itself.
  */
@@ -23,25 +42,6 @@ function validateValue(value) {
     }
     return value;
 }
-
-
-/**
- * Finds a resource for an entity in a schema
- */
-function findResource(schema, di, resourceId) {
-    // Find the entity by the unique di
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    // Find the resource
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    return resource;
-}
-
 
 /**
  * Colour Conversion Funcitons
@@ -88,7 +88,6 @@ function HSVtoRGB(hue, saturation, lumosity) {
             result = [c, 0, x];
             break;
     }
-
     return [(result[0] + m) * MaxColor, (result[1] + m) * MaxColor, (result[2] + m) * MaxColor]
 }
 
@@ -189,7 +188,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.range = [0, 100];
 
         colourMode.id = 'colourMode';
-        colourMode.modes = 'rgb';
+        colourMode.modes = ['rgb'];
         colourMode.supportedModes = ['rgb', 'chroma'];
 
         colourRGB.id = 'colourRGB';
@@ -259,7 +258,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourChroma':
             if (resourceSchema.ct !== undefined)
             {
-                result['ct'] = resourceSchema.ct;
+                result['colorTemperature'] = resourceSchema.ct;
             } else {
                 throw new Error("Invalid resourceId");
             }
@@ -272,9 +271,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-// This translator class implements the 'opent2t.d.light' interface.
+// This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
-
+        
     constructor(deviceInfo) {
         console.log('SmartThings Lightbulb initializing...');
 
@@ -286,11 +285,9 @@ class Translator {
         console.log('SmartThings Lightbulb initializing...Done');
     }
 
-    // exports for the entire schema object
-
     /**
      * Queries the entire state of the lamp
-     * and returns an object that maps to the json schema opent2t.d.light
+     * and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
      */
     get(expand, payload) {
         if (payload) {
@@ -324,7 +321,6 @@ class Translator {
             return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
-
                     return findResource(schema, di, resourceId);
                 });
         } else {

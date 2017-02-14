@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
 'use strict';
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -13,6 +11,25 @@ function validateArgumentType(arg, argName, expectedType) {
         throw new Error('Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
+}
+
+/**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    return resource;
 }
 
 // Wink does not always populate every desired_state property, but last_reading doesn't necessarily
@@ -97,7 +114,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units').temperature;
+    var temperatureUnits = stateReader.get('units');
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: stateReader.get('temperature'),
@@ -120,7 +137,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        mode: stateReader.get('users_away') ? 'away' : 'home',
+        modes: [stateReader.get('users_away') ? 'away' : 'home'],
         supportedModes: ['home', 'away']
     });
 
@@ -142,7 +159,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-wink-thermostat',
-            controlId: providerSchema['object_id']
+            controlId: providerSchema.thermostat_id
         },
         pi: providerSchema['uuid'],
         mnmn: providerSchema['device_manufacturer'],
@@ -230,28 +247,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new Error('NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new Error('NotFound');
-    }
-
-    return resource;
-}
-
-const deviceType = 'thermostats';
-
 var deviceIds = {
     'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
     'opent2t.d.thermostat': 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
@@ -265,22 +260,55 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        this.winkControlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.winkHub = deviceInfo.hub;
+        this.deviceType = 'thermostats';
 
         console.log('Wink Thermostat Translator initialized.');
     }
 
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return this.winkHub.getDeviceDetailsAsync(deviceType, this.winkControlId)
+            return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);
                 });
+        }
+    }
+
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === deviceIds['opent2t.d.thermostat']) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response.data, true);
+
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            throw new Error('NotFound');
         }
     }
 
@@ -385,39 +413,15 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = this.winkControlId;
-        subscriptionInfo.deviceType = deviceType;
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
         return this.winkHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = this.winkControlId;
-        subscriptionInfo.deviceType = deviceType;
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
         return this.winkHub._unsubscribe(subscriptionInfo);
-    }
-
-    getDeviceResource(di, resourceId) {
-        validateResourceGet(resourceId);
-
-        return this.get(true)
-            .then(response => {
-                return findResource(response, di, resourceId);
-            });
-    }
-
-    postDeviceResource(di, resourceId, payload) {
-        if (di === deviceIds['opent2t.d.thermostat']) {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            return this.winkHub.putDeviceDetailsAsync(deviceType, this.winkControlId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response.data, true);
-
-                    return findResource(schema, di, resourceId);
-                });
-        } else {
-            throw new Error('NotFound');
-        }
     }
 }
 

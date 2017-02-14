@@ -115,11 +115,24 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'n':
             result['DeviceName'] = resourceSchema.n;
             break;
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
         default:
             // Error case
             throw new Error("Invalid resourceId");
     }
     return result;
+}
+
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
+    }
 }
 
 const lightbulbDeviceDi = "882b5bb8-5522-4c77-b09a-e761842eb1e2";
@@ -137,8 +150,6 @@ class Translator {
 
         console.log('Insteon Lightbulb initializing...Done');
     }
-
-    // exports for the entire schema object
 
     /**
      * Queries the entire state of the lamp
@@ -160,6 +171,8 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
         return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);

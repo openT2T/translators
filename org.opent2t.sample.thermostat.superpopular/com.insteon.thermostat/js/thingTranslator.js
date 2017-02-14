@@ -180,7 +180,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
     
     if( providerSchema['fan'] !== undefined ) {
-        var fanMode = createResource('oic.r.sensor', 'oic.if.s', 'fanMode', expand, readFanMode(providerSchema));
+        var fanMode = createResource('oic.r.mode', 'oic.if.a', 'fanMode', expand, readFanMode(providerSchema));
         PlatformSchema.entities[0].resources.push(fanMode);
     }
     
@@ -258,8 +258,10 @@ class Translator {
         console.log('Insteon Thermostat initializing...Done');
     }
 
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
@@ -268,6 +270,34 @@ class Translator {
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
+        }
+    }
+    
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === generateGUID(this.controlId)) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            throw new Error('NotFound');
         }
     }
 

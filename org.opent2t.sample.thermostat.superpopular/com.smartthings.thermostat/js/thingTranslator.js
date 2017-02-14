@@ -14,6 +14,25 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) { 
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => { 
+        return d.di === di; 
+    }); 
+    
+    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    
+    var resource = entity.resources.find((r) => { 
+        return r.id === resourceId;  
+    }); 
+
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    return resource; 
+}
+
+/**
  * Return the string "Undefined" if the value is undefined and null.
  * Otherwise, return the value itself.
  */
@@ -97,13 +116,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        modes: providerSchema['locationMode'].mode.toLowerCase(),
+        modes: [providerSchema['locationMode'].mode.toLowerCase()],
         supportedModes: deviceSupportedModesToTranslatorSupportedModes(providerSchema['locationMode'].supported)
     });
 
     var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, {
         supportedModes: ['coolOnly', 'heatOnly', 'auto', 'off'],
-        modes: deviceHvacModeToTranslatorHvacMode(providerSchema['attributes'].thermostatMode)
+        modes: [deviceHvacModeToTranslatorHvacMode(providerSchema['attributes'].thermostatMode)]
     });
 
     var hasFan = createResource('oic.r.sensor', 'oic.if.s', 'hasFan', expand, {
@@ -112,7 +131,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var fanMode = createResource('oic.r.mode', 'oic.if.s', 'fanMode', expand, {
         supportedModes: ['auto', 'on'],
-        modes: providerSchema['attributes'].thermostatFanMode
+        modes: [providerSchema['attributes'].thermostatFanMode]
     });
 
     var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
@@ -199,31 +218,11 @@ function validateResourceGet(resourceId) {
     }
 }
 
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new Error('NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new Error('NotFound');
-    }
-
-    return resource;
-}
-
 const thermostatDeviceDi = "185981bb-b056-42dd-959a-bc0d3f6080ea";
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
-
+     
     constructor(deviceInfo) {
         console.log('SmartThings Thermostat initializing...');
 
@@ -234,9 +233,11 @@ class Translator {
 
         console.log('SmartThings Thermostat initializing...Done');
     }
-
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema opent2t.p.thermostat
+    
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
@@ -248,6 +249,9 @@ class Translator {
         }
     }
 
+    /**
+     * Finds a resource on a platform by the id
+     */
     getDeviceResource(di, resourceId) {
         validateResourceGet(resourceId);
 
@@ -257,6 +261,9 @@ class Translator {
             });
     }
 
+    /**
+     * Updates the specified resource with the provided payload.
+     */
     postDeviceResource(di, resourceId, payload) {
         if (di === thermostatDeviceDi)
         {
@@ -265,14 +272,13 @@ class Translator {
             return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
-
                     return findResource(schema, di, resourceId);
                 });
         } else {
             throw new Error('NotFound');
         }
     }
-
+  
     getDevicesAmbientTemperature(di) {
         return this.getDeviceResource(di, 'ambientTemperature');
     }

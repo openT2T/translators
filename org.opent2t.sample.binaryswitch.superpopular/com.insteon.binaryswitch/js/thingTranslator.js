@@ -115,10 +115,10 @@ class Translator {
         console.log('Insteon Binary Switch initializing...Done');
     }
 
-    // exports for the entire schema object
-
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
+    /**
+     * Queries the entire state of the binary switch
+     * and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return  providerSchemaToPlatformSchema(payload, expand);
@@ -127,6 +127,31 @@ class Translator {
             return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
+                });
+        }
+    }
+ 
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === generateGUID(this.controlId)) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
                 });
         }
     }

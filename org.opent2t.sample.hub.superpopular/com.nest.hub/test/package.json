@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "opent2t": "*",
+    "q": "^1.4.1",
     "opent2t-device-hub": "file:../../test"
   }
 }

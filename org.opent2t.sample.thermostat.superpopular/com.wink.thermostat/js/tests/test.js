@@ -1,8 +1,8 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
-var runWinkThermostatTests = require('./winkThermostatTests');
 var config = require('./testConfig');
+var testData = require('./testdata');
 var translatorPath = require('path').join(__dirname, '..');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
 var http = require('http');
@@ -29,11 +29,11 @@ function createTranslator() {
 var settings = {
     createTranslator: createTranslator,
     test: test,
-    deviceId: 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
+    deviceId: 'D5D37EB6-F428-41FA-AC5D-918F084A4C93',
+    expectedExceptions : testData.expected_exceptions
 };
 
 runThermostatTests(settings);
-runWinkThermostatTests(settings);
 
 /**
  * Verifies that realtime notifications can be subscribed to for the device.

@@ -2,7 +2,14 @@
     {   "attributes" :
         {
             "switch" : "on",
-            "temperature" : 50
+            "temperature" : 50,
+            "thermostatSetpoint" : 50,
+            "coolingSetpoint" : 20,
+            "heatingSetpoint" : 15,
+            "deviceTemperatureUnit" : "c",
+            "humidity" : 25,
+            "thermostatMode" : "heat",
+            "thermostatFanMode" : "auto"
         },
         "locationMode" :
         {
@@ -25,19 +32,31 @@
         "SetTargetTemperature" :
             [
                 {
-                    "coolingSetpoint" : 30
+                    "thermostatSetpoint" : 30
                 }
             ],
         "SetTargetTemperatureHigh" :
             [
                 {
-                    "coolingSetpoint" : 22
+                    "coolingSetpoint" : 7
                 }
             ],
         "SetTargetTemperatureLow" :
             [
                 {
                     "heatingSetpoint" : 19
+                }
+            ],
+        "SetHvacMode" :
+            [
+                {
+                    "hvacMode" : "auto"
+                }
+            ],
+        "SetFanMode" :
+            [
+                {
+                    "fanMode" : "auto"
                 }
             ]
     }

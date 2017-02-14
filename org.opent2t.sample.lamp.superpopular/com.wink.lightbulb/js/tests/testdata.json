@@ -1,0 +1,9 @@
+{  "expected_exceptions" :
+    {
+        "GetColourMode" : "NotImplemented",
+        "GetColourRGB" : "NotImplemented",
+        "GetColourChroma" : "NotImplemented",
+        "SetColourRGB" : "NotImplemented",
+        "SetColourChroma" : "NotImplemented"
+    }
+}

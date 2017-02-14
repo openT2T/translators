@@ -15,6 +15,25 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) { 
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => { 
+        return d.di === di; 
+    }); 
+    
+    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    
+    var resource = entity.resources.find((r) => { 
+        return r.id === resourceId;  
+    }); 
+
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    return resource; 
+}
+
+/**
  * Generate a GUID for given an ID.
  */
 function generateGUID(stringID) {
@@ -127,7 +146,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        modes:  providerSchema['away'],
+        modes:  [providerSchema['away']],
         supportedModes: ['home', 'away']
     });
     
@@ -220,6 +239,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'ecoMode':
         case 'fanTimerTimeout':
             throw new Error('NotMutable');
+        case 'fanMode':
+            throw new Error('NotImplemented');
         default:
             throw new Error('NotFound');
     }
@@ -236,27 +257,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new Error('NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new Error('NotFound');
-    }
-
-    return resource;
-}
-
-const deviceType = 'thermostats';
 const thermostatDeviceDi = "f7074ee7-4fd8-4885-8997-487b8f3d14eb";
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
@@ -269,17 +269,20 @@ class Translator {
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.structureId = deviceInfo.deviceInfo.opent2t.structureId;
         this.nestHub = deviceInfo.hub;
+        this.deviceType = 'thermostats';
 
         console.log('Nest Thermostat initializing...Done');
     }
 
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema opent2t.p.thermostat
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return this.nestHub.getDeviceDetailsAsync(deviceType, this.controlId)
+            return this.nestHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -295,6 +298,9 @@ class Translator {
             });
     }
 
+    /**
+     * Finds a resource on a platform by the id
+     */
     postDeviceResource(di, resourceId, payload) {
         if (di === thermostatDeviceDi)
         {
@@ -307,7 +313,7 @@ class Translator {
                         return findResource(schema, di, resourceId);
                     });
             } else {
-                return this.nestHub.putDeviceDetailsAsync(deviceType, this.controlId, putPayload)
+                return this.nestHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
                     .then((response) => {
                         var schema = providerSchemaToPlatformSchema(response, true);
                         return findResource(schema, di, resourceId);

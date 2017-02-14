@@ -14,6 +14,25 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) { 
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => { 
+        return d.di === di; 
+    }); 
+    
+    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    
+    var resource = entity.resources.find((r) => { 
+        return r.id === resourceId;  
+    }); 
+
+    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    return resource; 
+}
+
+/**
  * Return the string "Undefined" if the value is undefined and null.
  * Otherwise, return the value itself.
  */
@@ -23,7 +42,6 @@ function validateValue(value) {
     }
     return value;
 }
-
 
 // Helper method to convert the device schema to the translator schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
@@ -73,19 +91,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    return resource;
-}
-
 const switchDeviceDi = "d455d979-d1f9-430a-8a15-61c432eda4a2";
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
@@ -102,10 +107,10 @@ class Translator {
         console.log('SmartThings Binary Switch initializing...Done');
     }
 
-    // exports for the entire schema object
-
-    // Queries the entire state of the outlet
-    // and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
+    /**
+     * Queries the entire state of the binary switch
+     * and returns an object that maps to the json schema org.opent2t.sample.binaryswitch.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
@@ -126,13 +131,12 @@ class Translator {
     }
 
     postDeviceResource(di, resourceId, payload) {
-        if (di === switchDeviceDi){
+        if (di === switchDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
-
                     return findResource(schema, di, resourceId);
                 });
         } else {
