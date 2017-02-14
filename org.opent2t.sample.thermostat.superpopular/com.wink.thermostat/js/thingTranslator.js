@@ -22,13 +22,13 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+    if (!entity) throw new Error('NotFound');
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    if (!resource) throw new Error('NotFound');
     return resource;
 }
 
@@ -333,7 +333,7 @@ class Translator {
     }
 
     postDevicesTargetTemperatureHigh(di, payload) {
-        return this._postDeviceResource(di, 'targetTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'targetTemperatureHigh', payload);
     }
 
     getDevicesTargetTemperatureLow(di) {
@@ -377,7 +377,7 @@ class Translator {
     }
 
     postDevicesHvacMode(di, payload) {
-        return this._postDeviceResource(di, 'hvacMode', payload);
+        return this.postDeviceResource(di, 'hvacMode', payload);
     }
 
     getDevicesHeatingFuelSource(di) {
