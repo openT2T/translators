@@ -9,3 +9,6 @@ logs
 testconfig.json
 *.vscode
 /package.json
+
+// Private Tarballs
+*.tgz
