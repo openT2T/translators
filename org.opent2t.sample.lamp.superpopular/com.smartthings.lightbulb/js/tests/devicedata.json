@@ -2,7 +2,10 @@
     {   "attributes" :
         {
             "switch" : "on",
-            "level" : 20
+            "hue" : 10,
+            "saturation" : 30,
+            "level" : 20,
+            "colorTemperature" : 50
         },
         "id" : "Mock Id",
         "manufacturer" : "Mock Manufacturer",
@@ -28,6 +31,19 @@
                 {
                     "level" : 50
                 }
+            ],
+        "SetColourChroma" :
+            [
+                {
+                    "colorTemperature" : 30
+                }
+            ],
+        "SetColourRGB" :
+            [
+                {
+                    "hue" : 59,
+                    "saturation" : 61,
+                    "level" : 100                }
             ]
     }
 }

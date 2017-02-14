@@ -12,7 +12,13 @@ function modifyDeviceState(deviceState, modifications) {
 
 function verifyPayload(modification, t, args) {
     let expectedPayload = undefined;
-    if(modification.cool_point !== undefined) {
+    if(modification.Power !== undefined) {
+        expectedPayload = {command: modification.Power};
+    }
+	else if(modification.Level !== undefined) {
+        expectedPayload = {command: 'on', level: modification.Level};
+    }
+	else if(modification.cool_point !== undefined) {
         expectedPayload = {command: 'set_cool_to', temp: modification.cool_point};
     }
     else if(modification.heat_point !== undefined) {
