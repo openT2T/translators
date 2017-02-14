@@ -1,16 +1,17 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
+var OpenT2TErrorClass = require('opent2t').OpenT2TError;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TErrorClass(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TErrorClass(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -209,9 +210,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TErrorClass(501, 'Property NotImplemented');
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TErrorClass(404, 'Property NotFound');
     }
 
     return result;
@@ -226,7 +227,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TErrorClass(501, 'Property NotImplemented');
     }
 }
 
@@ -236,7 +237,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('NotFound');
+        throw new OpenT2TErrorClass(404, 'Property NotFound');
     }
 
     var resource = entity.resources.find((r) => {
@@ -244,7 +245,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!resource) {
-        throw new Error('NotFound');
+        throw new OpenT2TErrorClass(404, 'Property NotFound');
     }
 
     return resource;
@@ -270,7 +271,7 @@ function postDeviceResource(di, resourceId, payload) {
                 return findResource(schema, di, resourceId);
             });
     } else {
-        throw new Error('NotFound');
+        throw new OpenT2TErrorClass(404, 'Device NotFound');
     }
 }
 
