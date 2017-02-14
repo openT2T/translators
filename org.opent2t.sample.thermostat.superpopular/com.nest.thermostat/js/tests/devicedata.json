@@ -9,7 +9,18 @@
             "supported" : ["home", "away"],
             "mode" : "away"
         },
-        "id" : "Mock Id",
+        "temperature_scale" : "c",
+        "ambient_temperature_c" : 25,
+        "target_temperature_c" : 22,
+        "target_temperature_high_c" : 27,
+        "target_temperature_low_c" : 20,
+        "away_temperature_high_c" : 26,
+        "away_temperature_low_c" : 21,
+        "has_leaf" : true,
+        "has_fan" : true,
+        "fan_timer_active" : false,
+        "device_id" : "Mock Id",
+        "humidity" : 25,
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
         "name" : "Mock Name"
@@ -25,19 +36,31 @@
         "SetTargetTemperature" :
             [
                 {
-                    "coolingSetpoint" : 30
+                    "target_temperature_c" : 30
                 }
             ],
         "SetTargetTemperatureHigh" :
             [
                 {
-                    "coolingSetpoint" : 22
+                    "target_temperature_high_c" : 7
                 }
             ],
         "SetTargetTemperatureLow" :
             [
                 {
-                    "heatingSetpoint" : 19
+                    "target_temperature_low_c" : 19
+                }
+            ],
+        "SetHvacMode" :
+            [
+                {
+                    "hvac_mode" : "heat-cool"
+                }
+            ],
+        "SetFanMode" :
+            [
+                {
+                    "fanMode" : "auto"
                 }
             ]
     }

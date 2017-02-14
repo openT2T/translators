@@ -5,13 +5,26 @@ var MockHub = require('opent2t-device-hub/mockHub');
 function modifyDeviceState(deviceState, modifications) {
     if(deviceState && modifications) {
         for(var modification in modifications) {
-            deviceState.data.desired_state[modification] = modifications[modification];
+            deviceState[modification] = modifications[modification];
         }
     }
 }
 
 function verifyPayload(modification, t, args) {
-    return JSON.stringify(args[2]) === JSON.stringify({"desired_state": modification});
+    let expectedPayload = undefined;
+    if(modification.cool_point !== undefined) {
+        expectedPayload = {command: 'set_cool_to', temp: modification.cool_point};
+    }
+    else if(modification.heat_point !== undefined) {
+        expectedPayload = {command: 'set_heat_to', temp: modification.heat_point};
+    }
+    else if(modification.fan !== undefined) {
+        expectedPayload = {command: 'fan_' + modification.fan};
+    }
+    else if(modification.mode !== undefined) {
+        expectedPayload = {command: modification.mode};
+    }
+    return JSON.stringify(args[1]) === JSON.stringify(expectedPayload);
 }
 
 class MockInsteonHub extends MockHub {

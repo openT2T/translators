@@ -97,13 +97,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        modes: providerSchema['locationMode'].mode.toLowerCase(),
+        modes: [providerSchema['locationMode'].mode.toLowerCase()],
         supportedModes: deviceSupportedModesToTranslatorSupportedModes(providerSchema['locationMode'].supported)
     });
 
     var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, {
         supportedModes: ['coolOnly', 'heatOnly', 'auto', 'off'],
-        modes: deviceHvacModeToTranslatorHvacMode(providerSchema['attributes'].thermostatMode)
+        modes: [deviceHvacModeToTranslatorHvacMode(providerSchema['attributes'].thermostatMode)]
     });
 
     var hasFan = createResource('oic.r.sensor', 'oic.if.s', 'hasFan', expand, {
@@ -112,7 +112,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var fanMode = createResource('oic.r.mode', 'oic.if.s', 'fanMode', expand, {
         supportedModes: ['auto', 'on'],
-        modes: providerSchema['attributes'].thermostatFanMode
+        modes: [providerSchema['attributes'].thermostatFanMode]
     });
 
     var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {

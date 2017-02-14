@@ -97,7 +97,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units').temperature;
+    var temperatureUnits = stateReader.get('units');
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: stateReader.get('temperature'),
@@ -120,7 +120,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        mode: stateReader.get('users_away') ? 'away' : 'home',
+        modes: [stateReader.get('users_away') ? 'away' : 'home'],
         supportedModes: ['home', 'away']
     });
 

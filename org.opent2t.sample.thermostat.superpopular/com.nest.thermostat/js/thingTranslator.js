@@ -127,7 +127,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        modes:  providerSchema['away'],
+        modes:  [providerSchema['away']],
         supportedModes: ['home', 'away']
     });
     
@@ -222,6 +222,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'ecoMode':
         case 'fanTimerTimeout':
             throw new Error('NotMutable');
+        case 'fanMode':
+            throw new Error('NotImplemented');
         default:
             throw new Error('NotFound');
     }
