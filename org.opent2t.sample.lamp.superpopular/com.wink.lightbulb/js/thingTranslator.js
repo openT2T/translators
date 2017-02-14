@@ -14,7 +14,7 @@ function validateArgumentType(arg, argName, expectedType) {
         throw new OpenT2TErrorClass(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new EOpenT2TErrorClassrror(400, 'Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TErrorClass(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
