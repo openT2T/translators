@@ -103,7 +103,7 @@ class Translator {
     refreshAuthToken(authInfo) {
         var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
         
-        if (authInfo == undefined || authInfo == null){
+        if (authInfo === undefined || authInfo == null){
             throw new OpenT2TErrorClass(400, invalidAuthErrorMessage); 
         }
 
@@ -421,7 +421,9 @@ class Translator {
                 return JSON.parse(body);
             })
             .catch((err) => {
-                return this._handleErrors(err);
+                console.log("Request failed to: " + options.method + " - " + options.url);
+                request.reject(err);
+                return;
             });
             
     }
@@ -474,14 +476,6 @@ class Translator {
 
         return (crypted == hash);
     }
-
-    _handleErrors(err){
-         console.log("Request failed to: " + options.method + " - " + options.url);
-         reject(err);
-         return;
-    }
-
-
 }
 
 module.exports = Translator;
