@@ -50,13 +50,20 @@
         "SetTargetTemperatureHigh" :
             [
                 {
-                    "max_set_point" : 22
+                    "max_set_point" : 7
                 }
             ],
         "SetTargetTemperatureLow" :
             [
                 {
                     "min_set_point" : 19
+                }
+            ],
+        "SetHvacMode" :
+            [
+                {
+                    "powered" : true,
+                    "mode" : "auto"
                 }
             ]
     }

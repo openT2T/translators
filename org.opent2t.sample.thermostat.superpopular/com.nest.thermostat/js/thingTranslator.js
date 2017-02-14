@@ -241,6 +241,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'ecoMode':
         case 'fanTimerTimeout':
             throw new Error('NotMutable');
+        case 'fanMode':
+            throw new Error('NotImplemented');
         default:
             throw new Error('NotFound');
     }

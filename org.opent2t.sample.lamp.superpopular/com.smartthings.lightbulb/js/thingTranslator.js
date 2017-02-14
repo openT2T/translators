@@ -186,7 +186,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.range = [0, 100];
 
         colourMode.id = 'colourMode';
-        colourMode.modes = 'rgb';
+        colourMode.modes = ['rgb'];
         colourMode.supportedModes = ['rgb', 'chroma'];
 
         colourRGB.id = 'colourRGB';
@@ -256,7 +256,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourChroma':
             if (resourceSchema.ct !== undefined)
             {
-                result['ct'] = resourceSchema.ct;
+                result['colorTemperature'] = resourceSchema.ct;
             } else {
                 throw new Error("Invalid resourceId");
             }

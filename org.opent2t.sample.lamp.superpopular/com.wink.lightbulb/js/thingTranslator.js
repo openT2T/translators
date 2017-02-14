@@ -86,6 +86,10 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'dim':
             desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(resourceSchema.dimmingSetting);
             break;
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
         default:
             // Error case
             throw new Error("Invalid resourceId");
@@ -150,6 +154,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
+    }
+}
+
 // Each device in the platform has is own unique static identifier
 const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
 
@@ -188,6 +201,8 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
         return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);

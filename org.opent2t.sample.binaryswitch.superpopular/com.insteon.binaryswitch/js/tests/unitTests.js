@@ -6,7 +6,7 @@ var MockHub = require('opent2t-device-insteonhub/mockInsteonHub');
 var mockHub = new MockHub(deviceData);
 
 var settings = {
-    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.data.object_id),
+    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.DeviceID),
     test: test,
     setTestData: mockHub.setTestData
 };
