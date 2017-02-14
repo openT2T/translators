@@ -1,7 +1,6 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
 var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
-var runWinkThermostatTests = require('./winkThermostatTests');
 var config = require('./testConfig');
 var testData = require('./testdata');
 var translatorPath = require('path').join(__dirname, '..');
