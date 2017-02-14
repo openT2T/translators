@@ -288,28 +288,6 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId)) {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response, true);
-                    return findResource(schema, di, resourceId);
-                });
-        } else {
-            throw new Error('NotFound');
-        }
-    }
-
-    getDeviceResource(di, resourceId) {
-        validateResourceGet(resourceId);
-        return this.get(true)
-            .then(response => {
-                return findResource(response, di, resourceId);
-            });
-    }
-
-    postDeviceResource(di, resourceId, payload) {
         if (di === thermostatDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
