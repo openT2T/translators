@@ -4,7 +4,6 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
-var authToken = require('./common').authToken;
 var sleep = require('es6-sleep').promise;
 
 /**
@@ -166,13 +165,13 @@ class Translator {
                 var tokenInfo = JSON.parse(body); // This includes refresh token, scope etc..
 
                 // 'expires_in is in minutes', according to http://docs.insteon.apiary.io/#reference/authorization/authorization-grant
-                
+                var expiration = Math.floor((new Date().getTime() / 1000) + (tokenInfo.expires_in * 60));
+
                 this._authTokens['refresh'].token = tokenInfo.refresh_token;
-                this._authTokens['refresh'].expiration = authToken.convertTtlToExpiration(tokenInfo.expires_in * 60);
+                this._authTokens['refresh'].expiration = expiration
 
                 this._authTokens['access'].token = tokenInfo.access_token;
-                this._authTokens['access'].expiration = authToken.convertTtlToExpiration(tokenInfo.expires_in * 60);
-
+                this._authTokens['access'].expiration = expiration
                 this._authTokens['access'].client_id = authInfo[1].client_id;
 
                 return this._authTokens;
@@ -434,8 +433,8 @@ class Translator {
 
         // Set the headers
         var headers = {
-            'Authorization': 'Bearer ' + this._authToken['access'].token,
-            'Authentication': 'APIKey ' + this._authToken['access'].client_id,
+            'Authorization': 'Bearer ' + this._authTokens['access'].token,
+            'Authentication': 'APIKey ' + this._authTokens['access'].client_id,
             'Accept': 'application/json'
         }
 

@@ -8,7 +8,6 @@
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var Crypto = require('crypto');
-var authToken = require('./common').authToken;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -132,10 +131,14 @@ class Translator {
             // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
             // so am assuming the caller of this API will expect nulls
 
+            var expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds);
+            
             this._authTokens['refresh'].token = body.refresh_token;
-            this._authTokens['refresh'].expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds)
+            this._authTokens['refresh'].expiration = expiration
 
             this._authTokens['access'].token = body.access_token;
+            this._authTokens['access'].expiration = expiration;
+
             return this._authTokens;
         });
     }
