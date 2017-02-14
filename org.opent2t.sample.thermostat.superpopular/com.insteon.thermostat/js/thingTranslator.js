@@ -182,7 +182,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
     
     if( providerSchema['fan'] !== undefined ) {
-        var fanMode = createResource('oic.r.sensor', 'oic.if.s', 'fanMode', expand, readFanMode(providerSchema));
+        var fanMode = createResource('oic.r.mode', 'oic.if.a', 'fanMode', expand, readFanMode(providerSchema));
         PlatformSchema.entities[0].resources.push(fanMode);
     }
     
@@ -244,31 +244,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-function getDeviceResource(translator, di, resourceId) {
-    validateResourceGet(resourceId);
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === generateGUID(controlId)) {
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return insteonHub.putDeviceDetailsAsync(controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response, true);
-                return findResource(schema, di, resourceId);
-            });
-    } else {
-        throw new Error('NotFound');
-    }
-}
-
-var controlId;
-var insteonHub;
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
@@ -277,131 +252,161 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        insteonHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.insteonHub = deviceInfo.hub;
 
         console.log('Insteon Thermostat initializing...Done');
     }
 
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return insteonHub.getDeviceDetailsAsync(controlId)
+            return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
         }
     }
+    
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(translator, di, resourceId) {
+        validateResourceGet(resourceId);
+        return translator.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === generateGUID(this.controlId)) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            throw new Error('NotFound');
+        }
+    }
 
     getDevicesAmbientTemperature(di) {
-        return getDeviceResource(this, di, 'ambientTemperature');
+        return this.getDeviceResource(this, di, 'ambientTemperature');
     }
 
     getDevicesTargetTemperature(di) {
-        return getDeviceResource(this, di, 'targetTemperature');
+        return this.getDeviceResource(this, di, 'targetTemperature');
     }
 
     postDevicesTargetTemperature(di, payload) {
-        return postDeviceResource(di, 'targetTemperature', payload);
+        return this.postDeviceResource(di, 'targetTemperature', payload);
     }
 
     getDevicesHumidity(di) {
-        return getDeviceResource(this, di, 'humidity');
+        return this.getDeviceResource(this, di, 'humidity');
     }
 
     getDevicesTargetTemperatureHigh(di) {
-        return getDeviceResource(this, di, 'targetTemperatureHigh');
+        return this.getDeviceResource(this, di, 'targetTemperatureHigh');
     }
 
     postDevicesTargetTemperatureHigh(di, payload) {
-        return postDeviceResource(di, 'targetTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'targetTemperatureHigh', payload);
     }
 
     getDevicesTargetTemperatureLow(di) {
-        return getDeviceResource(this, di, 'targetTemperatureLow');
+        return this.getDeviceResource(this, di, 'targetTemperatureLow');
     }
 
     postDevicesTargetTemperatureLow(di, payload) {
-        return postDeviceResource(di, 'targetTemperatureLow', payload);
+        return this.postDeviceResource(di, 'targetTemperatureLow', payload);
     }
 
     getDevicesAwayMode(di) {
-        return getDeviceResource(this, di, 'awayMode');
+        return this.getDeviceResource(this, di, 'awayMode');
     }
 
     postDevicesAwayMode(di, payload) {
-        return postDeviceResource(di, 'awayMode', payload);
+        return this.postDeviceResource(di, 'awayMode', payload);
     }
 
     getDevicesAwayTemperatureHigh(di) {
-        return getDeviceResource(this, di, 'awayTemperatureHigh');
+        return this.getDeviceResource(this, di, 'awayTemperatureHigh');
     }
 
     postDevicesAwayTemperatureHigh(di, payload) {
-        return postDeviceResource(di, 'awayTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'awayTemperatureHigh', payload);
     }
 
     getDevicesAwayTemperatureLow(di) {
-        return getDeviceResource(this, di, 'awayTemperatureLow');
+        return this.getDeviceResource(this, di, 'awayTemperatureLow');
     }
 
     postDevicesAwayTemperatureLow(di, payload) {
-        return postDeviceResource(di, 'awayTemperatureLow', payload);
+        return this.postDeviceResource(di, 'awayTemperatureLow', payload);
     }
 
     getDevicesEcoMode(di) {
-        return getDeviceResource(this, di, 'ecoMode');
+        return this.getDeviceResource(this, di, 'ecoMode');
     }
 
     getDevicesHvacMode(di) {
-        return getDeviceResource(this, di, 'hvacMode');
+        return this.getDeviceResource(this, di, 'hvacMode');
     }
 
     postDevicesHvacMode(di, payload) {
-        return postDeviceResource(di, 'hvacMode', payload);
+        return this.postDeviceResource(di, 'hvacMode', payload);
     }
 
     getDevicesHeatingFuelSource(di) {
-        return getDeviceResource(this, di, 'heatingFuelSource');
+        return this.getDeviceResource(this, di, 'heatingFuelSource');
     }
 
     getDevicesHasFan(di) {
-        return getDeviceResource(this, di, 'hasFan');
+        return this.getDeviceResource(this, di, 'hasFan');
     }
 
     getDevicesFanActive(di) {
-        return getDeviceResource(this, di, 'fanActive');
+        return this.getDeviceResource(this, di, 'fanActive');
     }
 
     getDevicesFanTimerActive(di) {
-        return getDeviceResource(this, di, 'fanTimerActive');
+        return this.getDeviceResource(this, di, 'fanTimerActive');
     }
 
     getDevicesFanTimerTimeout(di) {
-        return getDeviceResource(this, di, 'fanTimerTimeout');
+        return this.getDeviceResource(this, di, 'fanTimerTimeout');
     }
 
     postDevicesFanTimerTimeout(di, payload) {
-        return postDeviceResource(di, 'fanTimerTimeout', payload);
+        return this.postDeviceResource(di, 'fanTimerTimeout', payload);
     }
 
     getDevicesFanMode(di) {
-        return getDeviceResource(this, di, 'fanMode');
+        return this.getDeviceResource(this, di, 'fanMode');
     }
 
     postDevicesFanMode(di, payload) {
-        return postDeviceResource(di, 'fanMode', payload);
+        return this.postDeviceResource(di, 'fanMode', payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        return insteonHub._subscribe(subscriptionInfo);
+        return this.insteonHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        return insteonHub._unsubscribe(subscriptionInfo);
+        return this.insteonHub._unsubscribe(subscriptionInfo);
     }
 }
 
