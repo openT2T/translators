@@ -137,9 +137,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-var controlId;
-var insteonHub;
-
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
@@ -148,13 +145,11 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        insteonHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.insteonHub = deviceInfo.hub;
 
         console.log('Insteon Lightbulb initializing...Done');
     }
-
-    // exports for the entire schema object
 
     /**
      * Queries the entire state of the lamp
@@ -165,7 +160,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return insteonHub.getDeviceDetailsAsync(controlId)
+            return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -188,10 +183,10 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(controlId)) {
+        if (di === generateGUID(this.controlId)) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return insteonHub.putDeviceDetailsAsync(controlId, putPayload)
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
@@ -238,11 +233,11 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        return insteonHub.postSubscribe(subscriptionInfo);
+        return this.insteonHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        return insteonHub._unsubscribe(subscriptionInfo);
+        return this.insteonHub._unsubscribe(subscriptionInfo);
     }
 }
 
