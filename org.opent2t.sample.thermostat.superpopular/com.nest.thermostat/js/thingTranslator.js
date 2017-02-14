@@ -289,6 +289,9 @@ class Translator {
         }
     }
 
+     /**
+     * Finds a resource on a platform by the id
+     */
     getDeviceResource(di, resourceId) {
         validateResourceGet(resourceId);
 
@@ -426,7 +429,7 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
-        return this.nestHub.postSubscribe(subscriptionInfo);
+        return this.nestHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
