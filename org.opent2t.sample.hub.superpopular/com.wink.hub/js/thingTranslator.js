@@ -132,18 +132,10 @@ class Translator {
             // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
             // so am assuming the caller of this API will expect nulls
 
-            this._authTokens['refresh'].update(
-                body.refresh_token,
-                Math.floor(new Date().getTime() / 1000) + 86400, // Default to 24 hours (in seconds)
-                body.token_type,
-                body.scopes
-            );
+            this._authTokens['refresh'].token = body.refresh_token;
+            this._authTokens['refresh'].expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds)
 
-            this._authTokens['access'].update(
-                 body.access_token
-            );
-
-            console.log(JSON.stringify(_authTokens, null ,2));
+            this._authTokens['access'].token = body.access_token;
             return this._authTokens;
         });
     }

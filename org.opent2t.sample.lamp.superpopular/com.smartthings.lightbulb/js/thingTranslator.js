@@ -51,6 +51,8 @@ const ChangeTolerance = 0.0001;
 const MaxHue = 360.0;
 const MaxColor = 255;
 
+const lightDeviceDi = "c1e94444-792a-472b-9f91-dd4d96a24ee9"
+
 /**
  * Convert HSV to RGB colours
  *   0 <= Hue <= 360
@@ -204,7 +206,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-smartthings-lightbulb',
-            controlId: controlId
+            controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
         mnmn: validateValue(providerSchema['manufacturer']),
@@ -214,7 +216,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.light'],
-                di: providerSchema['id'],
+                di: lightDeviceDi,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -270,9 +272,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-var controlId;
-var smartThingsHub;
-
 // This translator class implements the 'opent2t.d.light' interface.
 class Translator {
 
@@ -281,8 +280,8 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        smartThingsHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Lightbulb initializing...Done');
     }
@@ -298,7 +297,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return smartThingsHub.getDeviceDetailsAsync(controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -319,10 +318,10 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === controlId) {
+        if (di === lightDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
 
@@ -333,50 +332,50 @@ class Translator {
         }
     }
 
-    getDevicesPower(controlId) {
-        return this.getDeviceResource(controlId, "power");
+    getDevicesPower(di) {
+        return this.getDeviceResource(di, "power");
     }
 
-    postDevicesPower(controlId, payload) {
-        return this.postDeviceResource(controlId, "power", payload)
+    postDevicesPower(di, payload) {
+        return this.postDeviceResource(di, "power", payload)
     }
 
-    getDevicesColourMode(controlId) {
-        return this.getDeviceResource(controlId, "colourMode");
+    getDevicesColourMode(di) {
+        return this.getDeviceResource(di, "colourMode");
     }
 
-    getDevicesColourRGB(controlId) {
-        return this.getDeviceResource(controlId, "colourRGB");
+    getDevicesColourRGB(di) {
+        return this.getDeviceResource(di, "colourRGB");
     }
 
-    postDevicesColourRGB(controlId, payload) {
-        return this.postDeviceResource(controlId, "colourRGB", payload);
+    postDevicesColourRGB(di, payload) {
+        return this.postDeviceResource(di, "colourRGB", payload);
     }
 
-    getDevicesDim(controlId) {
-        return this.getDeviceResource(controlId, "dim");
+    getDevicesDim(di) {
+        return this.getDeviceResource(di, "dim");
     }
 
-    postDevicesDim(controlId, payload) {
-        return this.postDeviceResource(controlId, "dim", payload);
+    postDevicesDim(di, payload) {
+        return this.postDeviceResource(di, "dim", payload);
     }
 
-    getDevicesColourChroma(controlId) {
-        return this.getDeviceResource(controlId, "colourChroma");
+    getDevicesColourChroma(di) {
+        return this.getDeviceResource(di, "colourChroma");
     }
 
-    postDevicesColourChroma(controlId, payload) {
-        return this.postDeviceResource(controlId, "colourChroma", payload);
+    postDevicesColourChroma(di, payload) {
+        return this.postDeviceResource(di, "colourChroma", payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }
 

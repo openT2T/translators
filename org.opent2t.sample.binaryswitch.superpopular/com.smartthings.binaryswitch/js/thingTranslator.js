@@ -43,7 +43,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.binaryswitch.superpopular',
             translator: 'opent2t-translator-com-smartthings-binaryswitch',
-            controlId: controlId
+            controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
         mnmn: validateValue(providerSchema['manufacturer']),
@@ -53,7 +53,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['oic.d.smartplug'],
-                di: providerSchema['id'],
+                di: switchDeviceDi,
                 resources: [ power ]
             }
         ]
@@ -86,30 +86,7 @@ function findResource(schema, di, resourceId) {
     return resource;
 }
 
-function getDeviceResource(translator, di, resourceId) {
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === controlId){
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return smartThingsHub.putDeviceDetailsAsync(controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response, true);
-
-                return findResource(schema, di, resourceId);
-            });
-    } else {
-        throw new Error('NotFound');
-    }
-}
-
-var controlId;
-var smartThingsHub;
+const switchDeviceDi = "d455d979-d1f9-430a-8a15-61c432eda4a2";
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -119,8 +96,8 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        smartThingsHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.smartThingsHub = deviceInfo.hub;
 
         console.log('SmartThings Binary Switch initializing...Done');
     }
@@ -134,29 +111,51 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return smartThingsHub.getDeviceDetailsAsync(controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
         }
     }
 
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    postDeviceResource(di, resourceId, payload) {
+        if (di === switchDeviceDi){
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response, true);
+
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            throw new Error('NotFound');
+        }
+    }
+
     getDevicesPower(di) {
-        return getDeviceResource(this, di, 'power');
+        return this.getDeviceResource(di, 'power');
     }
 
     postDevicesPower(di, payload) {
-        return postDeviceResource(di, 'power', payload);
+        return this.postDeviceResource(di, 'power', payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.controlId = controlId;
-        return smartThingsHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.controlId = this.controlId;
+        return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }
 

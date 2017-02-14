@@ -159,7 +159,7 @@ class Translator {
             url: 'https://connect.insteon.com/api/v2/oauth2/token',
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'grant_type=refresh_token&refresh_token=' + this.authTokens['refresh'].token + '&client_id=' + authInfo[1].client_id
+            body: 'grant_type=refresh_token&refresh_token=' + this._authTokens['refresh'].token + '&client_id=' + authInfo[1].client_id
         };
 
         return request(options).then((body) => {
@@ -167,14 +167,11 @@ class Translator {
 
                 // 'expires_in is in minutes', according to http://docs.insteon.apiary.io/#reference/authorization/authorization-grant
                 
-                this._authTokens['refresh'].update(
-                    tokenInfo.refresh_token
-                );
+                this._authTokens['refresh'].token = tokenInfo.refresh_token;
+                this._authTokens['refresh'].expiration = authToken.convertTtlToExpiration(tokenInfo.expires_in * 60);
 
-                this._authTokens['access'].update(
-                    tokenInfo.access_token,
-                    authToken.convertTtlToExpiration(tokenInfo.expires_in * 60)
-                );
+                this._authTokens['access'].token = tokenInfo.access_token;
+                this._authTokens['access'].expiration = authToken.convertTtlToExpiration(tokenInfo.expires_in * 60);
 
                 this._authTokens['access'].client_id = authInfo[1].client_id;
 
@@ -438,7 +435,7 @@ class Translator {
         // Set the headers
         var headers = {
             'Authorization': 'Bearer ' + this._authToken['access'].token,
-            'Authentication': 'APIKey ' + this._authToken['access'].apiKey,
+            'Authentication': 'APIKey ' + this._authToken['access'].client_id,
             'Accept': 'application/json'
         }
 
