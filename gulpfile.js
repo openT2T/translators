@@ -55,6 +55,6 @@ gulp.task('unittest', function () {
     .pipe(ava({verbose: true}))
 });
 
-gulp.task('ci-checks', ['js-lint', 'json-lint', 'xml-lint', 'validate-naming']);
+gulp.task('ci-checks', ['js-lint', 'json-lint', 'xml-lint', 'validate-naming', 'unittest']);
 
 gulp.task('default', ['ci-checks']);
