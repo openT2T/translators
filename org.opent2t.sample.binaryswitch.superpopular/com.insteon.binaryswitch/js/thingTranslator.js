@@ -57,15 +57,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         power.value = providerSchema['Power'] === 'on';
     }
 
-    var guid = generateGUID(providerSchema['DeviceID']);
-
     return {
         opent2t: {
             schema: 'org.opent2t.sample.binaryswitch.superpopular',
             translator: 'opent2t-translator-com-insteon-binaryswitch',
             controlId: providerSchema['DeviceID']
         },
-        pi: guid,
+        pi: generateGUID(providerSchema['DeviceID']),
         mnmn: providerSchema['device_manufacturer'],
         mnmo: providerSchema['manufacturer_device_model'],
         n: providerSchema['DeviceName'],
@@ -73,7 +71,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['oic.d.smartplug'],
-                di: guid,
+                di: switchDeviceDi,
                 resources: [
                     power
                 ]
@@ -100,6 +98,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     }
     return result;
 }
+
+const switchDeviceDi = "f9604075-1a64-498b-ae9b-7436a63721ba";
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -134,8 +134,8 @@ class Translator {
     /**
      * Finds a resource on a platform by the id
      */
-    getDeviceResource(translator, di, resourceId) {
-        return translator.get(true)
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
             });
@@ -145,7 +145,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId)) {
+        if (di === switchDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
@@ -157,7 +157,7 @@ class Translator {
     }
 
     getDevicesPower(di) {
-        return this.getDeviceResource(this, di, 'power');
+        return this.getDeviceResource(di, 'power');
     }
 
     postDevicesPower(di, payload) {

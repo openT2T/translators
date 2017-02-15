@@ -144,8 +144,8 @@ class Translator {
     /**
      * Finds a resource on a platform by the id
      */
-    getDeviceResource(translator, di, resourceId) {
-        return translator.get(true)
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
             });
@@ -169,7 +169,7 @@ class Translator {
 
 
     getDevicesPower(di) {
-        return this.getDeviceResource(this, di, 'power');
+        return this.getDeviceResource(di, 'power');
     }
 
     postDevicesPower(di, payload) {

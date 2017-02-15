@@ -28,7 +28,7 @@ function findResource(schema, di, resourceId) {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    if (!resource) throw new Error('NotFound');
     return resource;
 }
 
@@ -285,10 +285,10 @@ class Translator {
     /**
      * Finds a resource on a platform by the id
      */
-    getDeviceResource(translator, di, resourceId) {
+    getDeviceResource(di, resourceId) {
         validateResourceGet(resourceId);
 
-        return translator.get(true)
+        return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
             });
@@ -313,11 +313,11 @@ class Translator {
     }
 
     getDevicesAmbientTemperature(di) {
-        return this.getDeviceResource(this, di, 'ambientTemperature');
+        return this.getDeviceResource(di, 'ambientTemperature');
     }
 
     getDevicesTargetTemperature(di) {
-        return this.getDeviceResource(this, di, 'targetTemperature');
+        return this.getDeviceResource(di, 'targetTemperature');
     }
 
     postDevicesTargetTemperature(di, payload) {
@@ -325,11 +325,11 @@ class Translator {
     }
 
     getDevicesHumidity(di) {
-        return this.getDeviceResource(this, di, 'humidity');
+        return this.getDeviceResource(di, 'humidity');
     }
 
     getDevicesTargetTemperatureHigh(di) {
-        return this.getDeviceResource(this, di, 'targetTemperatureHigh');
+        return this.getDeviceResource(di, 'targetTemperatureHigh');
     }
 
     postDevicesTargetTemperatureHigh(di, payload) {
@@ -337,7 +337,7 @@ class Translator {
     }
 
     getDevicesTargetTemperatureLow(di) {
-        return this.getDeviceResource(this, di, 'targetTemperatureLow');
+        return this.getDeviceResource(di, 'targetTemperatureLow');
     }
 
     postDevicesTargetTemperatureLow(di, payload) {
@@ -345,7 +345,7 @@ class Translator {
     }
 
     getDevicesAwayMode(di) {
-        return this.getDeviceResource(this, di, 'awayMode');
+        return this.getDeviceResource(di, 'awayMode');
     }
 
     postDevicesAwayMode(di, payload) {
@@ -353,7 +353,7 @@ class Translator {
     }
 
     getDevicesAwayTemperatureHigh(di) {
-        return this.getDeviceResource(this, di, 'awayTemperatureHigh');
+        return this.getDeviceResource(di, 'awayTemperatureHigh');
     }
 
     postDevicesAwayTemperatureHigh(di, payload) {
@@ -361,7 +361,7 @@ class Translator {
     }
 
     getDevicesAwayTemperatureLow(di) {
-        return this.getDeviceResource(this, di, 'awayTemperatureLow');
+        return this.getDeviceResource(di, 'awayTemperatureLow');
     }
 
     postDevicesAwayTemperatureLow(di, payload) {
@@ -369,11 +369,11 @@ class Translator {
     }
 
     getDevicesEcoMode(di) {
-        return this.getDeviceResource(this, di, 'ecoMode');
+        return this.getDeviceResource(di, 'ecoMode');
     }
 
     getDevicesHvacMode(di) {
-        return this.getDeviceResource(this, di, 'hvacMode');
+        return this.getDeviceResource(di, 'hvacMode');
     }
 
     postDevicesHvacMode(di, payload) {
@@ -381,23 +381,23 @@ class Translator {
     }
 
     getDevicesHeatingFuelSource(di) {
-        return this.getDeviceResource(this, di, 'heatingFuelSource');
+        return this.getDeviceResource(di, 'heatingFuelSource');
     }
 
     getDevicesHasFan(di) {
-        return this.getDeviceResource(this, di, 'hasFan');
+        return this.getDeviceResource(di, 'hasFan');
     }
 
     getDevicesFanActive(di) {
-        return this.getDeviceResource(this, di, 'fanActive');
+        return this.getDeviceResource(di, 'fanActive');
     }
 
     getDevicesFanTimerActive(di) {
-        return this.getDeviceResource(this, di, 'fanTimerActive');
+        return this.getDeviceResource(di, 'fanTimerActive');
     }
 
     getDevicesFanTimerTimeout(di) {
-        return this.getDeviceResource(this, di, 'fanTimerTimeout');
+        return this.getDeviceResource(di, 'fanTimerTimeout');
     }
 
     postDevicesFanTimerTimeout(di, payload) {
@@ -405,7 +405,7 @@ class Translator {
     }
 
     getDevicesFanMode(di) {
-        return this.getDeviceResource(this, di, 'fanMode');
+        return this.getDeviceResource(di, 'fanMode');
     }
 
     postDevicesFanMode(di, payload) {

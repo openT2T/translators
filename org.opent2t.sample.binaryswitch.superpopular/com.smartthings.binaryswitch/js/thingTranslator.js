@@ -71,7 +71,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['oic.d.smartplug'],
-                di: providerSchema['id'],
+                di: switchDeviceDi,
                 resources: [ power ]
             }
         ]
@@ -89,7 +89,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     }
 
     return result;
-} 
+}
+
+const switchDeviceDi = "d455d979-d1f9-430a-8a15-61c432eda4a2";
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -121,21 +123,15 @@ class Translator {
         }
     }
 
-    /**
-     * Finds a resource on a platform by the id
-     */
-    getDeviceResource(translator, di, resourceId) {
-        return translator.get(true)
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
             });
     }
-    
-    /**
-     * Updates the specified resource with the provided payload.
-     */
+
     postDeviceResource(di, resourceId, payload) {
-        if (di === this.controlId){
+        if (di === switchDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
@@ -147,9 +143,9 @@ class Translator {
             throw new Error('NotFound');
         }
     }
-    
+
     getDevicesPower(di) {
-        return this.getDeviceResource(this, di, 'power');
+        return this.getDeviceResource(di, 'power');
     }
 
     postDevicesPower(di, payload) {
