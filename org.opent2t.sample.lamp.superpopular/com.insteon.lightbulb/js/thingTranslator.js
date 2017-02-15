@@ -71,15 +71,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.range = [0, 100];
     }
 
-    var guid = generateGUID(providerSchema['DeviceID']);
-
     return {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-insteon-lightbulb',
             controlId: providerSchema['DeviceID']
         },
-        pi: guid,
+        pi: generateGUID(providerSchema['DeviceID']),
         mnmn: 'Undefined',
         mnmo: 'Undefined',
         n: providerSchema['DeviceName'],
@@ -87,7 +85,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.light'],
-                di: guid,
+                di: lightbulbDeviceDi,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -137,6 +135,8 @@ function validateResourceGet(resourceId) {
     }
 }
 
+const lightbulbDeviceDi = "882b5bb8-5522-4c77-b09a-e761842eb1e2";
+
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
@@ -183,7 +183,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId)) {
+        if (di === lightbulbDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
@@ -196,40 +196,40 @@ class Translator {
 
     // exports for individual properties
 
-    getDevicesPower(deviceId) {
-        return this.getDeviceResource(deviceId, "power");
+    getDevicesPower(di) {
+        return this.getDeviceResource(di, "power");
     }
 
-    postDevicesPower(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "power", payload)
+    postDevicesPower(di, payload) {
+        return this.postDeviceResource(di, "power", payload)
     }
 
-    getDevicesColourMode(deviceId) {
-        return this.getDeviceResource(deviceId, "colourMode");
+    getDevicesColourMode(di) {
+        return this.getDeviceResource(di, "colourMode");
     }
 
-    getDevicesColourRGB(deviceId) {
-        return this.getDeviceResource(deviceId, "colourRgb");
+    getDevicesColourRGB(di) {
+        return this.getDeviceResource(di, "colourRgb");
     }
 
-    postDevicesColourRGB(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourRgb", payload);
+    postDevicesColourRGB(di, payload) {
+        return this.postDeviceResource(di, "colourRgb", payload);
     }
 
-    getDevicesDim(deviceId) {
-        return this.getDeviceResource(deviceId, "dim");
+    getDevicesDim(di) {
+        return this.getDeviceResource(di, "dim");
     }
 
-    postDevicesDim(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "dim", payload);
+    postDevicesDim(di, payload) {
+        return this.postDeviceResource(di, "dim", payload);
     }
 
-    getDevicesColourChroma(deviceId) {
-        return this.getDeviceResource(deviceId, "colourChroma");
+    getDevicesColourChroma(di) {
+        return this.getDeviceResource(di, "colourChroma");
     }
 
-    postDevicesColourChroma(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourChroma", payload);
+    postDevicesColourChroma(di, payload) {
+        return this.postDeviceResource(di, "colourChroma", payload);
     }
 
     postSubscribe(subscriptionInfo) {

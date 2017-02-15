@@ -51,6 +51,8 @@ const ChangeTolerance = 0.0001;
 const MaxHue = 360.0;
 const MaxColor = 255;
 
+const lightDeviceDi = "c1e94444-792a-472b-9f91-dd4d96a24ee9"
+
 /**
  * Convert HSV to RGB colours
  *   0 <= Hue <= 360
@@ -213,7 +215,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.light'],
-                di: providerSchema['id'],
+                di: lightDeviceDi,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -313,7 +315,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === this.controlId) {
+        if (di === lightDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)

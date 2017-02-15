@@ -151,15 +151,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan'] !== undefined
     });
 
-    var guid = generateGUID( providerSchema['DeviceID'] );
-    
     var PlatformSchema =  {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-insteon-thermostat',
             controlId: providerSchema['DeviceID']
         },
-        pi: guid,
+        pi: generateGUID( providerSchema['DeviceID'] ),
         mnmn: 'Undefined',
         mnmo: 'Undefined',
         n: providerSchema['DeviceName'],
@@ -167,7 +165,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.thermostat'],
-                di: guid,
+                di: thermostatDeviceDi,
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -245,6 +243,8 @@ function validateResourceGet(resourceId) {
     }
 }
 
+const thermostatDeviceDi = "6d3b1cbc-2532-44ba-80f5-a41b60213c04";
+
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
@@ -277,9 +277,9 @@ class Translator {
     /**
      * Finds a resource on a platform by the id
      */
-    getDeviceResource(translator, di, resourceId) {
+    getDeviceResource(di, resourceId) {
         validateResourceGet(resourceId);
-        return translator.get(true)
+        return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
             });
@@ -289,7 +289,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId)) {
+        if (di === thermostatDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
@@ -303,11 +303,11 @@ class Translator {
     }
 
     getDevicesAmbientTemperature(di) {
-        return this.getDeviceResource(this, di, 'ambientTemperature');
+        return this.getDeviceResource(di, 'ambientTemperature');
     }
 
     getDevicesTargetTemperature(di) {
-        return this.getDeviceResource(this, di, 'targetTemperature');
+        return this.getDeviceResource(di, 'targetTemperature');
     }
 
     postDevicesTargetTemperature(di, payload) {
@@ -315,11 +315,11 @@ class Translator {
     }
 
     getDevicesHumidity(di) {
-        return this.getDeviceResource(this, di, 'humidity');
+        return this.getDeviceResource(di, 'humidity');
     }
 
     getDevicesTargetTemperatureHigh(di) {
-        return this.getDeviceResource(this, di, 'targetTemperatureHigh');
+        return this.getDeviceResource(di, 'targetTemperatureHigh');
     }
 
     postDevicesTargetTemperatureHigh(di, payload) {
@@ -327,7 +327,7 @@ class Translator {
     }
 
     getDevicesTargetTemperatureLow(di) {
-        return this.getDeviceResource(this, di, 'targetTemperatureLow');
+        return this.getDeviceResource(di, 'targetTemperatureLow');
     }
 
     postDevicesTargetTemperatureLow(di, payload) {
@@ -335,7 +335,7 @@ class Translator {
     }
 
     getDevicesAwayMode(di) {
-        return this.getDeviceResource(this, di, 'awayMode');
+        return this.getDeviceResource(di, 'awayMode');
     }
 
     postDevicesAwayMode(di, payload) {
@@ -343,7 +343,7 @@ class Translator {
     }
 
     getDevicesAwayTemperatureHigh(di) {
-        return this.getDeviceResource(this, di, 'awayTemperatureHigh');
+        return this.getDeviceResource(di, 'awayTemperatureHigh');
     }
 
     postDevicesAwayTemperatureHigh(di, payload) {
@@ -351,7 +351,7 @@ class Translator {
     }
 
     getDevicesAwayTemperatureLow(di) {
-        return this.getDeviceResource(this, di, 'awayTemperatureLow');
+        return this.getDeviceResource(di, 'awayTemperatureLow');
     }
 
     postDevicesAwayTemperatureLow(di, payload) {
@@ -359,11 +359,11 @@ class Translator {
     }
 
     getDevicesEcoMode(di) {
-        return this.getDeviceResource(this, di, 'ecoMode');
+        return this.getDeviceResource(di, 'ecoMode');
     }
 
     getDevicesHvacMode(di) {
-        return this.getDeviceResource(this, di, 'hvacMode');
+        return this.getDeviceResource(di, 'hvacMode');
     }
 
     postDevicesHvacMode(di, payload) {
@@ -371,23 +371,23 @@ class Translator {
     }
 
     getDevicesHeatingFuelSource(di) {
-        return this.getDeviceResource(this, di, 'heatingFuelSource');
+        return this.getDeviceResource(di, 'heatingFuelSource');
     }
 
     getDevicesHasFan(di) {
-        return this.getDeviceResource(this, di, 'hasFan');
+        return this.getDeviceResource(di, 'hasFan');
     }
 
     getDevicesFanActive(di) {
-        return this.getDeviceResource(this, di, 'fanActive');
+        return this.getDeviceResource(di, 'fanActive');
     }
 
     getDevicesFanTimerActive(di) {
-        return this.getDeviceResource(this, di, 'fanTimerActive');
+        return this.getDeviceResource(di, 'fanTimerActive');
     }
 
     getDevicesFanTimerTimeout(di) {
-        return this.getDeviceResource(this, di, 'fanTimerTimeout');
+        return this.getDeviceResource(di, 'fanTimerTimeout');
     }
 
     postDevicesFanTimerTimeout(di, payload) {
@@ -395,7 +395,7 @@ class Translator {
     }
 
     getDevicesFanMode(di) {
-        return this.getDeviceResource(this, di, 'fanMode');
+        return this.getDeviceResource(di, 'fanMode');
     }
 
     postDevicesFanMode(di, payload) {
