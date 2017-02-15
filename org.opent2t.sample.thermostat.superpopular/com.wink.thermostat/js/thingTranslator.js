@@ -22,7 +22,7 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+    if (!entity) throw new Error('NotFound');
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;

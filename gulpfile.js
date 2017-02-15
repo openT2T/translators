@@ -2,6 +2,7 @@
 
 const NO_MODULES = '!**/node_modules/**';
 var gulp = require('gulp');
+var ava = require('gulp-ava');
 var xmlValidator = require('gulp-xml-validator');
 var eslint = require('gulp-eslint');
 var InterfaceValidator = require('./verifiers/interfaceValidator');
@@ -49,6 +50,11 @@ gulp.task('raml-lint', () => {
         .pipe(eslint.failAfterError());
 });
 
-gulp.task('ci-checks', ['js-lint', 'json-lint', 'xml-lint', 'validate-naming']);
+gulp.task('unittest', function () {
+  return gulp.src(['**/js/tests/unitTests.js', NO_MODULES])
+    .pipe(ava({verbose: true}))
+});
+
+gulp.task('ci-checks', ['js-lint', 'json-lint', 'xml-lint', 'validate-naming', 'unittest']);
 
 gulp.task('default', ['ci-checks']);
