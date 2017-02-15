@@ -24,7 +24,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('Entity - '+ di +' not found.');
+        throw new Error('NotFound');
     }
 
     var resource = entity.resources.find((r) => {
@@ -142,7 +142,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     
     // remove the '%' sign at the end the providerSchema for humidity
     var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
-        humidity: providerSchema['humidity'] === undefined ? undefined : providerSchema['humidity'].slice(0, -1)
+        humidity: providerSchema['humidity'] === undefined ? undefined : Number(providerSchema['humidity'].slice(0, -1))
     });
 
     var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, readHvacMode(providerSchema));
@@ -234,6 +234,7 @@ function validateResourceGet(resourceId) {
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'heatingFuelSource':
+        case 'fanActive':
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'awayMode':
