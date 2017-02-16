@@ -10,6 +10,19 @@ var OpenT2T = require('opent2t').OpenT2T;
 var Crypto = require('crypto');
 
 /**
+ * Gets a property from a JSON dictionary without case sensitivity
+ * this will return the first item it finds, though multiple may match
+ * in JSON.
+ */
+function getDictionaryItemCaseInsensitive(obj, propertyName) {
+    for(var name in obj) {
+        if (propertyName.toUpperCase() == name.toUpperCase()) {
+            return obj[name];
+        }
+    }
+}
+
+/**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
@@ -45,16 +58,27 @@ class Translator {
         // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
         // converted to the opent2t/ocf representation.
         if (payload !== undefined) {
+
+            // The payload must be an object for translation, and a string/buffer for calculating
+            // the HMAC. Ensure we have a copy in both formats
+            var payloadAsString = typeof payload == 'object' ? JSON.stringify(payload) : payload;
+            var payloadAsObject = typeof payload == 'object' ? payload : JSON.parse(payload);
+
             // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
-                var hashFromWink = verification.header["X-Hub-Signature"];
-                if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
-                    throw new Error("Payload signature doesn't match.");
+                // HTTP headers are case insensitive, while the JSON dictionary is case sensitive,
+                // so the hub signature can be either x-hub-signature or X-Hub-Signature depending on
+                // what server was used to capture the notification POST request.
+                var hashFromWink = getDictionaryItemCaseInsensitive(verification.header, "x-hub-signature");
+                var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
+
+                if (hashFromWink != hashFromPayload) {
+                    throw new Error("Notification signature doesn't match.  Expecting " + hashFromWink + " and calculated " + hashFromPayload);
                 }
             }
 
-            // Return the verified payload 
-            return this._providerSchemaToPlatformSchema(payload, expand);
+            // Return the verified payload
+            return this._providerSchemaToPlatformSchema(payloadAsObject, expand);
         }
         else {
             return this._makeRequest(this._devicesPath, 'GET').then((response) => {
@@ -469,15 +493,12 @@ class Translator {
     }
 
     /** 
-     * Calculates a new hash of contents using key, and compares it to the master hash.
-     * Returns true is the contents can be verified.
+     * Calculates a new hash of contents using key.
      */
-    _verifyHmac(hash, key, contents) {
+    _generateHmac(key, contents) {
         var hmac = Crypto.createHmac("sha1", key);
         hmac.update(contents.toString());
-        var crypted = hmac.digest("hex");
-
-        return (crypted == hash);
+        return hmac.digest("hex");
     }
 }
 
