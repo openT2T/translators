@@ -1,37 +1,13 @@
 {   "base_state" :
-    {   "data" :
-        {
-            "desired_state" : {
-                "max_set_point" : 100,
-                "min_set_point" : 0,
-                "units" : "C",
-                "temperature" : 50,
-                "users_away" : false,
-                "has_fan" : true,
-                "eco_target" : false,
-                "modes_allowed" : ["heat", "cool"],
-                "mode" : "cool",
-                "fan_timer_active" : false,
-                "external_temperature" : 200,
-            "powered" : false
-            },
-            "last_reading" : {
-                "max_set_point" : 100,
-                "min_set_point" : 0,
-                "units" : "C",
-                "temperature" : 50,
-                "users_away" : false,
-                "has_fan" : true,
-                "eco_target" : false,
-                "modes_allowed" : ["heat", "cool"],
-                "mode" : "cool",
-                "fan_timer_active" : false,
-                "external_temperature" : 200
-            },
-            "object_type" : "Mock Type",
-            "object_id" : "D5D37EB6-F428-41FA-AC5D-918F084A4C93",
-            "name" : "Mock Name"
-        }
+    {   
+        "ambient" : 25,
+        "DeviceID" : "Mock Device",
+        "unit" : "c",
+        "cool_point" : 28,
+        "heat_point" : 20,
+        "mode" : "auto",
+        "fan" : "auto",
+        "humidity" : "25%"
     },
     "test_data" :
     {
@@ -50,13 +26,25 @@
         "SetTargetTemperatureHigh" :
             [
                 {
-                    "max_set_point" : 22
+                    "cool_point"  : 7
                 }
             ],
         "SetTargetTemperatureLow" :
             [
                 {
-                    "min_set_point" : 19
+                    "heat_point"  : 19
+                }
+            ],
+        "SetHvacMode" :
+            [
+                {
+                    "mode" : "auto"
+                }
+            ],
+        "SetFanMode" :
+            [
+                {
+                    "fan" : "auto"
                 }
             ]
     }

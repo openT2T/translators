@@ -71,15 +71,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.range = [0, 100];
     }
 
-    var guid = generateGUID(providerSchema['DeviceID']);
-
     return {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-insteon-lightbulb',
             controlId: providerSchema['DeviceID']
         },
-        pi: guid,
+        pi: generateGUID(providerSchema['DeviceID']),
         mnmn: 'Undefined',
         mnmo: 'Undefined',
         n: providerSchema['DeviceName'],
@@ -87,7 +85,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 rt: ['opent2t.d.light'],
-                di: guid,
+                di: lightbulbDeviceDi,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -117,6 +115,10 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'n':
             result['DeviceName'] = resourceSchema.n;
             break;
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
         default:
             // Error case
             throw new Error("Invalid resourceId");
@@ -124,8 +126,16 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     return result;
 }
 
-var controlId;
-var insteonHub;
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
+    }
+}
+
+const lightbulbDeviceDi = "882b5bb8-5522-4c77-b09a-e761842eb1e2";
 
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
@@ -135,13 +145,11 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        insteonHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.insteonHub = deviceInfo.hub;
 
         console.log('Insteon Lightbulb initializing...Done');
     }
-
-    // exports for the entire schema object
 
     /**
      * Queries the entire state of the lamp
@@ -152,7 +160,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return insteonHub.getDeviceDetailsAsync(controlId)
+            return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -163,6 +171,8 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
         return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
@@ -173,10 +183,10 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(controlId)) {
+        if (di === lightbulbDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return insteonHub.putDeviceDetailsAsync(controlId, putPayload)
+            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
@@ -186,48 +196,48 @@ class Translator {
 
     // exports for individual properties
 
-    getDevicesPower(deviceId) {
-        return this.getDeviceResource(deviceId, "power");
+    getDevicesPower(di) {
+        return this.getDeviceResource(di, "power");
     }
 
-    postDevicesPower(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "power", payload)
+    postDevicesPower(di, payload) {
+        return this.postDeviceResource(di, "power", payload)
     }
 
-    getDevicesColourMode(deviceId) {
-        return this.getDeviceResource(deviceId, "colourMode");
+    getDevicesColourMode(di) {
+        return this.getDeviceResource(di, "colourMode");
     }
 
-    getDevicesColourRGB(deviceId) {
-        return this.getDeviceResource(deviceId, "colourRgb");
+    getDevicesColourRGB(di) {
+        return this.getDeviceResource(di, "colourRgb");
     }
 
-    postDevicesColourRGB(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourRgb", payload);
+    postDevicesColourRGB(di, payload) {
+        return this.postDeviceResource(di, "colourRgb", payload);
     }
 
-    getDevicesDim(deviceId) {
-        return this.getDeviceResource(deviceId, "dim");
+    getDevicesDim(di) {
+        return this.getDeviceResource(di, "dim");
     }
 
-    postDevicesDim(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "dim", payload);
+    postDevicesDim(di, payload) {
+        return this.postDeviceResource(di, "dim", payload);
     }
 
-    getDevicesColourChroma(deviceId) {
-        return this.getDeviceResource(deviceId, "colourChroma");
+    getDevicesColourChroma(di) {
+        return this.getDeviceResource(di, "colourChroma");
     }
 
-    postDevicesColourChroma(deviceId, payload) {
-        return this.postDeviceResource(deviceId, "colourChroma", payload);
+    postDevicesColourChroma(di, payload) {
+        return this.postDeviceResource(di, "colourChroma", payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        return insteonHub.postSubscribe(subscriptionInfo);
+        return this.insteonHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        return insteonHub._unsubscribe(subscriptionInfo);
+        return this.insteonHub._unsubscribe(subscriptionInfo);
     }
 }
 

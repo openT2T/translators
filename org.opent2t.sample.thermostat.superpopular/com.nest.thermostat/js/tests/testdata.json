@@ -1,0 +1,11 @@
+{  "expected_exceptions" :
+    {
+        "GetHeatingFuelSource" : "NotImplemented",
+        "GetFanTimerTimeout" : "NotImplemented",
+        "GetFanMode" : "NotImplemented",
+        "SetFanMode" : "NotImplemented",
+        "SetAwayTemperatureHigh" : "NotMutable",
+        "SetAwayTemperatureLow" : "NotMutable",
+        "SetFanTimerTimeout" : "NotMutable"
+    }
+}

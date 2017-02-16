@@ -1,35 +1,27 @@
 {   "base_state" :
-    {   "data" :
-        {
-            "desired_state" : {
-                "powered" : false
-            },
-            "last_reading" : {
-                "powered" : false
-            },
-            "object_type" : "Mock Type",
-            "object_id" : "F8CFB903-58BB-4753-97E0-72BD7DBC7933",
-            "name" : "Mock Name"
-        }
+    {
+        "DeviceID" : "Mock Device",
+        "Power" : "off",
+        "Level" : 10
     },
     "test_data" :
     {
         "SetPower" :
             [
                 {
-                    "powered" : true
+                    "Power" : "on"
                 },
                 {
-                    "powered" : false
+                    "Power" : "off"
                 }
             ],
         "SetDimming" :
             [
                 {
-                    "brightness" : 0.1
+                    "Level" : 10
                 },
                 {
-                    "brightness" : 0.5
+                    "Level" : 50
                 }
             ]
     }

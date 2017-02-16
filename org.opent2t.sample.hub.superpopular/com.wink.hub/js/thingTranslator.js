@@ -9,14 +9,13 @@ var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var Crypto = require('crypto');
-var accessTokenInfo = require('./common').accessTokenInfo;
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(accessToken) {
-        this._accessToken = accessToken;
+    constructor(authTokens) {
+        this._authTokens = authTokens;
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
@@ -120,22 +119,28 @@ class Translator {
             'client_id': authInfo[1].client_id,
             'client_secret': authInfo[1].client_secret,
             'grant_type': 'refresh_token',
-            'refresh_token': this._accessToken.refreshToken,
+            'refresh_token': this._authTokens['refresh'].token,
         });
 
         return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
         {
+            
             // _makeRequest() already returns a JSON representation of the POST response body
             // return the auth properties out in our own response back
-             return new accessTokenInfo(
-                    body.access_token,
-                    body.refresh_token,
-                    body.token_type,
-                    body.scopes
-                );
+
             // there isn't a 'scopes' property returned as a result of this request according to
             // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
             // so am assuming the caller of this API will expect nulls
+
+            var expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds);
+            
+            this._authTokens['refresh'].token = body.refresh_token;
+            this._authTokens['refresh'].expiration = expiration
+
+            this._authTokens['access'].token = body.access_token;
+            this._authTokens['access'].expiration = expiration;
+
+            return this._authTokens;
         });
     }
 
@@ -395,7 +400,7 @@ class Translator {
 
         // Set the headers
         if (includeBearerHeader) {
-            headers['Authorization'] = 'Bearer ' + this._accessToken.accessToken;
+            headers['Authorization'] = 'Bearer ' + this._authTokens['access'].token;
             headers['Accept'] = 'application/json';
         }
 

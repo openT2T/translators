@@ -9,14 +9,14 @@ var Firebase = require("firebase");
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(accessToken) {
-        this._accessToken = accessToken;
+    constructor(authTokens) {
+        this._authTokens = authTokens;
         this._baseUrl = "https://developer-api.nest.com";
         this._devicesPath = 'devices/';
         this._structPath = 'structures/';
         this._name = "Nest Hub";
         this._firebaseRef = new Firebase(this._baseUrl);
-        this._firebaseRef.authWithCustomToken(this._accessToken.accessToken);
+        this._firebaseRef.authWithCustomToken(this._authTokens['access'].token);
     }
 
     /**
@@ -47,7 +47,7 @@ class Translator {
      * https://developers.nest.com/documentation/cloud/authorization-reference
      */
     refreshAuthToken(authInfo) {
-        return this._accessToken;
+        return this._authTokens;
     }
 
 
