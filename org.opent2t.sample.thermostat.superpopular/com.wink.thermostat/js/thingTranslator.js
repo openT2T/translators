@@ -24,13 +24,18 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
+    }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('NotFound');
+    if (!resource) {
+        throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
+    }
+    
     return resource;
 }
 
@@ -248,54 +253,6 @@ function validateResourceGet(resourceId) {
             throw new OpenT2TError(501, 'NotImplemented');
     }
 }
-
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new OpenT2TError(404, 'NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new OpenT2TError(404, 'NotFound');
-    }
-
-    return resource;
-}
-
-function getDeviceResource(translator, di, resourceId) {
-    validateResourceGet(resourceId);
-
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === deviceIds['opent2t.d.thermostat']) {
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return winkHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response.data, true);
-
-                return findResource(schema, di, resourceId);
-            });
-    } else {
-        throw new OpenT2TError(404, 'NotFound');
-    }
-}
-
-var controlId;
-var deviceType = 'thermostats';
-var winkHub;
 
 var deviceIds = {
     'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
