@@ -249,7 +249,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-<<<<<<< HEAD
 function findResource(schema, di, resourceId) {
     var entity = schema.entities.find((d) => {
         return d.di === di;
@@ -298,8 +297,6 @@ var controlId;
 var deviceType = 'thermostats';
 var winkHub;
 
-=======
->>>>>>> upstream/dev
 var deviceIds = {
     'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
     'opent2t.d.thermostat': 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
