@@ -19,7 +19,8 @@
     ]
   },
   "dependencies": {
-    "opent2t-translator-com-wink-hub": "^1.2.0"
+    "opent2t-translator-com-wink-hub": "^1.2.0",
+    "opent2t": "^1.0.1"
   },
   "devDependencies": {
     "optimist": "*",

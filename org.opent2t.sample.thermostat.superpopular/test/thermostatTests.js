@@ -1,6 +1,8 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 var translator = undefined;
 
@@ -16,7 +18,7 @@ function runThermostatTests(settings) {
         }
 
         if(expectedException !== undefined) {
-            t.throws(testMethod(), expectedException);
+            t.throws(testMethod(), OpenT2TError);
         }
         else {
             return testMethod();
@@ -303,11 +305,11 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetTargetTemperatureForNonexistentDevice_Fails', t => {
-        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000']), 'NotFound');
+        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000']), OpenT2TError);
     });
 
     test.serial('SetAwayModeForNonexistentDevice_Fails', t => {
-        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}]), 'NotFound');
+        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}]), OpenT2TError);
     });
 }
 
