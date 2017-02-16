@@ -7,7 +7,7 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
-var OpenT2TErrorClass = require('opent2t').OpenT2TError;
+var OpenT2TError = require('opent2t').OpenT2TError;
 var Crypto = require('crypto');
 var accessTokenInfo = require('./common').accessTokenInfo;
 
@@ -51,7 +51,7 @@ class Translator {
             if (verification !== undefined && verification.key !== undefined) {
                 var hashFromWink = verification.header["X-Hub-Signature"];
                 if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
-                    throw new OpenT2TErrorClass(400, "Payload signature doesn't match.");
+                    throw new OpenT2TError(401, "Payload signature doesn't match.");
                 }
             }
 
@@ -103,8 +103,8 @@ class Translator {
     refreshAuthToken(authInfo) {
         var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
         
-        if (authInfo === undefined || authInfo == null){
-            throw new OpenT2TErrorClass(400, invalidAuthErrorMessage); 
+        if (!authInfo){
+            throw new OpenT2TError(401, invalidAuthErrorMessage); 
         }
 
         if (authInfo.length !== 2)
@@ -112,7 +112,7 @@ class Translator {
             // We expect the original authInfo object used in the onboarding flow
             // not defining a brand new type for the Refresh() contract and re-using
             // what is defined for Onboarding()
-            throw new OpenT2TErrorClass(400, invalidAuthErrorMessage);
+            throw new OpenT2TError(401, invalidAuthErrorMessage);
         }
 
         // POST oauth2/token
@@ -157,8 +157,8 @@ class Translator {
             // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
             // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
             if ((winkDevice.model_name !== 'HUB')  && 
-                typeof opent2tInfo !== 'undefined' &&
-                (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
+                typeof opent2tInfo !== "undefined" &&
+                (!winkDevice.hidden_at))
             {
                 // set the opent2t info for the wink device
                 var deviceInfo = {};
@@ -234,7 +234,7 @@ class Translator {
                 case "denied":
                     // The subscription cannot be completed, access was denied.
                     // This is likely due to a bad access token.
-                    throw new OpenT2TErrorClass(403, "Access denied");
+                    throw new OpenT2TError(403, "Access denied");
                 case "unsubscribe":
                     // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
                     // with no verification.
@@ -251,7 +251,7 @@ class Translator {
                     }
                 default:
                     // Hub mode is unknown.
-                    throw new OpenT2TErrorClass(400, "Unknown request");
+                    throw new OpenT2TError(400, "Unknown request");
             }
         }
         else if (subscriptionInfo.callbackUrl) {
@@ -267,7 +267,7 @@ class Translator {
                 // Provider/Hub level subscription
                 // Subscribing to Wink as a provider (to receive notification of device add/delete etc.) will likely be
                 // possible in the future.  This should just require a different request path, but for now it's an error
-                throw new OpenT2TErrorClass(400, "Must subscribe to a device.");
+                throw new OpenT2TError(400, "Must subscribe to a device.");
             }
 
             // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide

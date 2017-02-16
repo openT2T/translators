@@ -1,7 +1,7 @@
 /* jshint esversion: 6 */
 /* jshint node: true */
 'use strict';
-var OpenT2TErrorClass = require('opent2t').OpenT2TError;
+var OpenT2TError = require('opent2t').OpenT2TError;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -11,10 +11,10 @@ var OpenT2TErrorClass = require('opent2t').OpenT2TError;
  */
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new OpenT2TErrorClass(400, 'Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new OpenT2TErrorClass(400, 'Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -89,7 +89,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         default:
             // Error case
-            throw new OpenT2TErrorClass(400, "Invalid resourceId");
+            throw new OpenT2TError(400, "Invalid resourceId");
     }
 
     return result;
