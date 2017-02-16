@@ -35,7 +35,7 @@ function findResource(schema, di, resourceId) {
     if (!resource) {
         throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
     }
-    
+
     return resource;
 }
 

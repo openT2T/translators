@@ -26,13 +26,18 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
+    }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+    }
+    
     return resource;
 }
 
