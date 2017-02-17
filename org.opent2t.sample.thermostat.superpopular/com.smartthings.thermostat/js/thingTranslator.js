@@ -32,17 +32,6 @@ function findResource(schema, di, resourceId) {
     return resource; 
 }
 
-/**
- * Return the string "Undefined" if the value is undefined and null.
- * Otherwise, return the value itself.
- */
-function validateValue(value) {
-    if (value === undefined || value === null) {
-        return 'Undefined';
-    }
-    return value;
-}
-
 function deviceSupportedModesToTranslatorSupportedModes(deviceSupportedModes) {
     var supportedModes = deviceSupportedModes.map((x) => {
         return x.toLowerCase();
@@ -86,6 +75,17 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     }
 
     return resource;
+}
+
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
 }
 
 // Helper method to convert the provider schema to the platform schema.
@@ -145,12 +145,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
-        mnmn: validateValue(providerSchema['manufacturer']),
-        mnmo: validateValue(providerSchema['model']),
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Thermostat (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: thermostatDeviceDi,
                 resources: [

@@ -44,6 +44,17 @@ function generateGUID(stringID) {
 }
 
 /**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
+/**
  * Converts a representation of a platform from the Insteon API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
@@ -78,12 +89,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['DeviceID']
         },
         pi: generateGUID(providerSchema['DeviceID']),
-        mnmn: 'Undefined',
-        mnmo: 'Undefined',
+        mnmn: defaultValueIfEmpty(providerSchema['Manufacturer'], 'Insteon'),
+        mnmo: defaultValueIfEmpty(providerSchema['ProductType'], 'Light Bulb (Generic)'),
         n: providerSchema['DeviceName'],
         rt: ['org.opent2t.sample.lamp.superpopular'],
         entities: [
             {
+                n: providerSchema['DeviceName'],
                 rt: ['opent2t.d.light'],
                 di: lightbulbDeviceDi,
                 icv: 'core.1.1.0',
