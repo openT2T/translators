@@ -4,6 +4,7 @@ var translatorPath = require('path').join(__dirname, '..');
 var runLampTests = require('opent2t-device-lamp/lampTests');
 var config = require('./testConfig');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.wink.hub/js');
+var testData = require('./testdata');
 
 function getLamp(devices) {
     for (var i = 0; i < devices.length; i++) {
@@ -31,7 +32,8 @@ function createTranslator() {
 var settings = {
     createTranslator: createTranslator,
     test: test,
-    deviceId: 'F8CFB903-58BB-4753-97E0-72BD7DBC7933'
+    deviceId: 'F8CFB903-58BB-4753-97E0-72BD7DBC7933',
+    expectedExceptions : testData.expected_exceptions
 };
 
 // Run standard binary switch tests

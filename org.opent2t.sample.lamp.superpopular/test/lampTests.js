@@ -1,6 +1,7 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 var translator = undefined;
 
@@ -16,7 +17,9 @@ function runLampTests(settings) {
         }
 
         if(expectedException !== undefined) {
-            t.throws(testMethod(), expectedException);
+           Promise.resolve(testMethod()).catch((err) => {
+             t.true(err.name, "OpenT2TError");
+        });
         }
         else {
             return testMethod();

@@ -1,5 +1,6 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -95,10 +96,10 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
-            throw new OpenT2TError(400, "Invalid resourceId");
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -165,7 +166,7 @@ function validateResourceGet(resourceId) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 
