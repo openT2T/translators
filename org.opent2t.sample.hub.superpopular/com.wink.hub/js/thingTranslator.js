@@ -15,8 +15,9 @@ var Crypto = require('crypto');
  * in JSON.
  */
 function getDictionaryItemCaseInsensitive(obj, propertyName) {
+    var upperName = propertyName.toUpperCase();
     for(var name in obj) {
-        if (propertyName.toUpperCase() == name.toUpperCase()) {
+        if (upperName === name.toUpperCase()) {
             return obj[name];
         }
     }
@@ -61,8 +62,8 @@ class Translator {
 
             // The payload must be an object for translation, and a string/buffer for calculating
             // the HMAC. Ensure we have a copy in both formats
-            var payloadAsString = typeof payload == 'object' ? JSON.stringify(payload) : payload;
-            var payloadAsObject = typeof payload == 'object' ? payload : JSON.parse(payload);
+            var payloadAsString = typeof payload === 'object' ? JSON.stringify(payload) : payload;
+            var payloadAsObject = typeof payload === 'object' ? payload : JSON.parse(payload);
 
             // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
@@ -72,7 +73,7 @@ class Translator {
                 var hashFromWink = getDictionaryItemCaseInsensitive(verification.header, "x-hub-signature");
                 var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
 
-                if (hashFromWink != hashFromPayload) {
+                if (hashFromWink !== hashFromPayload) {
                     throw new Error("Notification signature doesn't match.  Expecting " + hashFromWink + " and calculated " + hashFromPayload);
                 }
             }
