@@ -2,6 +2,7 @@
 
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 var translator = undefined;
