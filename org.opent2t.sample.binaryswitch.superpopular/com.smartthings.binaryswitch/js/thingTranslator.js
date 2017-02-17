@@ -43,6 +43,17 @@ function validateValue(value) {
     return value;
 }
 
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
 // Helper method to convert the device schema to the translator schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
 
@@ -64,12 +75,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
-        mnmn: validateValue(providerSchema['manufacturer']),
-        mnmo: validateValue(providerSchema['model']),
+        mnmn: defaultValueIfEmpty(validateValue(providerSchema['manufacturer']), "SmartThings"),
+        mnmo: defaultValueIfEmpty(validateValue(providerSchema['model']), "Binary Switch (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                ivc: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [ power ]

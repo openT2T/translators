@@ -33,17 +33,6 @@ function findResource(schema, di, resourceId) {
 }
 
 /**
- * Return the string "Undefined" if the value is undefined and null.
- * Otherwise, return the value itself.
- */
-function validateValue(value) {
-    if (value === undefined || value === null) {
-        return 'Undefined';
-    }
-    return value;
-}
-
-/**
  * Colour Conversion Funcitons
  */
 
@@ -139,6 +128,17 @@ function RGBtoHSV(rgbValue) {
 }
 
 /**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
+/**
  * Converts a representation of a platform from the Wink API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
@@ -208,12 +208,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
-        mnmn: validateValue(providerSchema['manufacturer']),
-        mnmo: validateValue(providerSchema['model']),
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Light Bulb (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.lamp.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
                 di: lightDeviceDi,
                 icv: 'core.1.1.0',
