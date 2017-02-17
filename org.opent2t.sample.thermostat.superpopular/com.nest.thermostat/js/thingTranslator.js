@@ -177,7 +177,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         },
         pi: generateGUID(providerSchema['device_id']),
         mnmn: 'Nest',
-        mnmo: 'Thermostat (Generic)',
+        mnmo: 'Thermostat',
         n: providerSchema['name_long'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
