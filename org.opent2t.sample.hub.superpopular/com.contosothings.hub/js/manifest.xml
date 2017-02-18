@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <schemas>
+    <schema id="opent2t.p.hub" main="true" type="OCF" />
+    <schema id="oic.core" type="OCF" />
+    <schema id="oic.baseResource" type="OCF" />
+  </schemas>
+  <!-- associated onboarding module -->
+  <onboarding id="org.opent2t.onboarding.contosothingshub">
+    <onboardflow name="getUserInput">
+      <flow type="input">
+        <arg name="hubId" />
+        <description language="en">What is your hubId (guid)</description>
+      </flow>
+    </onboardflow>
+    <onboardflow name="getDeveloperInput">
+      <flow>
+        <arg name="contosoPassword" />
+        <description language="en">What is the ContosoThings password?</description>
+      </flow>
+    </onboardflow>
+  </onboarding>
+</manifest>
