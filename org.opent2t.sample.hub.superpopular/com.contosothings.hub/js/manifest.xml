@@ -18,6 +18,10 @@
         <arg name="contosoPassword" />
         <description language="en">What is the ContosoThings password?</description>
       </flow>
+      <flow>
+        <arg name="contosoUrl" />
+        <description language="en">What is the ContosoThings url?</description>
+      </flow>
     </onboardflow>
   </onboarding>
 </manifest>

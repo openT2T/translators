@@ -16,8 +16,7 @@ class Translator {
         this._hubId = deviceInfo.hubId;
         this._contosoPassword = deviceInfo.contosoPassword;
 
-        this._baseUrl = "https://contosothings.azurewebsites.net";
-        this._baseUrl = "http://localhost:29443";
+        this._baseUrl = deviceInfo.contosoUrl;
         this._devicesPath = '/api/hubsApi/' + this._hubId;
 
         this._name = "ContosoThings Hub";
