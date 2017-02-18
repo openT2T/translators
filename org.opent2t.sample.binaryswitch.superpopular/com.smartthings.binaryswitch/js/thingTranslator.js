@@ -33,17 +33,6 @@ function findResource(schema, di, resourceId) {
 }
 
 /**
- * Return the string "Undefined" if the value is undefined and null.
- * Otherwise, return the value itself.
- */
-function validateValue(value) {
-    if (value === undefined || value === null) {
-        return 'Undefined';
-    }
-    return value;
-}
-
-/**
  * Returns a default value if the specified property is null, undefined, or an empty string
  */
 function defaultValueIfEmpty(property, defaultValue) {
@@ -75,8 +64,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
-        mnmn: defaultValueIfEmpty(validateValue(providerSchema['manufacturer']), "SmartThings"),
-        mnmo: defaultValueIfEmpty(validateValue(providerSchema['model']), "Binary Switch (Generic)"),
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Binary Switch (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [
