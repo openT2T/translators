@@ -1,0 +1,16 @@
+{
+  "name": "opent2t-device-insteonhub",
+  "version": "0.0.1",
+  "description": "Insteon hub device",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "mockInsteonHub.js",
+  "license": "MIT",
+  "dependencies": {
+    "opent2t": "*",
+    "opent2t-device-hub": "file:../../test"
+  }
+}

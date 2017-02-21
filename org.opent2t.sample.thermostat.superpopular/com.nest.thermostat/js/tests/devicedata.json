@@ -1,52 +1,66 @@
-{
-    "base_state" :
-    {
+{   "base_state" :
+    {   "attributes" :
+        {
+            "switch" : "on",
+            "temperature" : 50
+        },
+        "locationMode" :
+        {
+            "supported" : ["home", "away"],
+            "mode" : "away"
+        },
+        "temperature_scale" : "c",
+        "ambient_temperature_c" : 25,
+        "target_temperature_c" : 22,
+        "target_temperature_high_c" : 27,
+        "target_temperature_low_c" : 20,
+        "away_temperature_high_c" : 26,
+        "away_temperature_low_c" : 21,
+        "has_leaf" : true,
+        "has_fan" : true,
+        "fan_timer_active" : false,
         "device_id" : "Mock Id",
-        "name" : "Mock Name",
-        "target_temperature_c": 50,
-        "target_temperature_high_c": 100,
-        "target_temperature_low_c": 2,
-        "ambient_temperature_c": 75,
-        "has_fan": true,
-        "has_leaf": false,
-        "fan_timer_active": true,
-        "can_heat": true,
-        "can_cool": false
+        "humidity" : 25,
+        "manufacturer" : "Mock Manufacturer",
+        "model" : "Mock Model",
+        "name" : "Mock Name"
     },
     "test_data" :
     {
-        "TargetTemperatureHigh" :
+        "SetAwayMode" :
             [
                 {
-                    "target_temperature_high_c" : 22
+                    "awayMode" : "Away"
                 }
             ],
-        "TargetTemperatureLow" :
+        "SetTargetTemperature" :
+            [
+                {
+                    "target_temperature_c" : 30
+                }
+            ],
+        "SetTargetTemperatureHigh" :
+            [
+                {
+                    "target_temperature_high_c" : 7
+                }
+            ],
+        "SetTargetTemperatureLow" :
             [
                 {
                     "target_temperature_low_c" : 19
                 }
             ],
-        "TargetTemperatureHigh_TargetTemperatureLow_Post_Get" :
-            [
-                {
-                    "target_temperature_high_c" : 22,
-                    "target_temperature_low_c" : 19
-                }
-            ],
-        "PostThermostatResURI_Set_HvacMode" :
+        "SetHvacMode" :
             [
                 {
                     "hvac_mode" : "heat-cool"
                 }
             ],
-        "PostThermostatResURI_Set_HvacMode_Off_Then_HeatOnly" :
+        "SetFanMode" :
             [
                 {
-                   "hvac_mode" : "off"
-                },
-                {
-                    "hvac_mode" : "heat"
+                    "fanMode" : "auto"
                 }
             ]
     }

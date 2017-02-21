@@ -4,7 +4,6 @@
             "desired_state" : {
                 "max_set_point" : 100,
                 "min_set_point" : 0,
-                "units" : "C",
                 "temperature" : 50,
                 "users_away" : false,
                 "has_fan" : true,
@@ -18,7 +17,7 @@
             "last_reading" : {
                 "max_set_point" : 100,
                 "min_set_point" : 0,
-                "units" : "C",
+                "units" : { "temperature": "c" },
                 "temperature" : 50,
                 "users_away" : false,
                 "has_fan" : true,
@@ -50,13 +49,20 @@
         "SetTargetTemperatureHigh" :
             [
                 {
-                    "max_set_point" : 22
+                    "max_set_point" : 7
                 }
             ],
         "SetTargetTemperatureLow" :
             [
                 {
                     "min_set_point" : 19
+                }
+            ],
+        "SetHvacMode" :
+            [
+                {
+                    "powered" : true,
+                    "mode" : "auto"
                 }
             ]
     }

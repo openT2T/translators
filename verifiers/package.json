@@ -10,12 +10,14 @@
     "eslint-plugin-raml": "^0.2.6",
     "glob": "^7.1.1",
     "gulp": "^3.9.1",
+    "gulp-ava": "^0.16.0",
     "gulp-eslint": "^3.0.1",
     "gulp-util": "^3.0.7",
     "gulp-xml-validator": "^0.1.2",
     "raml-1-parser": "^1.1.8",
     "through2": "^2.0.1",
     "xmldom": "^0.1.22",
-    "xpath": "0.0.23"
+    "xpath": "0.0.23",
+    "opent2t-test-mocks": "file:../test"
   }
 }

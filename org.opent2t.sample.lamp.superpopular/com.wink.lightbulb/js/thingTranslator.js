@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
 'use strict';
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -16,6 +14,25 @@ function validateArgumentType(arg, argName, expectedType) {
         throw new Error('Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
+}
+
+/**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    return resource;
 }
 
 /**
@@ -54,23 +71,6 @@ function scaleTranslatorBrightnessToDeviceBrightness(dimmingValue) {
     return dimmingValue / 100;
 }
 
-/**
- * Finds a resource for an entity in a schema
- */
-function findResource(schema, di, resourceId) {
-    // Find the entity by the unique di
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    // Find the resource
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    return resource;
-}
-
 /***
  * Converts an OCF platform/resource schema for calls to the Wink API
  */
@@ -86,12 +86,27 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'dim':
             desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(resourceSchema.dimmingSetting);
             break;
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
         default:
             // Error case
             throw new Error("Invalid resourceId");
     }
 
     return result;
+}
+
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
 }
 
 /**
@@ -131,12 +146,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['object_id']
         },
         pi: providerSchema['uuid'],
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Light Bulb (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.lamp.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
                 di: lightDeviceDi,
                 icv: 'core.1.1.0',
@@ -150,9 +166,14 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
-var deviceId;
-var deviceType = 'light_bulbs';
-var winkHub;
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'colourMode':
+        case 'colourRgb':
+        case 'colourChroma':
+            throw new Error('NotImplemented');
+    }
+}
 
 // Each device in the platform has is own unique static identifier
 const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
@@ -165,13 +186,12 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
-        deviceId = deviceInfo.deviceInfo.opent2t.controlId;
-        winkHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.winkHub = deviceInfo.hub;
+        this.deviceType = 'light_bulbs';
 
         console.log('Wink Lightbulb initializing...Done');
     }
-
-    // exports for the entire schema object
 
     /**
      * Queries the entire state of the lamp
@@ -182,7 +202,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return winkHub.getDeviceDetailsAsync(deviceType, deviceId)
+            return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);
                 });
@@ -193,6 +213,8 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
         return this.get(true)
             .then(response => {
                 return findResource(response, di, resourceId);
@@ -205,7 +227,7 @@ class Translator {
     postDeviceResource(di, resourceId, payload) {
         var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-        return winkHub.putDeviceDetailsAsync(deviceType, deviceId, putPayload)
+        return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
             .then((response) => {
                 var schema = providerSchemaToPlatformSchema(response.data, true);
 
@@ -250,15 +272,15 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
-        subscriptionInfo.deviceType = deviceType;
-        return winkHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
+        return this.winkHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = deviceId;
-        subscriptionInfo.deviceType = deviceType;
-        return winkHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
+        return this.winkHub._unsubscribe(subscriptionInfo);
     }
 }
 

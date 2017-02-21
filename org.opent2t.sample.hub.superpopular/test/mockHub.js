@@ -47,7 +47,6 @@ class MockHub {
     }
 
     setTestData(testName, test) {
-        //mockHub.setTestData(deviceData.test_data[testName], t);
         postData = testData[testName];
         t = test;
     }

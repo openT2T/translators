@@ -1,0 +1,28 @@
+{   "base_state" :
+    {
+        "DeviceID" : "Mock Device",
+        "Power" : "off",
+        "Level" : 10
+    },
+    "test_data" :
+    {
+        "SetPower" :
+            [
+                {
+                    "Power" : "on"
+                },
+                {
+                    "Power" : "off"
+                }
+            ],
+        "SetDimming" :
+            [
+                {
+                    "Level" : 10
+                },
+                {
+                    "Level" : 50
+                }
+            ]
+    }
+}

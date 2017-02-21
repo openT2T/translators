@@ -1,0 +1,51 @@
+{   "base_state" :
+    {   
+        "ambient" : 25,
+        "DeviceID" : "Mock Device",
+        "unit" : "c",
+        "cool_point" : 28,
+        "heat_point" : 20,
+        "mode" : "auto",
+        "fan" : "auto",
+        "humidity" : "25%"
+    },
+    "test_data" :
+    {
+        "SetAwayMode" :
+            [
+                {
+                    "users_away" : true
+                }
+            ],
+        "SetTargetTemperature" :
+            [
+                {
+                    "max_set_point" : 30
+                }
+            ],
+        "SetTargetTemperatureHigh" :
+            [
+                {
+                    "cool_point"  : 7
+                }
+            ],
+        "SetTargetTemperatureLow" :
+            [
+                {
+                    "heat_point"  : 19
+                }
+            ],
+        "SetHvacMode" :
+            [
+                {
+                    "mode" : "auto"
+                }
+            ],
+        "SetFanMode" :
+            [
+                {
+                    "fan" : "auto"
+                }
+            ]
+    }
+}

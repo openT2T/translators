@@ -1,22 +1,17 @@
 var test = require('ava');
-var deviceData = require('./devicedata');
-var MockHub = require('../../../test/mockHub');
-var runThermostatTests = require('../../../test/thermostatTests');
 var translatorPath = require('path').join(__dirname, '..');
+var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
+var deviceData = require('./devicedata');
+var testData = require('./testdata');
+var MockHub = require('opent2t-device-nesthub/mockNestHub');
+var mockHub = new MockHub(deviceData);
 
-function modifyDeviceState(deviceState, modifications) {
-    if(deviceState && modifications) {
-        for(var modification in modifications) {
-            deviceState[modification] = modifications[modification];
-        }
-    }
-}
-
-function verifyPayload(payload, modification, t) {
-    t.deepEqual(payload, modification, 'Verify payload');
-}
-
-var mockHub = new MockHub(deviceData.base_state, modifyDeviceState, verifyPayload);
+var settings = {
+    createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.device_id),
+    test: test,
+    setTestData: mockHub.setTestData,
+    expectedExceptions : testData.expected_exceptions
+};
 
 // Run standard thermostat unit tests
-runThermostatTests(translatorPath, mockHub, test, deviceData.test_data);
+runThermostatTests(settings);

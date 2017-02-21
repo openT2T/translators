@@ -9,15 +9,43 @@ var translatorPath = require('path').join(__dirname, '..');
 ///
 /// Run a series of tests to validate the translator
 ///
+/*
+var authInfo = [
+    {
+        "username": "tcwazure@microsoft.com",
+        "password": "PowerBI1"
+	},
+    {"client_id": "0b68af91-9acd-4ba0-ab49-5a65636c4fad1461653337.7609323685"}
+];
 
-// HubResURI
-test.serial('HubResURI', t => {
+// Refresh
+test.serial('refreshToken', t => {
 
     return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config)
         .then(translator => {
             // TEST: translator is valid
             t.is(typeof translator, 'object') && t.truthy(translator);
-            return OpenT2T.getPropertyAsync(translator, 'org.opent2t.sample.hub.superpopular', 'HubResURI')
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.hub.superpopular', 'refreshAuthToken', [authInfo])
+                .then((response) => {
+
+                    console.log("Hub:");
+                    console.log(JSON.stringify(response, null, 2));
+                    config = response;
+                    // TEST: something was returned
+                    t.truthy(response);
+
+                });
+        });
+});
+*/
+// GetPlatforms
+test.serial('GetPlatforms', t => {
+
+    return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', config)
+        .then(translator => {
+            // TEST: translator is valid
+            t.is(typeof translator, 'object') && t.truthy(translator);
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.hub.superpopular', 'getPlatforms', [true])
                 .then((hub) => {
 
                     console.log("Hub:");
@@ -26,9 +54,10 @@ test.serial('HubResURI', t => {
                     // TEST: something was returned
                     t.truthy(hub);
 
-                    // TEST: hub has devices
-                    t.truthy(hub.devices);
-                    t.true(hub.devices.length > 0);
+                    // TEST: hub has platforms
+                    t.truthy(hub.platforms);
+                    t.true(hub.platforms.length > 0);
                 });
         });
 });
+

@@ -1,5 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
 'use strict';
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -13,6 +11,25 @@ function validateArgumentType(arg, argName, expectedType) {
         throw new Error('Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
+}
+
+/**
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
+    if (!entity) throw new Error('NotFound');
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) throw new Error('NotFound');
+    return resource;
 }
 
 // Wink does not always populate every desired_state property, but last_reading doesn't necessarily
@@ -91,6 +108,17 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     return resource;
 }
 
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
@@ -120,7 +148,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        mode: stateReader.get('users_away') ? 'away' : 'home',
+        modes: [stateReader.get('users_away') ? 'away' : 'home'],
         supportedModes: ['home', 'away']
     });
 
@@ -142,15 +170,18 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-wink-thermostat',
-            controlId: controlId
+            controlId: providerSchema.thermostat_id
         },
         pi: providerSchema['uuid'],
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Thermostat (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: deviceIds['opent2t.d.thermostat'],
                 resources: [
@@ -230,54 +261,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-function findResource(schema, di, resourceId) {
-    var entity = schema.entities.find((d) => {
-        return d.di === di;
-    });
-
-    if (!entity) {
-        throw new Error('NotFound');
-    }
-
-    var resource = entity.resources.find((r) => {
-        return r.id === resourceId;
-    });
-
-    if (!resource) {
-        throw new Error('NotFound');
-    }
-
-    return resource;
-}
-
-function getDeviceResource(translator, di, resourceId) {
-    validateResourceGet(resourceId);
-
-    return translator.get(true)
-        .then(response => {
-            return findResource(response, di, resourceId);
-        });
-}
-
-function postDeviceResource(di, resourceId, payload) {
-    if (di === deviceIds['opent2t.d.thermostat']) {
-        var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-        return winkHub.putDeviceDetailsAsync(deviceType, controlId, putPayload)
-            .then((response) => {
-                var schema = providerSchemaToPlatformSchema(response.data, true);
-
-                return findResource(schema, di, resourceId);
-            });
-    } else {
-        throw new Error('NotFound');
-    }
-}
-
-var controlId;
-var deviceType = 'thermostats';
-var winkHub;
-
 var deviceIds = {
     'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
     'opent2t.d.thermostat': 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
@@ -291,135 +274,168 @@ class Translator {
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
-        controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        winkHub = deviceInfo.hub;
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.winkHub = deviceInfo.hub;
+        this.deviceType = 'thermostats';
 
         console.log('Wink Thermostat Translator initialized.');
     }
 
-    // Queries the entire state of the binary switch
-    // and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return winkHub.getDeviceDetailsAsync(deviceType, controlId)
+            return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);
                 });
         }
     }
 
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === deviceIds['opent2t.d.thermostat']) {
+            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+
+            return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
+                .then((response) => {
+                    var schema = providerSchemaToPlatformSchema(response.data, true);
+
+                    return findResource(schema, di, resourceId);
+                });
+        } else {
+            throw new Error('NotFound');
+        }
+    }
+
     getDevicesAmbientTemperature(di) {
-        return getDeviceResource(this, di, 'ambientTemperature');
+        return this.getDeviceResource(di, 'ambientTemperature');
     }
 
     getDevicesTargetTemperature(di) {
-        return getDeviceResource(this, di, 'targetTemperature');
+        return this.getDeviceResource(di, 'targetTemperature');
     }
 
     postDevicesTargetTemperature(di, payload) {
-        return postDeviceResource(di, 'targetTemperature', payload);
+        return this.postDeviceResource(di, 'targetTemperature', payload);
     }
 
     getDevicesHumidity(di) {
-        return getDeviceResource(this, di, 'humidity');
+        return this.getDeviceResource(di, 'humidity');
     }
 
     getDevicesTargetTemperatureHigh(di) {
-        return getDeviceResource(this, di, 'targetTemperatureHigh');
+        return this.getDeviceResource(di, 'targetTemperatureHigh');
     }
 
     postDevicesTargetTemperatureHigh(di, payload) {
-        return postDeviceResource(di, 'targetTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'targetTemperatureHigh', payload);
     }
 
     getDevicesTargetTemperatureLow(di) {
-        return getDeviceResource(this, di, 'targetTemperatureLow');
+        return this.getDeviceResource(di, 'targetTemperatureLow');
     }
 
     postDevicesTargetTemperatureLow(di, payload) {
-        return postDeviceResource(di, 'targetTemperatureLow', payload);
+        return this.postDeviceResource(di, 'targetTemperatureLow', payload);
     }
 
     getDevicesAwayMode(di) {
-        return getDeviceResource(this, di, 'awayMode');
+        return this.getDeviceResource(di, 'awayMode');
     }
 
     postDevicesAwayMode(di, payload) {
-        return postDeviceResource(di, 'awayMode', payload);
+        return this.postDeviceResource(di, 'awayMode', payload);
     }
 
     getDevicesAwayTemperatureHigh(di) {
-        return getDeviceResource(this, di, 'awayTemperatureHigh');
+        return this.getDeviceResource(di, 'awayTemperatureHigh');
     }
 
     postDevicesAwayTemperatureHigh(di, payload) {
-        return postDeviceResource(di, 'awayTemperatureHigh', payload);
+        return this.postDeviceResource(di, 'awayTemperatureHigh', payload);
     }
 
     getDevicesAwayTemperatureLow(di) {
-        return getDeviceResource(this, di, 'awayTemperatureLow');
+        return this.getDeviceResource(di, 'awayTemperatureLow');
     }
 
     postDevicesAwayTemperatureLow(di, payload) {
-        return postDeviceResource(di, 'awayTemperatureLow', payload);
+        return this.postDeviceResource(di, 'awayTemperatureLow', payload);
     }
 
     getDevicesEcoMode(di) {
-        return getDeviceResource(this, di, 'ecoMode');
+        return this.getDeviceResource(di, 'ecoMode');
     }
 
     getDevicesHvacMode(di) {
-        return getDeviceResource(this, di, 'hvacMode');
+        return this.getDeviceResource(di, 'hvacMode');
     }
 
     postDevicesHvacMode(di, payload) {
-        return postDeviceResource(di, 'hvacMode', payload);
+        return this.postDeviceResource(di, 'hvacMode', payload);
     }
 
     getDevicesHeatingFuelSource(di) {
-        return getDeviceResource(this, di, 'heatingFuelSource');
+        return this.getDeviceResource(di, 'heatingFuelSource');
     }
 
     getDevicesHasFan(di) {
-        return getDeviceResource(this, di, 'hasFan');
+        return this.getDeviceResource(di, 'hasFan');
     }
 
     getDevicesFanActive(di) {
-        return getDeviceResource(this, di, 'fanActive');
+        return this.getDeviceResource(di, 'fanActive');
     }
 
     getDevicesFanTimerActive(di) {
-        return getDeviceResource(this, di, 'fanTimerActive');
+        return this.getDeviceResource(di, 'fanTimerActive');
     }
 
     getDevicesFanTimerTimeout(di) {
-        return getDeviceResource(this, di, 'fanTimerTimeout');
+        return this.getDeviceResource(di, 'fanTimerTimeout');
     }
 
     postDevicesFanTimerTimeout(di, payload) {
-        return postDeviceResource(di, 'fanTimerTimeout', payload);
+        return this.postDeviceResource(di, 'fanTimerTimeout', payload);
     }
 
     getDevicesFanMode(di) {
-        return getDeviceResource(this, di, 'fanMode');
+        return this.getDeviceResource(di, 'fanMode');
     }
 
     postDevicesFanMode(di, payload) {
-        return postDeviceResource(di, 'fanMode', payload);
+        return this.postDeviceResource(di, 'fanMode', payload);
     }
 
     postSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = controlId;
-        subscriptionInfo.deviceType = deviceType;
-        return winkHub._subscribe(subscriptionInfo);
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
+        return this.winkHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
-        subscriptionInfo.deviceId = controlId;
-        subscriptionInfo.deviceType = deviceType;
-        return winkHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
+        return this.winkHub._unsubscribe(subscriptionInfo);
     }
 }
 

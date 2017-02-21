@@ -1,0 +1,18 @@
+{  "expected_exceptions" :
+    {
+        "GetAwayTemperatureHigh" : "NotImplemented",
+        "GetAwayTemperatureLow" : "NotImplemented",
+        "GetHeatingFuelSource" : "NotImplemented",
+        "GetFanActive" : "NotImplemented",
+        "GetFanTimerActive" : "NotImplemented",
+        "GetFanTimerTimeout" : "NotImplemented",
+        "GetAwayMode" : "NotImplemented",
+        "GetEcoMode" : "NotImplemented",
+        "SetTargetTemperature" : "NotMutable",
+        "SetAwayTemperatureHigh" : "NotImplemented",
+        "SetAwayTemperatureLow" : "NotImplemented",
+        "SetFanTimerTimeout" : "NotImplemented",
+        "SetAwayMode" : "NotImplemented",
+        "SetEcoMode" : "NotImplemented"
+    }
+}

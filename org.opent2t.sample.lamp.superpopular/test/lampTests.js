@@ -8,16 +8,25 @@ function runLampTests(settings) {
     var test = settings.test;
     var deviceId = settings.deviceId;
 
-    function setData(t) {
-        if(settings.setTestData) {
+    function runTest(t, hasTestData, testMethod) {
+        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
+
+        if(hasTestData && settings.setTestData) {
             settings.setTestData(t.title, t);
+        }
+
+        if(expectedException !== undefined) {
+            t.throws(testMethod(), expectedException);
+        }
+        else {
+            return testMethod();
         }
     }
 
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
-			OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
                     deviceId = response.entities[0].di;
                 }
@@ -53,49 +62,106 @@ function runLampTests(settings) {
     });
 
     test.serial('GetPower', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesPower', [deviceId])
-            .then((response) => {
-                t.is(response.rt[0], 'oic.r.switch.binary');
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesPower', [deviceId])
+                .then((response) => {
+                    t.is(response.rt[0], 'oic.r.switch.binary');
+            });
         });
     });
 
     test.serial('SetPower', t => {
-        setData(t);
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': true }])
-            .then((response) => {
-                t.is(response.rt[0], 'oic.r.switch.binary');
-                t.is(response.id, 'power');
-                t.true(response.value === true);
+        return runTest(t, true, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': true }])
+                .then((response) => {
+                    t.is(response.rt[0], 'oic.r.switch.binary');
+                    t.is(response.id, 'power');
+                    t.true(response.value === true);
 
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': false }])
-                    .then((responseTwo) => {
-                        t.is(responseTwo.id, 'power');
-                        t.true(responseTwo.value === false);
-                });
+                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': false }])
+                        .then((responseTwo) => {
+                            t.is(responseTwo.id, 'power');
+                            t.true(responseTwo.value === false);
+                    });
+            });
         });
     });
 
     test.serial('GetDimming', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDeviceResource', [deviceId, 'dim'])
-            .then((response) => {
-                t.is(response.rt[0], 'oic.r.light.dimming');
-                t.true(response.dimmingSetting !== undefined);
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDeviceResource', [deviceId, 'dim'])
+                .then((response) => {
+                    t.is(response.rt[0], 'oic.r.light.dimming');
+                    t.true(response.dimmingSetting !== undefined);
+            });
         });
     });
 
     test.serial('SetDimming', t => {
-        setData(t);
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 10 }])
-            .then((response) => {
-                t.is(response.rt[0], 'oic.r.light.dimming');
-                t.is(response.id, 'dim');
-                t.true(response.dimmingSetting === 10);
+        return runTest(t, true, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 10 }])
+                .then((response) => {
+                    t.is(response.rt[0], 'oic.r.light.dimming');
+                    t.is(response.id, 'dim');
+                    t.true(response.dimmingSetting === 10);
 
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 50 }])
-                    .then((responseTwo) => {
-                        t.is(responseTwo.id, 'dim');
-                        t.true(responseTwo.dimmingSetting === 50);
+                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 50 }])
+                        .then((responseTwo) => {
+                            t.is(responseTwo.id, 'dim');
+                            t.true(responseTwo.dimmingSetting === 50);
+                    });
+            });
+        });
+    });
+
+    test.serial('GetColourMode', t => {
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourMode', [deviceId]).then((response) => {
+                t.is(response.rt[0], 'oic.r.mode');
+                t.truthy(Object.prototype.toString.call(response.modes) === '[object Array]', 'Verify modes array returned');
+            });
+        });
+    });
+
+    test.serial('GetColourRGB', t => {
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((response) => {
+                t.is(response.rt[0], 'oic.r.colour.rgb');
+            });
+        });
+    });
+
+    test.serial('SetColourRGB', t => {
+        return runTest(t, true, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((initialColor) => {
+                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourRGB', [deviceId, { 'rgbvalue': [100,175,255] }]).then(() => {
+                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((targetColor) => {
+                        t.not(targetColor.rgbvalue, initialColor.rgbvalue)
+                        //t.is(targetColor.rgbvalue, [100,175,255]);
+                    });
                 });
+            });
+        });
+    });
+
+    test.serial('GetColourChroma', t => {
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((response) => {
+                t.is(response.rt[0], 'oic.r.colour.chroma');
+            });
+        });
+    });
+
+    test.serial('SetColourChroma', t => {
+        return runTest(t, true, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((initialTemperature) => {
+                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourChroma', [deviceId, { 'ct': 30 }]).then(() => {
+                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((targetTemperature) => {
+                        t.not(targetTemperature.ct, initialTemperature.ct)
+                        t.truthy(Math.abs(targetTemperature.ct - 30) < 0.75);
+                    });
+                });
+            });
         });
     });
 }
