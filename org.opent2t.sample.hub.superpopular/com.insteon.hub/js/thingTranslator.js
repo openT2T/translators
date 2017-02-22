@@ -61,7 +61,7 @@ class Translator {
                     var deviceData = data;
 
                     // get the opent2t schema and translator for the insteon device
-                    var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                    var opent2tInfo = this._getOpent2tInfo(deviceData);
                     if (opent2tInfo !== undefined) // we support the device
                     {
                         // set the opent2t info for the wink device
@@ -96,22 +96,24 @@ class Translator {
                                                     }
                                                     break;
                                             }
-                                        } else {
-                                            console.log(deviceStatus);  //failed to get device status
                                         }
                                         
                                         // Create a translator for this device and get the platform information, possibly expanded
                                         return OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                                             .then((translator) => {
-
                                                 // Use get to translate the Insteon formatted device that we already got in the previous request.
                                                 // We already have this data, so no need to make an unnecesary request over the wire.
                                                 return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                                                     .then((platformResponse) => {
                                                         return platformResponse;
                                                     });
+                                            }).catch((err) => {
+                                                console.log('warning: OpenT2T.createTranslatorAsync error - ' + err);
+                                                return Promise.resolve(undefined);
                                             });
                                         
+                                    }).catch((err) => { 
+                                        throw error;
                                     });
                             });
                     }
@@ -208,7 +210,7 @@ class Translator {
                 return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                     .then((response) => {                       
                         return this._getCommandResponse(response.id, 10) // get device status
-                            .then((deviceStatus) => {                              
+                            .then((deviceStatus) => {  
                                 if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
                                     switch (opent2tInfo.schema) {
                                         case 'org.opent2t.sample.thermostat.superpopular':
@@ -340,7 +342,9 @@ class Translator {
      * We can identify the device using those two value based on the table at
      * https://insteon.atlassian.net/wiki/display/IKB/Insteon+Device+Categories+and+Sub-Categories#InsteonDeviceCategoriesandSub-Categories-devcat-subcat
      */
-    _getOpent2tInfo(devCat, subCat) {
+    _getOpent2tInfo(deviceData) {
+        var devCat = deviceData.DevCat
+        var subCat = deviceData.SubCat.toString(16).toUpperCase();
         switch (devCat) {
             case 1:
                 if (this._subCatMap.lightBulbs.indexOf(subCat) >= 0)
@@ -349,8 +353,13 @@ class Translator {
                         "schema": 'org.opent2t.sample.lamp.superpopular',
                         "translator": "opent2t-translator-com-insteon-lightbulb"
                     };
-                }
-                return undefined;
+                }// else a dimmer switch. 
+                
+                //Since dimmer switch schema is not ready, return light schema.
+                return {
+                    "schema": 'org.opent2t.sample.lamp.superpopular',
+                    "translator": "opent2t-translator-com-insteon-lightbulb"
+                };
             case 2:
                 if (this._subCatMap.binarySwitch.indexOf(subCat) >= 0)
                 {
@@ -406,10 +415,11 @@ class Translator {
                                 this._throwError('Internal Error - Insteon command timeout.');
                             }
                             break;
+                        case 'succeeded':
+                            return Promise.resolve(response);
                         case 'failed':
-                            this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.')
                         default:
-                            return response;
+                            this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
                     }
                 })
                 .catch((err) => { throw err; });
