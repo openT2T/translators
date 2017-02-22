@@ -226,7 +226,7 @@ class Translator {
                                             break;
                                     }
                                 } else {
-                                    this._throwError(JSON.stringify(deviceStatus, null, 2));
+                                    this._throwError( 'Internal Error - Insteon command failed for deviceId: '+ deviceId + '.');
                                 }
                                 return deviceData;
                             });
@@ -398,18 +398,21 @@ class Translator {
         return sleep(1000).then(() => {
             return this._makeRequest(this._commandPath + '/' + commandId, 'GET')
                 .then( (response) => {
-                    if(response.status === 'pending')
-                    {
-                        if(count > 1){
-                            return this._getCommandResponse(commandId, --count);
-                        } else {
-                            this._throwError('Internal Error - Insteon command timeout.');
-                        }
-                    } else {
-                        return response;
+                    switch(response.status){
+                        case 'pending':
+                            if(count > 1){
+                                return this._getCommandResponse(commandId, --count);
+                            } else {
+                                this._throwError('Internal Error - Insteon command timeout.');
+                            }
+                            break;
+                        case 'failed':
+                            this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.')
+                        default:
+                            return response;
                     }
                 })
-                .catch((err) => { console.log(err); });
+                .catch((err) => { throw err; });
         });
     }
 
