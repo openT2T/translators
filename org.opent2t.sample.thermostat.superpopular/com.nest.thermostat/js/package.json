@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-nest-thermostat",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Nest Thermostat",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "opent2t": "^1.0.1",
-    "opent2t-translator-com-nest-hub": "^0.2.0"
+    "opent2t-translator-com-nest-hub": "^1.2.2"
   },
   "devDependencies": {
     "ava": "^0.15.2",
