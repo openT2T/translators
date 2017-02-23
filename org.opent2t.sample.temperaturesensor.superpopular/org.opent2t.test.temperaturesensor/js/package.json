@@ -23,6 +23,6 @@
         "opent2t": "*",
         "opent2t-onboarding-manual": "*",
         "jshint": "^2.9.2",
-        "ava": "^0.15.2"
+        "ava": "^0.18.2"
     }
 }

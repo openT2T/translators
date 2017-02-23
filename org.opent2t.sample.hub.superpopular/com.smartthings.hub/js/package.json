@@ -25,6 +25,6 @@
     "opent2t-onboarding-org-opent2t-onboarding-smartthings": "^0.2.0"
   },
   "devDependencies": {
-    "ava": "^0.15.2"
+    "ava": "^0.18.2"
   }
 }

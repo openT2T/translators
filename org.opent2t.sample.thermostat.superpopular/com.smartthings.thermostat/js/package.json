@@ -23,7 +23,7 @@
     "opent2t-translator-com-smartthings-hub": "^0.2.2"
   },
   "devDependencies": {
-    "ava": "^0.15.2",
+    "ava": "^0.18.2",
     "opent2t-device-smartthingshub": "file:../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/test",
     "opent2t-device-thermostat": "file:../../test"
   }
