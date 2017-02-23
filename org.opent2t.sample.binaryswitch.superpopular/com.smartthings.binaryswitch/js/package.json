@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-smartthings-binaryswitch",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "SmartThings Binary Switch",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "opent2t": "*",
-    "opent2t-translator-com-smartthings-hub": "*"
+    "opent2t-translator-com-smartthings-hub": "^0.2.2"
   },
   "devDependencies": {
     "optimist": "*",
