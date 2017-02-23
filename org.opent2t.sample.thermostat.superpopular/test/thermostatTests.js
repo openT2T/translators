@@ -2,7 +2,9 @@
 
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
-var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+
+// TODO: Add this back in once i figure out the exception validation below.
+// var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 var translator = undefined;
@@ -18,6 +20,7 @@ function runThermostatTests(settings) {
             settings.setTestData(t.title, t);
         }
 
+        // TODO: This doesnt work. Need to work with Promises. 
         if(expectedException !== undefined) {
             t.throws(testMethod(), OpenT2TError);
         }

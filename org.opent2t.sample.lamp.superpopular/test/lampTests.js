@@ -1,7 +1,9 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
-var OpenT2TError = require('opent2t').OpenT2TError;
+
+// TODO: Add this in to common error validation once i move to promises below
+// var OpenT2TError = require('opent2t').OpenT2TError;
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 var translator = undefined;
 
