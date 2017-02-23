@@ -106,6 +106,17 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 }
 
 /**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
+/**
  * Converts a representation of a platform from the Wink API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
@@ -142,12 +153,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['object_id']
         },
         pi: providerSchema['uuid'],
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Light Bulb (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.lamp.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
                 di: lightDeviceDi,
                 icv: 'core.1.1.0',

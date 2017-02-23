@@ -33,14 +33,14 @@ function findResource(schema, di, resourceId) {
 }
 
 /**
- * Return the string "Undefined" if the value is undefined and null.
- * Otherwise, return the value itself.
+ * Returns a default value if the specified property is null, undefined, or an empty string
  */
-function validateValue(value) {
-    if (value === undefined || value === null) {
-        return 'Undefined';
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
     }
-    return value;
 }
 
 // Helper method to convert the device schema to the translator schema.
@@ -64,12 +64,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
-        mnmn: validateValue(providerSchema['manufacturer']),
-        mnmo: validateValue(providerSchema['model']),
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Binary Switch (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                ivc: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [ power ]

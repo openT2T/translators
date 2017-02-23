@@ -115,13 +115,24 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     return resource;
 }
 
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units');
+    var temperatureUnits = stateReader.get('units').temperature;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: stateReader.get('temperature'),
@@ -169,12 +180,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema.thermostat_id
         },
         pi: providerSchema['uuid'],
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Thermostat (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: deviceIds['opent2t.d.thermostat'],
                 resources: [

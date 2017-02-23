@@ -23,7 +23,7 @@
     "opent2t-translator-com-insteon-hub": "^0.2.0"
   },
   "devDependencies": {
-    "ava": "^0.15.2",
+    "ava": "^0.18.2",
     "es6-sleep": "*",
     "opent2t-device-insteonhub": "file:../../../org.opent2t.sample.hub.superpopular/com.insteon.hub/test",
     "opent2t-device-lamp": "file:../../test"

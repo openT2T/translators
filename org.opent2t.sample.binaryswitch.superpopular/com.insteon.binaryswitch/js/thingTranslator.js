@@ -43,6 +43,17 @@ function generateGUID(stringID) {
     return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
 }
 
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
 
@@ -64,12 +75,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['DeviceID']
         },
         pi: generateGUID(providerSchema['DeviceID']),
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Insteon"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Binary Switch (Generic)"),
         n: providerSchema['DeviceName'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [
             {
+                n: providerSchema['DeviceName'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [
