@@ -1,9 +1,8 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
-// TODO: Add this in to common error validation once i move to promises below
-// var OpenT2TError = require('opent2t').OpenT2TError;
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 var translator = undefined;
 
@@ -19,9 +18,28 @@ function runLampTests(settings) {
         }
 
         if(expectedException !== undefined) {
-           Promise.resolve(testMethod()).catch((err) => {
-             t.true(err.name, "OpenT2TError");
-        });
+            return testMethod().then(() => {
+                t.fail('Error expected: ' + expectedException);
+            }).catch(error => {
+                let errorObj = {};
+                let message = expectedException.message;
+                
+				Object.getOwnPropertyNames(error).forEach(function (key) {
+                        errorObj[key] = error[key];
+				});
+
+                if(expectedException.isOpent2tError === undefined || expectedException.isOpent2tError === true)  {
+                    t.is(errorObj.name, 'OpenT2TError', `Verify error type, Actual: ${errorObj.name}, Expected: OpenT2TError`);
+                    if(expectedException.statusCode !== undefined) {
+                        t.is(errorObj.statusCode, expectedException.statusCode, `Verify status code, Actual: ${errorObj.statusCode}, Expected: ${expectedException.statusCode}`);
+                    }
+                    if(expectedException.messageConst !== undefined) {
+                        message = OpenT2TConstants[expectedException.messageConst];
+                    }
+                }
+
+                t.is(errorObj.message, message, `Verify error message, Actual: ${errorObj.message}, Expected: ${message}`);
+            });
         }
         else {
             return testMethod();
