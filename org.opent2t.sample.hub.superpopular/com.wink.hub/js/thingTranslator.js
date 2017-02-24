@@ -35,7 +35,7 @@ class Translator {
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
         this._oAuthPath = '/oauth2/token';
-        this._name = OpenT2TConstants.WinkHubName;
+        this._name = "Wink Hub";
     }
 
     /**
