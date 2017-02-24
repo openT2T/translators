@@ -14,7 +14,7 @@ class Translator {
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._subCatMap = {
-            lightBulbs: ['3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
+            lightBulbs: ['E', '3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
             binarySwitch: ['8', 'B', '1E', '1F', '2B', '2A', '2B', '2C', '2E', '2D', '2F',
                 '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A'],
             thermostats: ['B']
