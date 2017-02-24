@@ -12,14 +12,15 @@ function runLampTests(settings) {
     var deviceId = settings.deviceId;
 
     function runTest(t, hasTestData, testMethod) {
-        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
+        let expectedException = settings.expectedExceptions === undefined 
+        ? undefined : settings.expectedExceptions[t.title];
 
         if(hasTestData && settings.setTestData) {
             settings.setTestData(t.title, t);
         }
 
         if(expectedException !== undefined) {
-           Promise.resolve(testMethod()).catch((err) => {
+           testMethod().catch((err) => {
              t.true(err.name, "OpenT2TError");
         });
         }

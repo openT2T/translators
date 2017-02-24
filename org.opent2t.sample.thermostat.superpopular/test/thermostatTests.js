@@ -2,9 +2,7 @@
 
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
-
-// TODO: Add this back in once i figure out the exception validation below.
-// var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 var translator = undefined;
@@ -309,11 +307,21 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetTargetTemperatureForNonexistentDevice_Fails', t => {
-        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000']), OpenT2TError);
+        OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000'])
+        .catch((err) => {
+            t.is(err.name, "OpenT2TError");
+            t.is(err.statusCode, 404);
+            t.is(err.message, OpenT2TConstants.DeviceNotFound);
+        });
     });
 
     test.serial('SetAwayModeForNonexistentDevice_Fails', t => {
-        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}]), OpenT2TError);
+        OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}])
+        .catch((err) => {
+            t.is(err.name, "OpenT2TError");
+            t.is(err.statusCode, 404);
+            t.is(err.message, OpenT2TConstants.DeviceNotFound);
+        });
     });
 }
 
