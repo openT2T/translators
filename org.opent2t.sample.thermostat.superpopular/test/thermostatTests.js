@@ -38,7 +38,9 @@ function runThermostatTests(settings) {
                     }
                 }
 
-                t.is(errorObj.message, message, `Verify error message, Actual: ${errorObj.message}, Expected: ${message}`);
+                if(message !== undefined) {
+                    t.is(errorObj.message, message, `Verify error message, Actual: ${errorObj.message}, Expected: ${message}`);
+                }
             });
         }
         else {
