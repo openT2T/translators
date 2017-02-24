@@ -113,7 +113,7 @@ class Translator {
                                             });
                                         
                                     }).catch((err) => { 
-                                        throw error;
+                                        throw err;
                                     });
                             });
                     }
@@ -346,6 +346,11 @@ class Translator {
         var devCat = deviceData.DevCat
         var subCat = deviceData.SubCat.toString(16).toUpperCase();
         switch (devCat) {
+            case 0:
+                if( subCat === '0' && deviceData.ProductType ==='thermostat'){
+                    return undefined;       //Nest thermostat, not supported now
+                }
+                return undefined;
             case 1:
                 if (this._subCatMap.lightBulbs.indexOf(subCat) >= 0)
                 {
