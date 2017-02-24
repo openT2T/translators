@@ -1,14 +1,15 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +23,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
+    }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+    }
     return resource;
 }
 

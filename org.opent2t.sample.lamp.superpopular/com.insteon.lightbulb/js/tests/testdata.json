@@ -1,9 +1,9 @@
 {  "expected_exceptions" :
     {
-        "GetColourMode" : "NotImplemented",
-        "GetColourRGB" : "NotImplemented",
-        "GetColourChroma" : "NotImplemented",
-        "SetColourRGB" : "NotImplemented",
-        "SetColourChroma" : "NotImplemented"
+        "GetColourMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetColourRGB" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetColourChroma" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetColourRGB" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetColourChroma" : {"isOpent2tError" : false, "message" : "NotImplemented"}
     }
 }
