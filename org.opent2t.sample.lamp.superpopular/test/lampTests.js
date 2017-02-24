@@ -1,9 +1,7 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
-
-// TODO: Add this in to common error validation once i move to promises below
-// var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TError = require('opent2t').OpenT2TError;
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 var translator = undefined;
 
@@ -20,9 +18,9 @@ function runLampTests(settings) {
         }
 
         if(expectedException !== undefined) {
-           testMethod().catch((err) => {
-             t.true(err.name, "OpenT2TError");
-        });
+           console.log(`Expecting exception ${expectedException} for test ${t.title}`);
+           t.throws(testMethod(), OpenT2TError);
+            //TODO: More validation for err.statusCode and err.message
         }
         else {
             return testMethod();

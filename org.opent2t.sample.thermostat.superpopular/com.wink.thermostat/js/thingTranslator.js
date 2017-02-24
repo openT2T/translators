@@ -329,7 +329,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 

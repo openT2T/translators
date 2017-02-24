@@ -12,15 +12,17 @@ function runThermostatTests(settings) {
     var deviceId = settings.deviceId;
 
     function runTest(t, hasTestData, testMethod) {
-        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
+        let expectedException = settings.expectedExceptions === undefined 
+        ? undefined : settings.expectedExceptions[t.title];
 
-        if(hasTestData && settings.setTestData) {
+        if (hasTestData && settings.setTestData) {
             settings.setTestData(t.title, t);
         }
 
-        // TODO: This doesnt work. Need to work with Promises. 
-        if(expectedException !== undefined) {
+        if (expectedException !== undefined) {
+            console.log(`Expecting exception ${expectedException} for test ${t.title}`);
             t.throws(testMethod(), OpenT2TError);
+            //TODO: More validation for err.statusCode and err.message
         }
         else {
             return testMethod();
@@ -309,6 +311,12 @@ function runThermostatTests(settings) {
     test.serial('GetTargetTemperatureForNonexistentDevice_Fails', t => {
         OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000'])
         .catch((err) => {
+            // TODO: None of these below seem to be really kicking in hence the instanceof check. (t.is/t.true arent really working)
+            console.log(`Caught error: ${err.message}, type: ${err.name}, statusCpde: ${err.statusCode} running ${t.title}.`);
+            if (!(err instanceof OpenT2TError))
+            {
+                throw err;
+            }
             t.is(err.name, "OpenT2TError");
             t.is(err.statusCode, 404);
             t.is(err.message, OpenT2TConstants.DeviceNotFound);
@@ -318,6 +326,13 @@ function runThermostatTests(settings) {
     test.serial('SetAwayModeForNonexistentDevice_Fails', t => {
         OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}])
         .catch((err) => {
+            // TODO: None of these below seem to be really kicking in hence the instanceof check. (t.is/t.true arent really working)
+            console.log(`Caught error: ${err.message}, type: ${err.name}, statusCpde: ${err.statusCode} running ${t.title}.`);
+            if (!(err instanceof OpenT2TError))
+            {
+                throw err;
+            }
+            
             t.is(err.name, "OpenT2TError");
             t.is(err.statusCode, 404);
             t.is(err.message, OpenT2TConstants.DeviceNotFound);
