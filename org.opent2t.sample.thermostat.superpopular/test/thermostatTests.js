@@ -313,8 +313,7 @@ function runThermostatTests(settings) {
         .catch((err) => {
             // TODO: None of these below seem to be really kicking in hence the instanceof check. (t.is/t.true arent really working)
             console.log(`Caught error: ${err.message}, type: ${err.name}, statusCpde: ${err.statusCode} running ${t.title}.`);
-            if (!(err instanceof OpenT2TError))
-            {
+            if (!(err instanceof OpenT2TError)) {
                 throw err;
             }
             t.is(err.name, "OpenT2TError");
@@ -328,8 +327,7 @@ function runThermostatTests(settings) {
         .catch((err) => {
             // TODO: None of these below seem to be really kicking in hence the instanceof check. (t.is/t.true arent really working)
             console.log(`Caught error: ${err.message}, type: ${err.name}, statusCpde: ${err.statusCode} running ${t.title}.`);
-            if (!(err instanceof OpenT2TError))
-            {
+            if (!(err instanceof OpenT2TError)) {
                 throw err;
             }
             
