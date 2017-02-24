@@ -1,7 +1,6 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
-var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
@@ -12,17 +11,37 @@ function runThermostatTests(settings) {
     var deviceId = settings.deviceId;
 
     function runTest(t, hasTestData, testMethod) {
-        let expectedException = settings.expectedExceptions === undefined 
-        ? undefined : settings.expectedExceptions[t.title];
+        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
 
-        if (hasTestData && settings.setTestData) {
+        if(hasTestData && settings.setTestData) {
             settings.setTestData(t.title, t);
         }
 
-        if (expectedException !== undefined) {
-            console.log(`Expecting exception ${expectedException} for test ${t.title}`);
-            t.throws(testMethod(), OpenT2TError);
-            //TODO: More validation for err.statusCode and err.message
+        if(expectedException !== undefined) {
+            return testMethod().then(() => {
+                t.fail('Error expected: ' + expectedException);
+            }).catch(error => {
+                let errorObj = {};
+                let message = expectedException.message;
+                
+				Object.getOwnPropertyNames(error).forEach(function (key) {
+                        errorObj[key] = error[key];
+				});
+
+                if(expectedException.isOpent2tError === undefined || expectedException.isOpent2tError === true)  {
+                    t.is(errorObj.name, 'OpenT2TError', `Verify error type, Actual: ${errorObj.name}, Expected: OpenT2TError`);
+                    if(expectedException.statusCode !== undefined) {
+                        t.is(errorObj.statusCode, expectedException.statusCode, `Verify status code, Actual: ${errorObj.statusCode}, Expected: ${expectedException.statusCode}`);
+                    }
+                    if(expectedException.messageConst !== undefined) {
+                        message = OpenT2TConstants[expectedException.messageConst];
+                    }
+                }
+
+                if(message !== undefined) {
+                    t.is(errorObj.message, message, `Verify error message, Actual: ${errorObj.message}, Expected: ${message}`);
+                }
+            });
         }
         else {
             return testMethod();
@@ -309,31 +328,14 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetTargetTemperatureForNonexistentDevice_Fails', t => {
-        OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000'])
-        .catch((err) => {
-            // TODO: None of these below seem to be really kicking in hence the instanceof check. (t.is/t.true arent really working)
-            console.log(`Caught error: ${err.message}, type: ${err.name}, statusCpde: ${err.statusCode} running ${t.title}.`);
-            if (!(err instanceof OpenT2TError)) {
-                throw err;
-            }
-            t.is(err.name, "OpenT2TError");
-            t.is(err.statusCode, 404);
-            t.is(err.message, OpenT2TConstants.DeviceNotFound);
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000']);
         });
     });
 
     test.serial('SetAwayModeForNonexistentDevice_Fails', t => {
-        OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}])
-        .catch((err) => {
-            // TODO: None of these below seem to be really kicking in hence the instanceof check. (t.is/t.true arent really working)
-            console.log(`Caught error: ${err.message}, type: ${err.name}, statusCpde: ${err.statusCode} running ${t.title}.`);
-            if (!(err instanceof OpenT2TError)) {
-                throw err;
-            }
-            
-            t.is(err.name, "OpenT2TError");
-            t.is(err.statusCode, 404);
-            t.is(err.message, OpenT2TConstants.DeviceNotFound);
+        return runTest(t, false, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}]);
         });
     });
 }

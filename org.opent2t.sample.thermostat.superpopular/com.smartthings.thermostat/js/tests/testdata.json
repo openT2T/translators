@@ -1,14 +1,16 @@
 {  "expected_exceptions" :
     {
-        "GetEcoMode" : "NotImplemented",
-        "GetAwayTemperatureHigh" : "NotImplemented",
-        "GetAwayTemperatureLow" : "NotImplemented",
-        "GetHeatingFuelSource" : "NotImplemented",
-        "GetFanTimerActive" : "NotImplemented",
-        "GetFanTimerTimeout" : "NotImplemented",
-        "GetFanActive" : "NotImplemented",
-        "SetAwayTemperatureHigh" : "NotImplemented",
-        "SetAwayTemperatureLow" : "NotImplemented",
-        "SetFanTimerTimeout" : "NotImplemented"
+        "GetEcoMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetHeatingFuelSource" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetFanTimerActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetFanActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"},
+        "SetAwayModeForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"}
     }
 }
