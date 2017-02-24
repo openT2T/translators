@@ -6,6 +6,7 @@ node_modules
 *.DS_Store
 logs
 *.log
+*.log.*
 testconfig.json
 *.vscode
 /package.json
