@@ -1,7 +1,8 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
-var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 var translator = undefined;
 
@@ -10,17 +11,37 @@ function runLampTests(settings) {
     var deviceId = settings.deviceId;
 
     function runTest(t, hasTestData, testMethod) {
-        let expectedException = settings.expectedExceptions === undefined 
-        ? undefined : settings.expectedExceptions[t.title];
+        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
 
         if(hasTestData && settings.setTestData) {
             settings.setTestData(t.title, t);
         }
 
         if(expectedException !== undefined) {
-           console.log(`Expecting exception ${expectedException} for test ${t.title}`);
-           t.throws(testMethod(), OpenT2TError);
-            //TODO: More validation for err.statusCode and err.message
+            return testMethod().then(() => {
+                t.fail('Error expected: ' + expectedException);
+            }).catch(error => {
+                let errorObj = {};
+                let message = expectedException.message;
+                
+				Object.getOwnPropertyNames(error).forEach(function (key) {
+                        errorObj[key] = error[key];
+				});
+
+                if(expectedException.isOpent2tError === undefined || expectedException.isOpent2tError === true)  {
+                    t.is(errorObj.name, 'OpenT2TError', `Verify error type, Actual: ${errorObj.name}, Expected: OpenT2TError`);
+                    if(expectedException.statusCode !== undefined) {
+                        t.is(errorObj.statusCode, expectedException.statusCode, `Verify status code, Actual: ${errorObj.statusCode}, Expected: ${expectedException.statusCode}`);
+                    }
+                    if(expectedException.messageConst !== undefined) {
+                        message = OpenT2TConstants[expectedException.messageConst];
+                    }
+                }
+
+                if(message !== undefined) {
+                    t.is(errorObj.message, message, `Verify error message, Actual: ${errorObj.message}, Expected: ${message}`);
+                }
+            });
         }
         else {
             return testMethod();
