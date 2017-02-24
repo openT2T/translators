@@ -10,6 +10,7 @@
   "main": "lampTests.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "^1.0.1"
+    "opent2t": "*",
+    "opent2t-testcase-helpers": "file:../../Helpers/testcase-helpers/js"
   }
 }
