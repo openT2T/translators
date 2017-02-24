@@ -13,6 +13,6 @@
         "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "SetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"},
-        "SetAwayModeForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"}
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }
