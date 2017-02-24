@@ -25,7 +25,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
     }
 
     var resource = entity.resources.find((r) => {
@@ -33,9 +33,9 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!resource) {
-        throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
     }
-
+    
     return resource;
 }
 
