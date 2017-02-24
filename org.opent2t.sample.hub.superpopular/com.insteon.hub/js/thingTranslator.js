@@ -108,7 +108,7 @@ class Translator {
                                                         return platformResponse;
                                                     });
                                             }).catch((err) => {
-                                                console.log('warning: OpenT2T.createTranslatorAsync error - ' + err);
+                                                console.log('warning: OpenT2T.createTranslatorAsync error - ' + JSON.stringify(err, null, 2));
                                                 return Promise.resolve(undefined);
                                             });
                                         
@@ -201,7 +201,7 @@ class Translator {
             .then((data) => {
 
                 var deviceData = data;
-                var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                var opent2tInfo = this._getOpent2tInfo(deviceData);
                 var postPaylaod = {
                     command: 'get_status',
                     device_id: deviceId
@@ -343,6 +343,7 @@ class Translator {
      * https://insteon.atlassian.net/wiki/display/IKB/Insteon+Device+Categories+and+Sub-Categories#InsteonDeviceCategoriesandSub-Categories-devcat-subcat
      */
     _getOpent2tInfo(deviceData) {
+
         var devCat = deviceData.DevCat
         var subCat = deviceData.SubCat.toString(16).toUpperCase();
         switch (devCat) {
@@ -424,7 +425,11 @@ class Translator {
                             return Promise.resolve(response);
                         case 'failed':
                         default:
+                        if( response.command.device_id !== undefined){
                             this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
+                        } else {
+                            this._throwError( 'Internal Error - Insteon command failed.');
+                        }
                     }
                 })
                 .catch((err) => { throw err; });
