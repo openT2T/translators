@@ -4,6 +4,8 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var sleep = require('es6-sleep').promise;
 
 /**
@@ -143,15 +145,11 @@ class Translator {
     refreshAuthToken(authInfo) {
         var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object with clientId + user account credentials to allow the oAuth token to be refreshed";
 
-        if (authInfo == undefined || authInfo == null) {
-            throw new Error(invalidAuthErrorMessage);
-        }
-
-        if (authInfo.length !== 2) {
-            // We expect the original authInfo object used in the onboarding flow
-            // not defining a brand new type for the Refresh() contract and re-using
-            // what is defined for Onboarding()
-            throw new Error(invalidAuthErrorMessage);
+        // We expect the original authInfo object used in the onboarding flow
+        // not defining a brand new type for the Refresh() contract and re-using
+        // what is defined for Onboarding()
+        if (authInfo == undefined || authInfo == null || authInfo.length !== 2) {
+            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
         }
 
         var options = {
@@ -176,10 +174,6 @@ class Translator {
 
                 return this._authTokens;
                 
-            }).catch(function (err) {
-                console.log('Request failed to: ' + options.method + ' - ' + options.url);
-                console.log('Error            : ' + err.statusCode + ' - ' + err.response.statusMessage);
-                throw err;
             });
     }
 
@@ -226,7 +220,7 @@ class Translator {
                                             break;
                                     }
                                 } else {
-                                    this._throwError(JSON.stringify(deviceStatus, null, 2));
+                                    throw new OpenT2TError(500, JSON.stringify(deviceStatus, null, 2));
                                 }
                                 return deviceData;
                             });
@@ -403,25 +397,13 @@ class Translator {
                         if(count > 1){
                             return this._getCommandResponse(commandId, --count);
                         } else {
-                            this._throwError('Internal Error - Insteon command timeout.');
+                            throw new OpenT2TError(500, 'Internal Error - Insteon command timeout.');
                         }
                     } else {
                         return response;
                     }
-                })
-                .catch((err) => { console.log(err); });
+                });
         });
-    }
-
-    /**
-     * Internal helper to throw a error with with a specific error message
-     */
-    _throwError(message){
-        var errMsg = {
-            statusCode: '500',
-            response: { statusMessage: message }
-        };
-        throw errMsg;
     }
     
     /**
@@ -466,12 +448,6 @@ class Translator {
                 } else {
                     return JSON.parse(body);
                 }
-            })
-            .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
-                throw err;
             });
     }
 }
