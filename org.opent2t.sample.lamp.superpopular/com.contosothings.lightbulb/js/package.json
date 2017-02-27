@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-com-contosothings-lightbulb",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "ContosoThings Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
@@ -24,7 +24,6 @@
         "optimist": "*",
         "opent2t": "*",
         "jshint": "^2.9.2",
-        "ava": "^0.15.2",
-        "es6-sleep": "*"
+        "ava": "^0.15.2"
     }
 }

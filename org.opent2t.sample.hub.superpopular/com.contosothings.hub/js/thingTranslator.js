@@ -1,9 +1,3 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
-// This code uses ES2015 syntax that requires at least Node.js v4.
-// For Node.js ES2015 support details, reference http://node.green/
-
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
@@ -119,7 +113,7 @@ class Translator {
      *      needs to be included in a response to the original request.
      */
     _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
-
+        throw new Error("Not implemented");
     }
 
     /**
@@ -132,7 +126,7 @@ class Translator {
      * 
      */
     _unsubscribe(deviceType, deviceId, callbackUrl) {
-
+        throw new Error("Not implemented");
     }
 
     /**
@@ -145,7 +139,7 @@ class Translator {
      * This is just a helper for tests and verification.
      */
     _getSubscriptions(deviceType, deviceId) {
-
+        throw new Error("Not implemented");
     }
 
     /** 
