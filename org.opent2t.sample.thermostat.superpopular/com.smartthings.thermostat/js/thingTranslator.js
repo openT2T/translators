@@ -1,14 +1,17 @@
 'use strict';
 
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +25,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di; 
     }); 
     
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+    }
     
     var resource = entity.resources.find((r) => { 
         return r.id === resourceId;  
     }); 
 
-    if (!resource) throw new Error('NotFound'); 
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    } 
     return resource; 
 }
 
@@ -200,9 +207,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -217,7 +224,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanActive':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 
@@ -278,7 +285,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
   
