@@ -103,8 +103,6 @@ function runLampTests(settings) {
     test.serial('GetColourMode', t => {
         return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourMode', [deviceId]).then((response) => {
-                // t.is(response.rt[0], 'oic.r.mode');
-                // t.truthy(Object.prototype.toString.call(response.modes) === '[object Array]', 'Verify modes array returned');
                 helpers.verifyModesData(t, response);
             });
         });
@@ -123,8 +121,7 @@ function runLampTests(settings) {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((initialColor) => {
                 return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourRGB', [deviceId, { 'rgbvalue': [100,175,255] }]).then(() => {
                     return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((targetColor) => {
-                        t.not(targetColor.rgbvalue, initialColor.rgbvalue)
-                        //t.is(targetColor.rgbvalue, [100,175,255]);
+                        t.not(targetColor.rgbvalue, initialColor.rgbvalue);
                     });
                 });
             });
