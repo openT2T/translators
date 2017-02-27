@@ -143,8 +143,6 @@ class Translator {
      * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
     refreshAuthToken(authInfo) {
-        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object with clientId + user account credentials to allow the oAuth token to be refreshed";
-
         // We expect the original authInfo object used in the onboarding flow
         // not defining a brand new type for the Refresh() contract and re-using
         // what is defined for Onboarding()
