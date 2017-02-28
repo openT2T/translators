@@ -230,7 +230,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         case 'humidity':
         case 'targetTemperature':
-            throw new OpenT2TError(403, 'Resource is not mutable');
+            throw new OpenT2TError(403, InsteonConstants.ResourceNotMutable);
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'heatingFuelSource':

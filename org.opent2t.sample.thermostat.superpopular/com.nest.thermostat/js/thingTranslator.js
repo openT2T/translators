@@ -222,20 +222,20 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     switch (resourceId) {
         case 'targetTemperature':
-            if (resourceSchema.units === undefined) {
-                throw new Error('Resource Schema missing temperature units.');
+            if (!resourceSchema.units) {
+                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
             }
             result['target_temperature_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureHigh':
-            if (resourceSchema.units === undefined) {
-                throw new Error('Resource Schema missing temperature units.');
+            if (!resourceSchema.units) {
+                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
             }
             result['target_temperature_high_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureLow':
-            if (resourceSchema.units === undefined) {
-                throw new Error('Resource Schema missing temperature units.');
+            if (!resourceSchema.units) {
+                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
             }
             result['target_temperature_low_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
@@ -255,7 +255,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'humidity':
         case 'ecoMode':
         case 'fanTimerTimeout':
-            throw new OpenT2TError(403, 'Resource is not mutable');
+            throw new OpenT2TError(403, NestConstants.ResourceNotMutable);
         case 'fanMode':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:

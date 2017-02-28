@@ -6,6 +6,7 @@ var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var InsteonConstants = require('./constants');
 var sleep = require('es6-sleep').promise;
 
 /**
@@ -395,7 +396,7 @@ class Translator {
                         if(count > 1){
                             return this._getCommandResponse(commandId, --count);
                         } else {
-                            throw new OpenT2TError(500, 'Internal Error - Insteon command timeout.');
+                            throw new OpenT2TError(500, InsteonConstants.CommandTimeout);
                         }
                     } else {
                         return response;
