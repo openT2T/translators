@@ -20,7 +20,7 @@ class Translator {
      * Get the hub definition and devices
      */
     get(expand) {
-        return this.getPlatforms(true);
+        return this.getPlatforms(expand);
     } 
 
     /**
@@ -113,6 +113,8 @@ class Translator {
      *      needs to be included in a response to the original request.
      */
     _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
+        // fix lint error
+        console.log(deviceType + deviceId + callbackUrl + verificationRequest);
         throw new Error("Not implemented");
     }
 
@@ -126,6 +128,8 @@ class Translator {
      * 
      */
     _unsubscribe(deviceType, deviceId, callbackUrl) {
+        // fix lint error
+        console.log(deviceType + deviceId + callbackUrl);
         throw new Error("Not implemented");
     }
 
@@ -139,6 +143,8 @@ class Translator {
      * This is just a helper for tests and verification.
      */
     _getSubscriptions(deviceType, deviceId) {
+        // fix lint error
+        console.log(deviceType + deviceId);
         throw new Error("Not implemented");
     }
 
