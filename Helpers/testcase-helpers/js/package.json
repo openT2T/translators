@@ -1,16 +1,15 @@
 {
-  "name": "opent2t-device-lamp",
+  "name": "opent2t-testcase-helpers",
   "version": "0.1.1",
-  "description": "Lamp device",
+  "description": "Shared testcase helpers",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/opent2t/translators.git"
   },
-  "main": "lampTests.js",
+  "main": "helpers.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "^1.0.3",
-    "opent2t-testcase-helpers": "file:../../Helpers/testcase-helpers/js"
+    "opent2t": "^1.0.3"
   }
 }
