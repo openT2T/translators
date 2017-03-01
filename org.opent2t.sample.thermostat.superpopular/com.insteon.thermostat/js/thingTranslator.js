@@ -162,6 +162,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan'] !== undefined
     });
 
+    // Build the connectionStatus resource (read-only)
+    var connectionStatus = createResource('oic.r.mode', 'oic.if.s', 'connectionStatus', expand, {
+        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
+        modes: [providerSchema['Reachable'] ? 'online' : 'offline']
+    });
+
     var PlatformSchema =  {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
@@ -184,7 +190,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     targetTemperatureLow,
                     humidity,
                     hvacMode,
-                    hasFan
+                    hasFan,
+                    connectionStatus
                 ]
             }
         ]
@@ -232,6 +239,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
+        case 'connectionStatus':
             throw new Error('NotImplemented');
         default:
             throw new Error('NotFound');
@@ -411,6 +419,10 @@ class Translator {
 
     postDevicesFanMode(di, payload) {
         return this.postDeviceResource(di, 'fanMode', payload);
+    }
+
+    getDevicesConnectionStatus(di) {
+        return this.getDeviceResource(di, "connectionStatus");
     }
 
     postSubscribe(subscriptionInfo) {

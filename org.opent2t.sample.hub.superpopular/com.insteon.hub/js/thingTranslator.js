@@ -77,12 +77,11 @@ class Translator {
 
                         return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                             .then((response) => {
-                                return this._getCommandResponse(response.id, 10) // get device status
+                                return this._getCommandResponse(response.id) // get device status
                                     .then((deviceStatus) => {
-
                                         if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
                                             
-                                            deviceData['reachable'] = true;
+                                            deviceData['Reachable'] = true;
 
                                             switch (opent2tInfo.schema) {
                                                 case 'org.opent2t.sample.thermostat.superpopular':
@@ -101,7 +100,7 @@ class Translator {
                                             }
 
                                         } else if (deviceStatus.status === 'failed') {
-                                            deviceData['reachable'] = false;
+                                            deviceData['Reachable'] = false;
                                         }
                                         
                                         // Create a translator for this device and get the platform information, possibly expanded
@@ -216,11 +215,11 @@ class Translator {
 
                 return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                     .then((response) => {                       
-                        return this._getCommandResponse(response.id, 10) // get device status
+                        return this._getCommandResponse(response.id) // get device status
                             .then((deviceStatus) => {  
                                 if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
 
-                                    deviceData['reachable'] = true;
+                                    deviceData['Reachable'] = true;
 
                                     switch (opent2tInfo.schema) {
                                         case 'org.opent2t.sample.thermostat.superpopular':
@@ -238,7 +237,7 @@ class Translator {
                                             break;
                                     }
                                 } else if (deviceStatus.status === 'failed') {
-                                    deviceData['reachable'] = false;
+                                    deviceData['Reachable'] = false;
                                 } else {
                                     this._throwError( 'Internal Error - Insteon command failed for deviceId: '+ deviceId + '.');
                                 }
@@ -270,7 +269,7 @@ class Translator {
         if (Object.keys(statusChanges).length > 0) {
             var statePromise = this._makeRequest(this._commandPath, 'POST', JSON.stringify(statusChanges))
                 .then((response) => {
-                    return this._getCommandResponse(response.id, 10) // get command status
+                    return this._getCommandResponse(response.id) // get command status
                         .then((commandResult) => {
                             return Promise.resolve(commandResult);
                         });
@@ -421,17 +420,13 @@ class Translator {
      *  it suggested us to wait for 1 second for the call to complete its roundtrip from the client to the hub, to the 
      *  device and back to the client.
      */
-    _getCommandResponse(commandId, count) {
+    _getCommandResponse(commandId) {
         return sleep(1000).then(() => {
             return this._makeRequest(this._commandPath + '/' + commandId, 'GET')
                 .then( (response) => {
                     switch(response.status){
                         case 'pending':
-                            if(count > 1){
-                                return this._getCommandResponse(commandId, --count);
-                            } else {
-                                this._throwError('Internal Error - Insteon command timeout.');
-                            }
+                            return this._getCommandResponse(commandId);
                             break;
                         case 'failed':
                         case 'succeeded':

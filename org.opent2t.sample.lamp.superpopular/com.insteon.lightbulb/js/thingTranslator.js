@@ -58,6 +58,7 @@ function defaultValueIfEmpty(property, defaultValue) {
  * Converts a representation of a platform from the Insteon API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
+
     // Build the oic.r.switch.binary resource
     var power = {
         "href": "/power",
@@ -72,14 +73,25 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
+    // Build the connectionStatus resource (read-only)
+    var connectionStatus = {
+        "href": "/connectionStatus",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
+
     // Include the values is expand is specified
-    if (expand) {
+    if (expand) {  
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
 
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['Level'];
         dim.range = [0, 100];
+
+        connectionStatus.id = 'connectionStatus';
+        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -102,11 +114,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 dmv: 'res.1.1.0',
                 resources: [
                     power,
-                    dim
+                    dim,
+                    connectionStatus
                 ]
             }
         ]
-    }; 
+    };
 }
 
 /***
@@ -130,6 +143,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
+        case 'connectionStatus':
             throw new Error('NotImplemented');
         default:
             // Error case
@@ -242,6 +256,10 @@ class Translator {
 
     postDevicesColourChroma(di, payload) {
         return this.postDeviceResource(di, "colourChroma", payload);
+    }
+    
+    getDevicesConnectionStatus(di) {
+        return this.getDeviceResource(di, "connectionStatus");
     }
 
     postSubscribe(subscriptionInfo) {
