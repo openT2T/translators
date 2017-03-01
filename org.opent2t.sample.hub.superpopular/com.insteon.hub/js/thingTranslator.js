@@ -81,6 +81,9 @@ class Translator {
                                     .then((deviceStatus) => {
 
                                         if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
+                                            
+                                            deviceData['reachable'] = true;
+
                                             switch (opent2tInfo.schema) {
                                                 case 'org.opent2t.sample.thermostat.superpopular':
                                                     for (var status in deviceStatus.response) {
@@ -96,6 +99,9 @@ class Translator {
                                                     }
                                                     break;
                                             }
+
+                                        } else if (deviceStatus.status === 'failed') {
+                                            deviceData['reachable'] = false;
                                         }
                                         
                                         // Create a translator for this device and get the platform information, possibly expanded
@@ -108,7 +114,7 @@ class Translator {
                                                         return platformResponse;
                                                     });
                                             }).catch((err) => {
-                                                console.log('warning: OpenT2T.createTranslatorAsync error - ' + JSON.stringify(err, null, 2));
+                                                console.log('warning: OpenT2T.createTranslatorAsync error for ' + opent2tInfo.translator + ' - ' + JSON.stringify(err, null, 2));
                                                 return Promise.resolve(undefined);
                                             });
                                         
@@ -213,6 +219,9 @@ class Translator {
                         return this._getCommandResponse(response.id, 10) // get device status
                             .then((deviceStatus) => {  
                                 if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
+
+                                    deviceData['reachable'] = true;
+
                                     switch (opent2tInfo.schema) {
                                         case 'org.opent2t.sample.thermostat.superpopular':
                                             for (var status in deviceStatus.response) {
@@ -228,6 +237,8 @@ class Translator {
                                             }
                                             break;
                                     }
+                                } else if (deviceStatus.status === 'failed') {
+                                    deviceData['reachable'] = false;
                                 } else {
                                     this._throwError( 'Internal Error - Insteon command failed for deviceId: '+ deviceId + '.');
                                 }
@@ -422,9 +433,9 @@ class Translator {
                                 this._throwError('Internal Error - Insteon command timeout.');
                             }
                             break;
+                        case 'failed':
                         case 'succeeded':
                             return Promise.resolve(response);
-                        case 'failed':
                         default:
                         if( response.command.device_id !== undefined){
                             this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
