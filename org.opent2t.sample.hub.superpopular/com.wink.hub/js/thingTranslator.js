@@ -451,7 +451,7 @@ class Translator {
                 return JSON.parse(body);
             })
             .catch((err) => {                
-                this.ConsoleLogger.error("Request failed to: ${options.method} - ${options.url}"); 
+                this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
                 request.reject(err);
                 return;
             });
