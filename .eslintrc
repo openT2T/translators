@@ -1,7 +1,7 @@
 {
     "extends": "opent2t",
     "rules": {
-        "no-console": "off"
+        "no-console": 1
     },
     "plugins": [
         "raml",
