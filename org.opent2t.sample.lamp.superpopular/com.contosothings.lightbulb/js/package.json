@@ -10,7 +10,8 @@
     "main": "thingTranslator.js",
     "license": "MIT",
     "scripts": {
-        "test": "ava"
+        "test": "ava tests/test.js",
+        "unittest": "ava tests/unitTests.js"
     },
     "ava": {
         "files": [
@@ -22,6 +23,8 @@
     },
     "devDependencies": {
         "opent2t": "^1.0.4",
-        "ava": "^0.18.2"
+        "ava": "^0.18.2",
+        "opent2t-device-contosohub": "file:../../../org.opent2t.sample.hub.superpopular/com.contosothings.hub/test",
+        "opent2t-device-lamp": "file:../../test"
     }
 }
