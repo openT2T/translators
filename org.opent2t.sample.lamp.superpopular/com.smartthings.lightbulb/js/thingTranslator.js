@@ -259,7 +259,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourChroma':
             if (resourceSchema.ct !== undefined)
             {
-                result['colorTemperature'] = resourceSchema.ct;
+                result['ct'] = resourceSchema.ct;
             } else {
                 throw new Error("Invalid resourceId");
             }
