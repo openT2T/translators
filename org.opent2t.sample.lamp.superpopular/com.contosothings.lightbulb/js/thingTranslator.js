@@ -5,14 +5,13 @@
  */
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
-
 
 var deviceType = 'light_bulbs';
 

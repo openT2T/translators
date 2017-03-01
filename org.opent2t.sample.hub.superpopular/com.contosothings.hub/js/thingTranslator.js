@@ -1,6 +1,8 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -115,7 +117,7 @@ class Translator {
     _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
         // fix lint error
         console.log(deviceType + deviceId + callbackUrl + verificationRequest);
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 
     /**
@@ -130,7 +132,7 @@ class Translator {
     _unsubscribe(deviceType, deviceId, callbackUrl) {
         // fix lint error
         console.log(deviceType + deviceId + callbackUrl);
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 
     /**
@@ -145,7 +147,7 @@ class Translator {
     _getSubscriptions(deviceType, deviceId) {
         // fix lint error
         console.log(deviceType + deviceId);
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 
     /** 

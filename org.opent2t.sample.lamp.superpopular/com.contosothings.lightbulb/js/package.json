@@ -21,9 +21,7 @@
         "opent2t-translator-com-contosothings-hub": "^0.0.1"
     },
     "devDependencies": {
-        "optimist": "*",
-        "opent2t": "*",
-        "jshint": "^2.9.2",
-        "ava": "^0.15.2"
+        "opent2t": "^1.0.4",
+        "ava": "^0.18.2"
     }
 }
