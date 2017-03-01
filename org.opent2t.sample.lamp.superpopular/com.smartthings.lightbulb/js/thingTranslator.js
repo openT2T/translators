@@ -249,7 +249,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         case 'colourRGB':
             var HSVColor = RGBtoHSV(resourceSchema.rgbvalue);
-            this.ConsoleLogger.info("HSVCOlor: ", HSVColor);
             if (HSVColor !== undefined)
             {
                 result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
@@ -266,7 +265,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             }
             break
         default:
-        this.ConsoleLogger.error("Invalid resourceId: ", resourceId);
         throw new Error("Invalid resourceId");
     }
     return result;
@@ -276,7 +274,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 class Translator {
         
     constructor(deviceInfo, logLevel = "info") {
-       this.ConsoleLogger = new OpenT2TLogger("logLevel");
+       this.ConsoleLogger = new OpenT2TLogger(logLevel);
         this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
@@ -284,7 +282,7 @@ class Translator {
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        this.console.verbose('SmartThings Lightbulb initializing...Done');
+        this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...Done');
     }
 
     /**
