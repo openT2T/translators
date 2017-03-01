@@ -9,12 +9,16 @@ var path = require('path');
 // that the name of the translator is correctly prepended in the package.json file.
 function verify(file, log) {
     const NAME_PREFIX = 'opent2t-translator-';
-    var metadata = JSON.parse(file.contents.toString());
-    var folderName = path.basename(path.dirname(path.dirname(file.path)));
-    var expectedName = NAME_PREFIX + folderName.replace(/\./g, '-');
+    try {
+        var metadata = JSON.parse(file.contents.toString());
+        var folderName = path.basename(path.dirname(path.dirname(file.path)));
+        var expectedName = NAME_PREFIX + folderName.replace(/\./g, '-');
 
-    if(metadata.name !== expectedName) {
-        log.error(file.path, 'Incorrect translator name. Expected: ' + expectedName);
+        if(metadata.name !== expectedName) {
+            log.error(file.path, 'Incorrect translator name. Expected: ' + expectedName);
+        }
+    } catch(err) {
+        log.error(`Error occured in file: ${file.path}, Error: ${err}`);
     }
 }
 

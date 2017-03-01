@@ -1,18 +1,20 @@
 {  "expected_exceptions" :
     {
-        "GetAwayTemperatureHigh" : "NotImplemented",
-        "GetAwayTemperatureLow" : "NotImplemented",
-        "GetHeatingFuelSource" : "NotImplemented",
-        "GetFanActive" : "NotImplemented",
-        "GetFanTimerActive" : "NotImplemented",
-        "GetFanTimerTimeout" : "NotImplemented",
-        "GetAwayMode" : "NotImplemented",
-        "GetEcoMode" : "NotImplemented",
-        "SetTargetTemperature" : "NotMutable",
-        "SetAwayTemperatureHigh" : "NotImplemented",
-        "SetAwayTemperatureLow" : "NotImplemented",
-        "SetFanTimerTimeout" : "NotImplemented",
-        "SetAwayMode" : "NotImplemented",
-        "SetEcoMode" : "NotImplemented"
+        "GetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetHeatingFuelSource" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetFanActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetFanTimerActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetAwayMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetEcoMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetTargetTemperature" : {"isOpent2tError" : false, "message" : "NotMutable"},
+        "SetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetAwayMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "SetEcoMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"},
+        "SetAwayModeForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"}
     }
 }

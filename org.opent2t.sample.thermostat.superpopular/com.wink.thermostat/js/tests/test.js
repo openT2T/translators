@@ -26,7 +26,7 @@ function createTranslator() {
     });
 }
 
-var settings = {
+let settings = {
     createTranslator: createTranslator,
     test: test,
     deviceId: 'D5D37EB6-F428-41FA-AC5D-918F084A4C93',
