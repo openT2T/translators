@@ -113,7 +113,7 @@ class Translator {
                                             });
                                         
                                     }).catch((err) => { 
-                                        throw err;
+                                        return Promise.reject(err);
                                     });
                             });
                     }
@@ -126,6 +126,7 @@ class Translator {
         // Return a promise for all platform translations.
         return Promise.all(platformPromises)
             .then((platforms) => {
+
                 var toReturn = {};
                 toReturn.schema = "org.opent2t.sample.hub.superpopular";
                 toReturn.platforms = [];
