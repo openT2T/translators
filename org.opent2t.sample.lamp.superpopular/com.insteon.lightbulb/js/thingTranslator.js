@@ -1,5 +1,6 @@
 'use strict';
 var crypto = require('crypto');
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -133,6 +134,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             throw new Error('NotImplemented');
         default:
             // Error case
+            this.ConsoleLogger.error("Invalid ResourceId: ", resourceId);
             throw new Error("Invalid resourceId");
     }
     return result;
@@ -152,15 +154,16 @@ const lightbulbDeviceDi = "882b5bb8-5522-4c77-b09a-e761842eb1e2";
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Insteon Lightbulb initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.verbose('Insteon Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        console.log('Insteon Lightbulb initializing...Done');
+        this.ConsoleLogger.verbose('Insteon Lightbulb initializing...Done');
     }
 
     /**

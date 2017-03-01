@@ -21,7 +21,7 @@
   "dependencies": {
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
-    "opent2t": "^1.0.2",
+    "opent2t": "^1.0.4",
     "opent2t-onboarding-org-opent2t-onboarding-insteon": "^0.2.0",
     "es6-sleep": "*"
   },

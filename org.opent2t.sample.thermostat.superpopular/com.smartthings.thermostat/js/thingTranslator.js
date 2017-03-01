@@ -1,4 +1,5 @@
 'use strict';
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -22,13 +23,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di; 
     }); 
     
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new Error('NotFound');
+    }
     
     var resource = entity.resources.find((r) => { 
         return r.id === resourceId;  
     }); 
 
-    if (!resource) throw new Error('NotFound'); 
+    if (!resource) {
+        throw new Error('NotFound'); 
+    }
     return resource; 
 }
 
@@ -226,15 +231,16 @@ const thermostatDeviceDi = "185981bb-b056-42dd-959a-bc0d3f6080ea";
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
      
-    constructor(deviceInfo) {
-        console.log('SmartThings Thermostat initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.verbose('SmartThings Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Thermostat initializing...Done');
+        this.ConsoleLogger.verbose('SmartThings Thermostat initializing...Done');
     }
     
     /**

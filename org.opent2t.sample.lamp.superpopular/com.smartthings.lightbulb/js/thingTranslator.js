@@ -1,4 +1,5 @@
 'use strict';
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -248,7 +249,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         case 'colourRGB':
             var HSVColor = RGBtoHSV(resourceSchema.rgbvalue);
-            console.log(HSVColor);
+            this.ConsoleLogger.info("HSVCOlor: ", HSVColor);
             if (HSVColor !== undefined)
             {
                 result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
@@ -265,9 +266,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             }
             break
         default:
-            // Error case
-            console.log("Invalid resourceId: " + resourceId)
-            throw new Error("Invalid resourceId");
+        this.ConsoleLogger.error("Invalid resourceId: ", resourceId);
+        throw new Error("Invalid resourceId");
     }
     return result;
 }
@@ -275,15 +275,16 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
         
-    constructor(deviceInfo) {
-        console.log('SmartThings Lightbulb initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+       this.ConsoleLogger = new OpenT2TLogger("logLevel");
+        this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Lightbulb initializing...Done');
+        this.console.verbose('SmartThings Lightbulb initializing...Done');
     }
 
     /**

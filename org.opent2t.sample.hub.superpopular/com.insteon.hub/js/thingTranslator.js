@@ -5,12 +5,13 @@
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var sleep = require('es6-sleep').promise;
+var OpenT2TLogger = require('opent2t').Logger;
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._subCatMap = {
@@ -22,6 +23,7 @@ class Translator {
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
 
     /**
@@ -61,7 +63,9 @@ class Translator {
                     var deviceData = data;
 
                     // get the opent2t schema and translator for the insteon device
-                    var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                    var opent2tInfo = this._getOpent2tInfo(
+                        deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                   
                     if (opent2tInfo !== undefined) // we support the device
                     {
                         // set the opent2t info for the wink device
@@ -97,7 +101,7 @@ class Translator {
                                                     break;
                                             }
                                         } else {
-                                            console.log(deviceStatus);  //failed to get device status
+                                            this.ConsoleLogger.warn("Failed to get deviceStatus: ", deviceStatus);  //failed to get device status
                                         }
                                         
                                         // Create a translator for this device and get the platform information, possibly expanded
@@ -177,8 +181,8 @@ class Translator {
                 return this._authTokens;
                 
             }).catch(function (err) {
-                console.log('Request failed to: ' + options.method + ' - ' + options.url);
-                console.log('Error            : ' + err.statusCode + ' - ' + err.response.statusMessage);
+                this.ConsoleLogger.error(`Request failed to: ${options.method}- ${options.url}`);
+                this.ConsoleLogger.error(`"Error            : ${err.statusCode} - ${err.response.statusMessage}`);
                 throw err;
             });
     }
@@ -409,7 +413,9 @@ class Translator {
                         return response;
                     }
                 })
-                .catch((err) => { console.log(err); });
+                .catch((err) => {
+                    this.ConsoleLogger.error("Error running Insteon command: ", err); 
+                });
         });
     }
 
@@ -468,8 +474,8 @@ class Translator {
                 }
             })
             .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
+                this.ConsoleLogger.error(`Request failed to: ${options.method}- ${options.url}`);
+                this.ConsoleLogger.error(`"Error            : ${err.statusCode} - ${err.response.statusMessage}`);
                 // todo auto refresh in specific cases, issue 74
                 throw err;
             });
