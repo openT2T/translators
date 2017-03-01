@@ -3,10 +3,12 @@
 
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TLogger = require('opent2t').Logger;
 var config = require('./testConfig');
 
-console.log("Config:");
-console.log(JSON.stringify(config, null, 2));
+var ConsoleLogger = new OpenT2TLogger("info");  
+ConsoleLogger.verbose("Config:");
+ConsoleLogger.verbose(JSON.stringify(config, null, 2));
 var translatorPath = require('path').join(__dirname, '..');
 
 ///
@@ -23,8 +25,8 @@ test.serial('GetPlatforms', t => {
             return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.hub.superpopular', 'getPlatforms', [])
                 .then((hub) => {
 
-                    console.log("Hub:");
-                    console.log(JSON.stringify(hub, null, 2));
+                    ConsoleLogger.verbose("Hub:");
+                    ConsoleLogger.verbose(JSON.stringify(hub, null, 2));
 
                     // TEST: something was returned
                     t.truthy(hub);
