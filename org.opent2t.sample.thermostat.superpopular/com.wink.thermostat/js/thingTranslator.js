@@ -264,7 +264,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new OpenT2TError(501, 'NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 

@@ -1,4 +1,9 @@
 'use strict';
+
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var InsteonConstants = require('./constants');
+
 var crypto = require('crypto');
 var OpenT2TLogger = require('opent2t').Logger;
 
@@ -7,10 +12,10 @@ var OpenT2TLogger = require('opent2t').Logger;
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -25,14 +30,16 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('NotFound');
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource;
 }
 
@@ -225,7 +232,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         case 'humidity':
         case 'targetTemperature':
-            throw new Error('NotMutable');
+            throw new OpenT2TError(403, InsteonConstants.ResourceNotMutable);
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'heatingFuelSource':
@@ -233,9 +240,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -251,7 +258,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 
@@ -311,7 +318,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 

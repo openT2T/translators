@@ -3,6 +3,8 @@
 
 "use strict";
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var Firebase = require("firebase");
 var OpenT2TLogger = require('opent2t').Logger;
 
@@ -61,7 +63,7 @@ class Translator {
      */
     _subscribe(subscriptionInfo) {
         // Error case: waiting for design decision
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 
     /**
@@ -70,7 +72,7 @@ class Translator {
      */
     _unsubscribe(subscriptionInfo) {
         // Error case: waiting for design decision
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
     /* eslint no-unused-vars: "warn" */
 
@@ -170,8 +172,7 @@ class Translator {
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
             this.ConsoleLogger.error("Ran into error in putDeviceDetailsAsync: ", errorMsg.error);
-            throw new Error(errorMsg.error);
-        });
+            return Promise.reject(errorMsg.error);        });
     }
     
     /**
@@ -201,8 +202,7 @@ class Translator {
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
             this.ConsoleLogger.error("Ran into error in setAwayMode: ", errorMsg.error);
-            throw new Error(errorMsg.error);
-        });
+            return Promise.reject(errorMsg.error);        });
     }
 }
 

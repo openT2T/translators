@@ -7,8 +7,7 @@
   "files": [
     "thingTranslator.js",
     "package.json",
-    "manifest.xml",
-    "common.js"
+    "manifest.xml"
   ],
   "repository": {
     "type": "git",
