@@ -125,6 +125,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             result['DeviceName'] = resourceSchema.n;
             break;
         case 'connectionStatus':
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);

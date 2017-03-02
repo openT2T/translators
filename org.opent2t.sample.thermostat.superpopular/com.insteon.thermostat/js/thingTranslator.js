@@ -208,7 +208,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         var fanMode = createResource('oic.r.mode', 'oic.if.a', 'fanMode', expand, readFanMode(providerSchema));
         PlatformSchema.entities[0].resources.push(fanMode);
     }
-    
     return PlatformSchema;
 }
 
@@ -247,7 +246,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayMode':
         case 'ecoMode':
         case 'connectionStatus':
-            throw new Error('NotImplemented');
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);

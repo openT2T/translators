@@ -148,7 +148,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourRgb':
         case 'colourChroma':
         case 'connectionStatus':
-            throw new Error('NotImplemented');
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
