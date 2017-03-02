@@ -69,9 +69,20 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         if: ['oic.if.a', 'oic.if.baseline']
     };
     
+    // Build the connectionStatus resource (read-only)
+    var connectionStatus = {
+        "href": "/connectionStatus",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
+
     if (expand) {
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
+
+        connectionStatus.id = 'connectionStatus';
+        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -93,7 +104,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [
-                    power
+                    power,
+                    connectionStatus
                 ]
             }
         ]
@@ -112,6 +124,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'n':
             result['DeviceName'] = resourceSchema.n;
             break;
+        case 'connectionStatus':
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
@@ -184,6 +198,10 @@ class Translator {
 
     postDevicesPower(di, payload) {
         return this.postDeviceResource(di, 'power', payload);
+    }
+
+    getDevicesConnectionStatus(di) {
+        return this.getDeviceResource(di, "connectionStatus");
     }
 
     postSubscribe(subscriptionInfo) {
