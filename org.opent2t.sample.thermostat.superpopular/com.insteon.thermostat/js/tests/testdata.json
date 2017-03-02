@@ -1,20 +1,20 @@
 {  "expected_exceptions" :
     {
-        "GetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetHeatingFuelSource" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanTimerActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetAwayMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetEcoMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetTargetTemperature" : {"isOpent2tError" : false, "message" : "NotMutable"},
-        "SetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetAwayMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetEcoMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetTargetTemperatureForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"},
-        "SetAwayModeForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"}
+        "GetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetHeatingFuelSource" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetEcoMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetTargetTemperature" : {"statusCode": 403, "message" : "Resource is not mutable"},
+        "SetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetEcoMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404},
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }

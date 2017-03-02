@@ -1,13 +1,13 @@
 {  "expected_exceptions" :
     {
-        "GetHeatingFuelSource" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetFanMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotMutable"},
-        "SetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotMutable"},
-        "SetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotMutable"},
-        "GetTargetTemperatureForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"},
-        "SetAwayModeForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"}
+        "GetHeatingFuelSource" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureHigh" : {"statusCode" : 403, "message" : "Resource is not mutable"},
+        "SetAwayTemperatureLow" : {"statusCode" : 403, "message" : "Resource is not mutable"},
+        "SetFanTimerTimeout" : {"statusCode" : 403, "message" : "Resource is not mutable"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404},
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }

@@ -1,16 +1,16 @@
 {  "expected_exceptions" :
     {
-        "GetEcoMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetHeatingFuelSource" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanTimerActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetFanActive" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetAwayTemperatureHigh" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetAwayTemperatureLow" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetFanTimerTimeout" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetTargetTemperatureForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"},
-        "SetAwayModeForNonexistentDevice_Fails" : {"isOpent2tError" : false, "message" : "NotFound"}
+        "GetEcoMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetHeatingFuelSource" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404},
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }
