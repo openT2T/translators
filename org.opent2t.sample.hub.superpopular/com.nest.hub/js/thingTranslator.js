@@ -6,12 +6,13 @@ var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var Firebase = require("firebase");
+var OpenT2TLogger = require('opent2t').Logger;
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
         this._baseUrl = "https://developer-api.nest.com";
         this._devicesPath = 'devices/';
@@ -19,6 +20,7 @@ class Translator {
         this._name = "Nest Hub";
         this._firebaseRef = new Firebase(this._baseUrl);
         this._firebaseRef.authWithCustomToken(this._authTokens['access'].token);
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
 
     /**
@@ -169,8 +171,8 @@ class Translator {
             var startInd = str.indexOf('{');
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
-            return Promise.reject(errorMsg.error);
-        });
+            this.ConsoleLogger.error("Ran into error in putDeviceDetailsAsync: ", errorMsg.error);
+            return Promise.reject(errorMsg.error);        });
     }
     
     /**
@@ -199,8 +201,8 @@ class Translator {
             var startInd = str.indexOf('{');
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
-            return Promise.reject(errorMsg.error);
-        });
+            this.ConsoleLogger.error("Ran into error in setAwayMode: ", errorMsg.error);
+            return Promise.reject(errorMsg.error);        });
     }
 }
 

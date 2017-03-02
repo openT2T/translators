@@ -5,6 +5,7 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var InsteonConstants = require('./constants');
 
 var crypto = require('crypto');
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -273,15 +274,16 @@ const thermostatDeviceDi = "6d3b1cbc-2532-44ba-80f5-a41b60213c04";
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Insteon Thermostat initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.verbose('Insteon Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        console.log('Insteon Thermostat initializing...Done');
+        this.ConsoleLogger.verbose('Insteon Thermostat initializing...Done');
     }
 
     /**

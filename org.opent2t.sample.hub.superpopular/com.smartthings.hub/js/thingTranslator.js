@@ -5,18 +5,18 @@
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
-var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-
+var OpenT2TLogger = require('opent2t').Logger;
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
         this._name = "SmartThings Hub"; // TODO: Can be pulled from OpenT2T global constants.
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
 
     /**
@@ -251,8 +251,15 @@ class Translator {
         return request(options)
             .then(function (body) {
                 if (method === 'PUT' || method === 'DELETE') {
-                    if (body.length === 0) return "succeed";
-                    return "Unkown error";
+                    // TODO: Why is this check below in the first place? 
+                    // It seems very weird to check 0 length body
+                    if (body.length === 0) {
+                        return "succeed";
+                    } else {
+                        let errorMsg = "Non-zero length body for PUT/DELETE call to SmartThings";
+                        this.ConsoleLogger.warn(errorMsg);
+                        return errorMsg;
+                    }
                 } else {
                     return JSON.parse(body);
                 }                

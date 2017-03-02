@@ -1,4 +1,5 @@
 'use strict';
+var OpenT2TLogger = require('opent2t').Logger;
 
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
@@ -255,7 +256,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         case 'colourRGB':
             var HSVColor = RGBtoHSV(resourceSchema.rgbvalue);
-            console.log(HSVColor);
             if (HSVColor !== undefined)
             {
                 result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
@@ -281,15 +281,16 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
         
-    constructor(deviceInfo) {
-        console.log('SmartThings Lightbulb initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+       this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Lightbulb initializing...Done');
+        this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...Done');
     }
 
     /**

@@ -10,12 +10,13 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var InsteonConstants = require('./constants');
 /* eslint no-unused-vars: "warn" */
 var sleep = require('es6-sleep').promise;
+var OpenT2TLogger = require('opent2t').Logger;
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._subCatMap = {
@@ -26,6 +27,7 @@ class Translator {
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
 
     /**
@@ -333,11 +335,13 @@ class Translator {
                 }
             }
 
-            if (device.length === 0) return Promise.resolve(undefined);
+            if (device.length === 0) {
+                // TODO: This doesnt quite seem right; Will need to investigate
+                return Promise.resolve(undefined);
+            }
             device['DeviceID'] = deviceId;
             return Promise.resolve(device);
         });
-
     }
 
     /** 
@@ -433,8 +437,8 @@ class Translator {
                     }
                 })
                 .catch((err) => { console.log(err); });
-        });
-    }
+            });
+        }
     
     /**
      * Internal helper method which makes the actual request to the insteon service

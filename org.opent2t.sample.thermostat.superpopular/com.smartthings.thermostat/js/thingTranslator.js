@@ -1,4 +1,5 @@
 'use strict';
+var OpenT2TLogger = require('opent2t').Logger;
 
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
@@ -233,15 +234,16 @@ const thermostatDeviceDi = "185981bb-b056-42dd-959a-bc0d3f6080ea";
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
      
-    constructor(deviceInfo) {
-        console.log('SmartThings Thermostat initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.verbose('SmartThings Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Thermostat initializing...Done');
+        this.ConsoleLogger.verbose('SmartThings Thermostat initializing...Done');
     }
     
     /**

@@ -19,7 +19,7 @@
         ]
     },
     "dependencies": {
-      "opent2t": "^1.0.3",
+      "opent2t": "^1.0.4",
       "opent2t-translator-com-smartthings-hub": "^0.2.2"
     },
     "devDependencies": {
