@@ -323,7 +323,10 @@ class Translator {
                 }
             }
 
-            if (device.length === 0) return Promise.resolve(undefined);
+            if (device.length === 0) {
+                // TODO: This doesnt quite seem right; Will need to investigate
+                return Promise.resolve(undefined);
+            }
             device['DeviceID'] = deviceId;
             return Promise.resolve(device);
         });
