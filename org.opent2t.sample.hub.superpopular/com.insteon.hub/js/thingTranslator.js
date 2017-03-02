@@ -405,8 +405,9 @@ class Translator {
                     } else {
                         return response;
                     }
-        });
-    }
+                });
+            });
+        }
     
     /**
      * Internal helper method which makes the actual request to the insteon service
