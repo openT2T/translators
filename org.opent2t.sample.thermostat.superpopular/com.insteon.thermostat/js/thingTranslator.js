@@ -1,4 +1,9 @@
 'use strict';
+
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var InsteonConstants = require('./constants');
+
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -6,10 +11,10 @@ var crypto = require('crypto');
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -24,14 +29,16 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('NotFound');
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource;
 }
 
@@ -162,6 +169,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan'] !== undefined
     });
 
+    // Build the connectionStatus resource (read-only)
+    var connectionStatus = createResource('oic.r.mode', 'oic.if.s', 'connectionStatus', expand, {
+        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
+        modes: [providerSchema['Reachable'] ? 'online' : 'offline']
+    });
+
     var PlatformSchema =  {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
@@ -184,7 +197,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     targetTemperatureLow,
                     humidity,
                     hvacMode,
-                    hasFan
+                    hasFan,
+                    connectionStatus
                 ]
             }
         ]
@@ -194,7 +208,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         var fanMode = createResource('oic.r.mode', 'oic.if.a', 'fanMode', expand, readFanMode(providerSchema));
         PlatformSchema.entities[0].resources.push(fanMode);
     }
-    
     return PlatformSchema;
 }
 
@@ -224,7 +237,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         case 'humidity':
         case 'targetTemperature':
-            throw new Error('NotMutable');
+            throw new OpenT2TError(403, InsteonConstants.ResourceNotMutable);
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'heatingFuelSource':
@@ -232,9 +245,10 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-            throw new Error('NotImplemented');
+        case 'connectionStatus':
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -250,7 +264,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 
@@ -309,7 +323,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 
@@ -411,6 +425,10 @@ class Translator {
 
     postDevicesFanMode(di, payload) {
         return this.postDeviceResource(di, 'fanMode', payload);
+    }
+
+    getDevicesConnectionStatus(di) {
+        return this.getDeviceResource(di, "connectionStatus");
     }
 
     postSubscribe(subscriptionInfo) {
