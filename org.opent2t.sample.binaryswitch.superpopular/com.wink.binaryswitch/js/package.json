@@ -23,9 +23,6 @@
     "opent2t": "^1.0.4"
   },
   "devDependencies": {
-    "optimist": "*",
-    "opent2t": "*",
-    "jshint": "^2.9.2",
     "ava": "^0.18.2",
     "es6-sleep": "*",
     "opent2t-device-winkhub": "file:../../../org.opent2t.sample.hub.superpopular/com.wink.hub/test",
