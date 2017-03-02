@@ -5,7 +5,7 @@
             "hue" : 10,
             "saturation" : 30,
             "level" : 20,
-            "colorTemperature" : 50
+            "colorTemperature" : 2000
         },
         "id" : "Mock Id",
         "manufacturer" : "Mock Manufacturer",
@@ -35,7 +35,7 @@
         "SetColourChroma" :
             [
                 {
-                    "colorTemperature" : 2000
+                    "colorTemperature" : 2500
                 }
             ],
         "SetColourRGB" :
