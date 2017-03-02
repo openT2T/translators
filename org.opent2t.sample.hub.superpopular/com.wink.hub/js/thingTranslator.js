@@ -9,6 +9,7 @@ var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TLogger = require('opent2t').Logger;
 var Crypto = require('crypto');
 
 /**
@@ -29,13 +30,14 @@ function getDictionaryItemCaseInsensitive(obj, propertyName) {
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
         this._oAuthPath = '/oauth2/token';
         this._name = "Wink Hub";
+        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
     }
 
     /**
@@ -448,8 +450,8 @@ class Translator {
             .then(function (body) {
                 return JSON.parse(body);
             })
-            .catch((err) => {
-                console.log("Request failed to: " + options.method + " - " + options.url);
+            .catch((err) => {                
+                this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
                 request.reject(err);
                 return;
             });
