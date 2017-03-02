@@ -6,7 +6,9 @@ var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+/* eslint no-unused-vars: "off" */
 var InsteonConstants = require('./constants');
+/* eslint no-unused-vars: "warn" */
 var sleep = require('es6-sleep').promise;
 
 /**
@@ -420,16 +422,15 @@ class Translator {
                     switch(response.status){
                         case 'pending':
                             return this._getCommandResponse(commandId);
-                            break;
                         case 'failed':
                         case 'succeeded':
                             return Promise.resolve(response);
                         default:
-                        if( response.command.device_id !== undefined){
-                            this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
-                        } else {
-                            this._throwError('Internal Error - Insteon command timeout.');
-                        }
+                            if( response.command.device_id !== undefined){
+                                this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
+                            } else {
+                                this._throwError('Internal Error - Insteon command timeout.');
+                            }
                     }
                 })
                 .catch((err) => { console.log(err); });
