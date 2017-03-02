@@ -4,6 +4,8 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 /**
 * This translator class implements the "Hub" interface.
@@ -265,11 +267,6 @@ class Translator {
                 } else {
                     return JSON.parse(body);
                 }                
-            })
-            .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err);
-                throw err;
             });
     }
 }

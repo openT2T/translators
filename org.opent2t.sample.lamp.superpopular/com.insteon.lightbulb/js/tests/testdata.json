@@ -1,9 +1,9 @@
 {  "expected_exceptions" :
     {
-        "GetColourMode" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetColourRGB" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "GetColourChroma" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetColourRGB" : {"isOpent2tError" : false, "message" : "NotImplemented"},
-        "SetColourChroma" : {"isOpent2tError" : false, "message" : "NotImplemented"}
+        "GetColourMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetColourRGB" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetColourChroma" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetColourRGB" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetColourChroma" : {"statusCode" : 501, "messageConst" : "NotImplemented"}
     }
 }
