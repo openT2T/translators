@@ -327,7 +327,6 @@ class Translator {
             device['DeviceID'] = deviceId;
             return Promise.resolve(device);
         });
-
     }
 
     /** 
