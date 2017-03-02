@@ -176,6 +176,7 @@ class Translator {
      */
     _getOpent2tInfo(deviceType) {
         switch (deviceType) {
+            case "dimmerSwitch":
             case "light":
                 return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
