@@ -244,6 +244,21 @@
         {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
       ]
     },
+    
+    "availability":{
+      "description": "ReadOnly, device availability",
+      "type": "object",
+      "default": {
+        "id": "availability",
+        "href": "/availability",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
 
     "opent2t.r.heatingFuel": {
       "type": "object",
@@ -298,7 +313,8 @@
               {"$ref": "#/definitions/fanActive"},
               {"$ref": "#/definitions/fanTimerActive"},
               {"$ref": "#/definitions/fanTimerTimeout"},
-              {"$ref": "#/definitions/fanMode"}
+              {"$ref": "#/definitions/fanMode"},
+              "$ref": "#/definitions/availability"}
             ]
           }
         }

@@ -20,6 +20,21 @@
       ]
     },
 
+    "availability":{
+      "description": "ReadOnly, device availability",
+      "type": "object",
+      "default": {
+        "id": "availability",
+        "href": "/availability",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+    
     "oic.d.smartplug": {
       "description": "The OCF Smarthome defined smartplug",
       "properties": {
@@ -27,7 +42,8 @@
           "type": "array",
           "items": {
             "anyOf": [
-              {"$ref": "#/definitions/power"}
+              {"$ref": "#/definitions/power"},
+              {"$ref": "#/definitions/availability"}
             ]
           }
         }

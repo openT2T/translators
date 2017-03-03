@@ -83,6 +83,11 @@ traits:
                         "rt": ["oic.r.colour.chroma"],
                         "if": ["oic.if.a", "oic.if.baseline"]
                       },
+                      {
+                        "href": "/availability",
+                        "rt": ["oic.r.mode"],
+                        "if": ["oic.if.a", "oic.if.baseline"]
+                      }
                     ]
                   }
                 ]
@@ -138,6 +143,14 @@ traits:
                         "dimmingSetting": 30,
                         "step": 5,
                         "range": [0, 100]
+                      },
+                      {
+                        "href": "/availability",
+                        "rt": [ "oic.r.mode" ],
+                        "if": [ "oic.if.a", "oic.if.baseline" ],
+                        "id": "availability",
+                        "modes": [ "online" ]
+                        "supportedModes": [ "online", "offline", "hidden", "deleted" ]
                       }
                     ]
                   }
@@ -322,7 +335,24 @@ traits:
                   "csc":         [0.41,0.51],
                   "ct":          467
                 }
+  /availability:
+    displayName: Availability
+    is: [ interface-sensor ]
 
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: availability
+              example: |
+                {
+                  "rt":         ["oic.r.mode"],
+                  "id":         "unique_example_id",
+                  "modes":      ["online"],
+                  "supportedmodes": [ "online", "offline", "hidden", "deleted" ]
+                }
+                
 #
 # Notification subscription URIs
 #

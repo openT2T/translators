@@ -81,6 +81,20 @@
       ]
     },
 
+    "availability":{
+      "description": "ReadOnly, device availability",
+      "type": "object",
+      "default": {
+        "id": "availability",
+        "href": "/availability",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+      },
+      "allOf": [
+        {"$ref": "oic.r.mode.json#/definitions/oic.r.mode"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
 
     "oic.d.light": {
       "description": "The OCF Smarthome defined light",
@@ -100,7 +114,6 @@
      ]
     },
 
-
     "opent2t.d.light": {
       "description": "The opent2t light; extends oic.d.light",
       "type": "object",
@@ -113,6 +126,7 @@
               {"$ref": "#/definitions/colourMode"},
               {"$ref": "#/definitions/colourRGB"},
               {"$ref": "#/definitions/colourChroma"}
+              {"$ref": "#/definitions/availability"}
             ]
           }
         }

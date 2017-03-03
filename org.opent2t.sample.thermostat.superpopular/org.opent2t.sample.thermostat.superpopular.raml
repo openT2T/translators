@@ -254,7 +254,11 @@ resourceTypes:
      displayName: Fan Mode
      is: [ interface-actuator ]
      type:  { modeType: {modes : '["auto"]', supportedmodes : '["auto", "on"]', desiredmode : '["on"]' } }
-
+     
+  /awayMode:
+    displayName: Away Mode
+    is: [ interface-sensor ]
+    type: { modeType: {modes : '["offline"]', supportedmodes : ' ["online", "offline", "hidden", "deleted"]' } }
 
 
 #
@@ -363,6 +367,11 @@ resourceTypes:
                       },
                       {
                         "href": "/fanMode",
+                        "rt": ["oic.r.mode"],
+                        "if": ["oic.if.a", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/availability",
                         "rt": ["oic.r.mode"],
                         "if": ["oic.if.a", "oic.if.baseline"]
                       }
@@ -507,6 +516,14 @@ resourceTypes:
                         "rt": ["oic.r.mode"],
                         "modes": ["auto"],
                         "supportedModes": ["on","auto"]
+                      },
+                      {
+                        "href": "/availability",
+                        "rt": [ "oic.r.mode" ],
+                        "if": [ "oic.if.a", "oic.if.baseline" ],
+                        "id": "availability",
+                        "modes": [ "online" ]
+                        "supportedModes": [ "online", "offline", "hidden", "deleted" ]
                       }
                      ]
                   }

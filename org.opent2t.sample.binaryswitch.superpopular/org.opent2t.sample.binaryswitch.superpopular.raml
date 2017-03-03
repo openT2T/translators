@@ -24,42 +24,61 @@ traits:
 #
 # Device relative URIs
 #
-/devices/{deviceid}/power:
-  displayName: Power
-  is: [ interface-actuator ]
+/devices/{deviceid}:
+  /power:
+    displayName: Power
+    is: [ interface-actuator ]
 
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: BinarySwitch
-            example: |
-              {
-                "rt": ["oic.r.switch.binary"],
-                "id": "unique_example_id",
-                "value": false
-              }
-  post:
-    body:
-      application/json:
-        schema: BinarySwitch
-        example: |
-          {
-            "id": "unique_example_id",
-            "value": true
-          }
-    responses:
-      200:
-        body:
-          application/json:
-            schema: BinarySwitch
-            example: |
-              {
-                "id": "unique_example_id",
-                "value": true
-              }
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: BinarySwitch
+              example: |
+                {
+                  "rt": ["oic.r.switch.binary"],
+                  "id": "unique_example_id",
+                  "value": false
+                }
+    post:
+      body:
+        application/json:
+          schema: BinarySwitch
+          example: |
+            {
+              "id": "unique_example_id",
+              "value": true
+            }
+      responses:
+        200:
+          body:
+            application/json:
+              schema: BinarySwitch
+              example: |
+                {
+                  "id": "unique_example_id",
+                  "value": true
+                }
+              
+  /availability:
+    displayName: Availability
+    is: [ interface-sensor ]
 
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: availability
+              example: |
+                {
+                  "rt":         ["oic.r.mode"],
+                  "id":         "unique_example_id",
+                  "modes":      ["online"],
+                  "supportedmodes": [ "online", "offline", "hidden", "deleted" ]
+                }
+                
 #
 # Platform Level URIs
 #
