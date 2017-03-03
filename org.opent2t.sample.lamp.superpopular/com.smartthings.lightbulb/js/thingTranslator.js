@@ -47,19 +47,23 @@ function findResource(schema, di, resourceId) {
 const ChangeTolerance = 0.0001;
 const MaxHue = 360.0;
 const MaxColor = 255;
+const OneMil = 1000000.0;
 
 const lightDeviceDi = "c1e94444-792a-472b-9f91-dd4d96a24ee9"
 
 /**
  * Convert HSV to RGB colours
- *   0 <= Hue <= 360
+ *   0 <= Hue < 360
  *   0 <= Saturation <= 1
  *   0 <= lumosity <= 1 
  */
 function HSVtoRGB(hue, saturation, lumosity) {
-    var hi = Math.floor(hue / 60) % 6;
+
+    var ajdHue = hue >= 360 ? hue - 1 : hue;
+
+    var hi = Math.floor(ajdHue / 60) % 6;
     var c = saturation * lumosity;
-    var x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+    var x = c * (1 - Math.abs(((ajdHue / 60) % 2) - 1));
     var m = lumosity - c;
 
     var result;
@@ -69,23 +73,23 @@ function HSVtoRGB(hue, saturation, lumosity) {
         case 0:
             result = [c, x, 0];
             break;
-        case 2 :
+        case 1 :
             result = [x, c, 0];
             break;
-        case 3:
+        case 2:
             result = [0, c, x];
             break;
-        case 4:
+        case 3:
             result = [0, x, c];
             break;
-        case 5:
+        case 4:
             result = [x, 0, c];
             break;
         default:
             result = [c, 0, x];
             break;
     }
-    return [(result[0] + m) * MaxColor, (result[1] + m) * MaxColor, (result[2] + m) * MaxColor]
+    return [Math.round((result[0] + m) * MaxColor), Math.round((result[1] + m) * MaxColor), Math.round((result[2] + m) * MaxColor)]
 }
 
 /**
@@ -151,6 +155,11 @@ function defaultValueIfEmpty(property, defaultValue) {
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
 
+    var supportCT = providerSchema['attributes'].colorTemperature !== undefined;
+    var supportColour = ( providerSchema['attributes'].hue !== undefined
+        && providerSchema['attributes'].saturation !== undefined
+        && providerSchema['attributes'].level !== undefined ) ;
+
     // Build the power resource
     var power = {
         "href": "/power",
@@ -195,18 +204,45 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.dimmingSetting = providerSchema['attributes'].level;
         dim.range = [0, 100];
 
-        colourMode.id = 'colourMode';
-        colourMode.modes = ['rgb'];
-        colourMode.supportedModes = ['rgb', 'chroma'];
 
-        colourRGB.id = 'colourRGB';
-        colourRGB.rgbvalue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
-                                      providerSchema['attributes'].saturation / 100.0,
-                                      providerSchema['attributes'].level / 100.0);
-        colourRGB.range = [0, 255];
+        if (supportColour) {
+            colourMode.id = 'colourMode';
+            colourMode.modes = ['rgb'];
+            colourMode.supportedModes = ['rgb'];
 
-        colourChroma.id = 'colourChroma';
-        colourChroma.ct = providerSchema['attributes'].colorTemperature;
+            colourRGB.id = 'colourRGB';
+            colourRGB.rgbvalue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
+                                          providerSchema['attributes'].saturation / 100.0,
+                                          providerSchema['attributes'].level / 100.0);
+            colourRGB.range = [0, 255];
+        }
+
+        if (supportCT) {
+            colourChroma.id = 'colourChroma';
+            colourChroma.ct = Math.round( OneMil / providerSchema['attributes'].colorTemperature );
+
+            if (supportColour) {
+                colourMode.supportedModes = ['rgb', 'chroma'];
+            } else {
+                colourMode.id = 'colourMode';
+                colourMode.modes = ['chroma'];
+                colourMode.supportedModes = ['chroma'];
+            }
+        }
+    }
+
+    var resources = [power, dim];
+
+    if (supportColour && supportCT) {
+        resources.push(colourMode);
+        resources.push(colourChroma);
+        resources.push(colourRGB);
+    } else if (supportColour) {
+        resources.push(colourMode);
+        resources.push(colourRGB);
+    } else if (supportCT) {
+        resources.push(colourMode);
+        resources.push(colourChroma);
     }
 
     return {
@@ -227,13 +263,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: lightDeviceDi,
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
-                resources: [
-                    power,
-                    dim,
-                    colourMode,
-                    colourRGB,
-                    colourChroma
-                ]
+                resources: resources
             }
         ]
     };
@@ -266,7 +296,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourChroma':
             if (resourceSchema.ct !== undefined)
             {
-                result['colorTemperature'] = resourceSchema.ct;
+                result['colorTemperature'] = Math.round( OneMil / resourceSchema.ct );
             } else {
                 throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
             }
