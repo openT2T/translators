@@ -108,7 +108,7 @@ const switchDeviceDi = "d455d979-d1f9-430a-8a15-61c432eda4a2";
 class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TError(logLevel);
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
 
         this.ConsoleLogger.info('SmartThings Binary Switch initializing...');
 
