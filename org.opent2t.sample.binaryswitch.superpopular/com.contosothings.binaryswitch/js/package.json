@@ -9,9 +9,10 @@
   },
   "main": "thingTranslator.js",
   "license": "MIT",
-  "scripts": {
-    "test": "ava"
-  },
+    "scripts": {
+        "test": "ava tests/test.js",
+        "unittest": "ava tests/unitTests.js"
+    },
   "ava": {
     "files": [
       "tests/*.js"

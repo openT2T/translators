@@ -1,4 +1,5 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
 
 /**
  * Validates an argument matches the expected type.
@@ -50,6 +51,13 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     getDeviceResource(di, resourceId) {
+        switch (resourceId) {
+            case 'colourMode':
+            case 'colourRgb':
+            case 'colourChroma':
+                throw new OpenT2TError(501, "NotImplemented");
+        }
+        
         return this.get(true)
             .then(response => {
                 return this.findResource(response, di, resourceId);
@@ -81,11 +89,11 @@ class Translator {
         return this.getDeviceResource(deviceId, "colourMode");
     }
 
-    getDevicesColourRgb(deviceId) {
+    getDevicesColourRGB(deviceId) {
         return this.getDeviceResource(deviceId, "colourRgb");
     }
 
-    postDevicesColourRgb(deviceId, payload) {
+    postDevicesColourRGB(deviceId, payload) {
         return this.postDeviceResource(deviceId, "colourRgb", payload);
     }
 
@@ -147,6 +155,10 @@ class Translator {
                 result.propertyName = "Dim";
                 result.value = resourceSchema.dimmingSetting;
                 break;
+            case 'colourMode':
+            case 'colourRgb':
+            case 'colourChroma':
+                throw new OpenT2TError(501, "NotImplemented");
             default:
                 // Error case
                 throw new Error("Invalid resourceId");
