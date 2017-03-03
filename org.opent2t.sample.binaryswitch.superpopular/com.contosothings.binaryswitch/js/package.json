@@ -19,10 +19,10 @@
     ]
   },
   "dependencies": {
+    "opent2t": "^1.0.4",
     "opent2t-translator-com-contosothings-hub": "^0.0.1"
   },
   "devDependencies": {
-    "opent2t": "^1.0.4",
     "ava": "^0.18.2"
   }
 }

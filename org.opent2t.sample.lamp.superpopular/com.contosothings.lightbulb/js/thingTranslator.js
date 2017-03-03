@@ -1,5 +1,6 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 
 /**
  * Validates an argument matches the expected type.
@@ -161,7 +162,7 @@ class Translator {
                 throw new OpenT2TError(501, "NotImplemented");
             default:
                 // Error case
-                throw new Error("Invalid resourceId");
+                throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
         }
 
         return result;    
