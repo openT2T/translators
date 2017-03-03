@@ -46,6 +46,7 @@ function findResource(schema, di, resourceId) {
 const ChangeTolerance = 0.0001;
 const MaxHue = 360.0;
 const MaxColor = 255;
+const OneMil = 1000000.0;
 
 const lightDeviceDi = "c1e94444-792a-472b-9f91-dd4d96a24ee9"
 
@@ -217,7 +218,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         if (supportCT) {
             colourChroma.id = 'colourChroma';
-            colourChroma.ct = providerSchema['attributes'].colorTemperature;
+            colourChroma.ct = Math.round( OneMil / providerSchema['attributes'].colorTemperature );
 
             if (supportColour) {
                 colourMode.supportedModes = ['rgb', 'chroma'];
@@ -294,7 +295,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourChroma':
             if (resourceSchema.ct !== undefined)
             {
-                result['colorTemperature'] = resourceSchema.ct;
+                result['colorTemperature'] = Math.round( OneMil / resourceSchema.ct );
             } else {
                 throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
             }
