@@ -170,8 +170,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan'] !== undefined
     });
 
-    // Build the connectionStatus resource (read-only)
-    var connectionStatus = createResource('oic.r.mode', 'oic.if.s', 'connectionStatus', expand, {
+    // Build the availability resource (read-only)
+    var availability = createResource('oic.r.mode', 'oic.if.s', 'availability', expand, {
         supportedModes: ['online', 'offline', 'hidden', 'deleted'],
         modes: [providerSchema['Reachable'] ? 'online' : 'offline']
     });
@@ -199,7 +199,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     humidity,
                     hvacMode,
                     hasFan,
-                    connectionStatus
+                    availability
                 ]
             }
         ]
@@ -246,7 +246,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-        case 'connectionStatus':
+        case 'availability':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
@@ -429,8 +429,8 @@ class Translator {
         return this.postDeviceResource(di, 'fanMode', payload);
     }
 
-    getDevicesConnectionStatus(di) {
-        return this.getDeviceResource(di, "connectionStatus");
+    getDevicesavailability(di) {
+        return this.getDeviceResource(di, "availability");
     }
 
     postSubscribe(subscriptionInfo) {

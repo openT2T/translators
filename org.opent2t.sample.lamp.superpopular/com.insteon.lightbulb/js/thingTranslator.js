@@ -78,9 +78,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
-    // Build the connectionStatus resource (read-only)
-    var connectionStatus = {
-        "href": "/connectionStatus",
+    // Build the availability resource (read-only)
+    var availability = {
+        "href": "/availability",
         "rt": ["oic.r.mode"],
         "if": ["oic.if.s", "oic.if.baseline"]
     }
@@ -94,9 +94,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.dimmingSetting = providerSchema['Level'];
         dim.range = [0, 100];
 
-        connectionStatus.id = 'connectionStatus';
-        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
+        availability.id = 'availability';
+        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        availability.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -120,7 +120,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 resources: [
                     power,
                     dim,
-                    connectionStatus
+                    availability
                 ]
             }
         ]
@@ -148,7 +148,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-        case 'connectionStatus':
+        case 'availability':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
@@ -266,8 +266,8 @@ class Translator {
         return this.postDeviceResource(di, "colourChroma", payload);
     }
     
-    getDevicesConnectionStatus(di) {
-        return this.getDeviceResource(di, "connectionStatus");
+    getDevicesavailability(di) {
+        return this.getDeviceResource(di, "availability");
     }
 
     postSubscribe(subscriptionInfo) {

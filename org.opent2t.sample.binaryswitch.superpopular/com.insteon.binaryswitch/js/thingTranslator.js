@@ -69,9 +69,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         if: ['oic.if.a', 'oic.if.baseline']
     };
     
-    // Build the connectionStatus resource (read-only)
-    var connectionStatus = {
-        "href": "/connectionStatus",
+    // Build the availability resource (read-only)
+    var availability = {
+        "href": "/availability",
         "rt": ["oic.r.mode"],
         "if": ["oic.if.s", "oic.if.baseline"]
     }
@@ -80,9 +80,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
 
-        connectionStatus.id = 'connectionStatus';
-        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
+        availability.id = 'availability';
+        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        availability.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -105,7 +105,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: switchDeviceDi,
                 resources: [
                     power,
-                    connectionStatus
+                    availability
                 ]
             }
         ]
@@ -124,7 +124,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'n':
             result['DeviceName'] = resourceSchema.n;
             break;
-        case 'connectionStatus':
+        case 'availability':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
@@ -200,8 +200,8 @@ class Translator {
         return this.postDeviceResource(di, 'power', payload);
     }
 
-    getDevicesConnectionStatus(di) {
-        return this.getDeviceResource(di, "connectionStatus");
+    getDevicesavailability(di) {
+        return this.getDeviceResource(di, "availability");
     }
 
     postSubscribe(subscriptionInfo) {
