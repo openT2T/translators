@@ -35,7 +35,7 @@
         "SetColourChroma" :
             [
                 {
-                    "colorTemperature" : 33333
+                    "colorTemperature" : 30
                 }
             ],
         "SetColourRGB" :
