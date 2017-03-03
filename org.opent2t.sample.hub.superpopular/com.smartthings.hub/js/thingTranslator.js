@@ -263,7 +263,7 @@ class Translator {
                 } else {
                     return JSON.parse(body);
                 }                
-            });
+            }.bind(this));
     }
 }
 

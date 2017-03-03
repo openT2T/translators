@@ -279,7 +279,7 @@ class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.verbose('Initializing device.');
+        this.ConsoleLogger.info('Initializing device.');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
@@ -287,7 +287,7 @@ class Translator {
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        this.ConsoleLogger.verbose('Wink Thermostat Translator initialized.');
+        this.ConsoleLogger.info('Wink Thermostat Translator initialized.');
     }
 
     /**

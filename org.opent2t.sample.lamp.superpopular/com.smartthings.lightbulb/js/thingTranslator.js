@@ -283,14 +283,14 @@ class Translator {
         
     constructor(deviceInfo, logLevel = "info") {
        this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...');
+        this.ConsoleLogger.info('SmartThings Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        this.ConsoleLogger.verbose('SmartThings Lightbulb initializing...Done');
+        this.ConsoleLogger.info('SmartThings Lightbulb initializing...Done');
     }
 
     /**

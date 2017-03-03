@@ -276,14 +276,14 @@ class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.verbose('Insteon Thermostat initializing...');
+        this.ConsoleLogger.info('Insteon Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        this.ConsoleLogger.verbose('Insteon Thermostat initializing...Done');
+        this.ConsoleLogger.info('Insteon Thermostat initializing...Done');
     }
 
     /**

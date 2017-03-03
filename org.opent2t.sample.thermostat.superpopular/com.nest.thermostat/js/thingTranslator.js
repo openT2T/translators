@@ -283,7 +283,7 @@ class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.verbose('Nest Thermostat initializing...');
+        this.ConsoleLogger.info('Nest Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
@@ -291,7 +291,7 @@ class Translator {
         this.nestHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        this.ConsoleLogger.verbose('Nest Thermostat initializing...Done');
+        this.ConsoleLogger.info('Nest Thermostat initializing...Done');
     }
 
     /**
