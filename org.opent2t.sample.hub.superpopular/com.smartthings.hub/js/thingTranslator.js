@@ -150,17 +150,27 @@ class Translator {
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
+                    }).catch((err) => {
+                        console.log('warning: OpenT2T.createTranslatorAsync error - ' + err);
+                        return Promise.resolve(undefined);
                     }));
             }
         });
 
         return Promise.all(platformPromises)
-                .then((platforms) => {
-                    var toReturn = {};
-                    toReturn.schema = "opent2t.p.hub";
-                    toReturn.platforms = platforms;
-                    return toReturn;
-                });
+            .then((platforms) => {
+
+                var toReturn = {};
+                toReturn.schema = "org.opent2t.sample.hub.superpopular";
+                toReturn.platforms = [];
+                for (var i = 0; i < platforms.length; i++) {
+                    if (platforms[i] !== undefined) {
+                        toReturn.platforms.push(platforms[i]);
+                    }
+                }
+
+                return toReturn;
+            });
     }
 
     /** 
@@ -168,6 +178,7 @@ class Translator {
      */
     _getOpent2tInfo(deviceType) {
         switch (deviceType) {
+            case "dimmerSwitch":
             case "light":
                 return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
