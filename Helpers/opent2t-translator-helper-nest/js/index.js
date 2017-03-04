@@ -1,6 +1,7 @@
 'use strict';
 
 var request = require('request-promise');
+var OpenT2TLogger = require('opent2t').Logger;
 
 // Nest developer endpoint as documented here: http:/developers.nest.com/
 var apiEndpoint = 'https://developer-api.nest.com';
@@ -11,10 +12,13 @@ var bearerToken;
 class NestHelper {
 
     // Init Helper: Sets the initial parameters to build our target endpoint
-    constructor(accessToken) {
+    constructor(accessToken, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.info("Initilizing Nest helper");
+        
         bearerToken = accessToken;
-
-        console.log('Initialized Nest Helper.');
+        
+        this.ConsoleLogger.info('Initialized Nest Helper.');
     }
 
     // Gets device details (all fields), response formatted per http:/developers.nest.com/
