@@ -119,7 +119,7 @@ class Translator {
                                                         return platformResponse;
                                                     });
                                             }).catch((err) => {
-                                                console.log('warning: OpenT2T.createTranslatorAsync error for ' + opent2tInfo.translator + ' - ' + JSON.stringify(err, null, 2));
+                                                // Being logged in HubController already
                                                 return Promise.resolve(undefined);
                                             });
                                         
@@ -436,7 +436,9 @@ class Translator {
                             }
                     }
                 })
-                .catch((err) => { console.log(err); });
+                .catch((err) => { 
+                    Promise.reject(err); 
+                });
             });
         }
     
