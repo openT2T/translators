@@ -191,7 +191,7 @@ class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
         this.ConsoleLogger = new OpenT2TLogger(logLevel); 
-        this.ConsoleLogger.verbose('Wink Lightbulb initializing...');
+        this.ConsoleLogger.info('Wink Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
@@ -199,7 +199,7 @@ class Translator {
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'light_bulbs';
 
-        this.ConsoleLogger.verbose('Wink Lightbulb initializing...Done');
+        this.ConsoleLogger.info('Wink Lightbulb initializing...Done');
     }
 
     /**

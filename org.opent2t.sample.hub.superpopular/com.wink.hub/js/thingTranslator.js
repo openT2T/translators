@@ -454,7 +454,7 @@ class Translator {
                 this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
                 request.reject(err);
                 return;
-            });
+            }).bind(this); //Pass in the context via bind() to use instance variables
             
     }
 

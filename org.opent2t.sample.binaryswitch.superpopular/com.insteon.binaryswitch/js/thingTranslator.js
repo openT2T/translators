@@ -3,7 +3,6 @@
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var OpenT2TLogger = require('opent2t').Logger;
-
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -140,15 +139,16 @@ const switchDeviceDi = "f9604075-1a64-498b-ae9b-7436a63721ba";
 class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
-        this.ConsoleLogger.verbose('Insteon Binary Switch initializing...');
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+
+        this.ConsoleLogger.info('Insteon Binary Switch initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        this.ConsoleLogger.verbose('Insteon Binary Switch initializing...Done');
+        this.ConsoleLogger.info('Insteon Binary Switch initializing...Done');
     }
 
     /**

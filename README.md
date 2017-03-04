@@ -76,7 +76,7 @@ existing version.)
 
 ```
 cd ..
-git clone https://github.com/opent2t/cli
+git clone https://github.com/opent2t-cli
 npm install
 cd ../translators
 ```
@@ -86,7 +86,7 @@ published. Note the last parameter is a simple name of a translator,
 not a directory path, which would include a schema name.
 
 ```
-node ../cli/pack-translator.js com.wink.thermostat
+node ../opent2t-cli/pack-translator.js com.wink.thermostat
 ```
 
 4. Edit the package.json to include directories for referenced schemas in the
