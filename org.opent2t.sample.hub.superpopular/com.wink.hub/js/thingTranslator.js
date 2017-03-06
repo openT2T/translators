@@ -77,7 +77,7 @@ class Translator {
                 var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
 
                 if (hashFromWink !== hashFromPayload) {
-                    throw new OpenT2TError(401, "Notification signature doesn't match.  Expecting " + hashFromWink + " and calculated " + hashFromPayload);
+                    throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
                 }
             }
 
@@ -454,7 +454,7 @@ class Translator {
                 this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
                 request.reject(err);
                 return;
-            });
+            }).bind(this); //Pass in the context via bind() to use instance variables
             
     }
 
