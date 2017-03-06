@@ -178,6 +178,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan_timer_active']
     });
 
+    // Build the availability resource (read-only)
+    var availability = createResource('oic.r.mode', 'oic.if.s', 'availability', expand, {
+        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
+        modes: [providerSchema['is_online'] ? 'online' : 'offline']
+    });
+    
     return {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
@@ -210,7 +216,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     hvacMode,
                     hasFan,
                     fanActive,
-                    fanTimerActive
+                    fanTimerActive,
+                    availability
                 ]
             }
         ]
@@ -257,6 +264,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'humidity':
         case 'ecoMode':
         case 'fanTimerTimeout':
+        case 'availability':
             throw new OpenT2TError(403, NestConstants.ResourceNotMutable);
         case 'fanMode':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);

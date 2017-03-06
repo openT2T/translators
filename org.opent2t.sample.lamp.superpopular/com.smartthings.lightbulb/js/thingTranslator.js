@@ -195,6 +195,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
+    // Build the availability resource (read-only)
+    var availability = {
+        "href": "/availability",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
+    
     // Include the values is expand is specified
     if (expand) {
         power.id = 'power';
@@ -204,7 +211,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.dimmingSetting = providerSchema['attributes'].level;
         dim.range = [0, 100];
 
-
+        availability.id = 'availability';
+        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        availability.modes = [providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline'];
+        
         if (supportColour) {
             colourMode.id = 'colourMode';
             colourMode.modes = ['rgb'];
@@ -231,7 +241,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         }
     }
 
-    var resources = [power, dim];
+    var resources = [power, dim, availability];
 
     if (supportColour && supportCT) {
         resources.push(colourMode);
@@ -301,6 +311,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
                 throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
             }
             break
+        case 'availability':
         default:
             // Error case
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);

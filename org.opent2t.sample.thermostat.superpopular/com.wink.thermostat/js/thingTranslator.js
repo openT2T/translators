@@ -174,6 +174,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: stateReader.get('fan_timer_active')
     });
 
+    // Build the availability resource (read-only)
+    var availability = createResource('oic.r.mode', 'oic.if.s', 'availability', expand, {
+        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
+        modes: [ stateReader.get('connection') ? 'online' : 'offline' ]
+    });
+    
     return {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
@@ -201,7 +207,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     ecoMode,
                     hvacMode,
                     hasFan,
-                    fanActive
+                    fanActive,
+                    availability
                 ]
             }
         ]
@@ -243,6 +250,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
                 }
                 break;
             }
+        case 'availability':
         case 'targetTemperature':
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':

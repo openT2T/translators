@@ -59,10 +59,21 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['oic.r.switch.binary'],
         if: ['oic.if.a', 'oic.if.baseline']
     };
+    
+    // Build the availability resource (read-only)
+    var availability = {
+        "href": "/availability",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
 
     if (expand) {
         power.id = 'power';
         power.value = providerSchema['attributes'].switch == 'on';
+        
+        availability.id = 'availability';
+        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        availability.modes = [providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline'];
     }
 
     return {
@@ -83,7 +94,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
-                resources: [ power ]
+                resources: [ 
+                    power,
+                    availability
+                ]
             }
         ]
     };
@@ -97,6 +111,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     if ('power' === resourceId) {
         result['switch'] = resourceSchema.value ? 'on' : 'off';
+    }else{
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 
     return result;

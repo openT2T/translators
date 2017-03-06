@@ -94,6 +94,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'dim':
             desired_state['brightness'] = scaleTranslatorBrightnessToDeviceBrightness(resourceSchema.dimmingSetting);
             break;
+        case 'availability':
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
@@ -137,6 +138,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
          "if": ["oic.if.a", "oic.if.baseline"]
     }
 
+    // Build the availability resource (read-only)
+    var availability = {
+        "href": "/availability",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
+    
     // Include the values is expand is specified
     if (expand) {
         power.id = 'power';
@@ -145,6 +153,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.id = 'dim';
         dim.dimmingSetting = scaleDeviceBrightnessToTranslatorBrightness(stateReader.get('brightness'));
         dim.range = [0,100];
+        
+        availability.id = 'availability';
+        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        availability.modes = [ stateReader.get('connection') ? 'online' : 'offline' ];
     }
 
     return {
@@ -167,7 +179,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 dmv: 'res.1.1.0',
                 resources: [
                     power,
-                    dim
+                    dim,
+                    availability
                 ]
             }
         ]

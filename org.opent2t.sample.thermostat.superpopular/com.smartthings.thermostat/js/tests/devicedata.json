@@ -19,7 +19,8 @@
         "id" : "Mock Id",
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
-        "name" : "Mock Name"
+        "name" : "Mock Name",
+        "status": "ONLINE"
     },
     "test_data" :
     {
