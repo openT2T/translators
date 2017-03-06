@@ -293,6 +293,10 @@ class Translator {
         return this.postDeviceResource(deviceId, "colourChroma", payload);
     }
 
+    getDevicesAvailability(deviceId) {
+        return this.getDeviceResource(deviceId, "availability");
+    }
+
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
         subscriptionInfo.deviceType = this.deviceType;

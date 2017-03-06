@@ -443,6 +443,10 @@ class Translator {
         return this.postDeviceResource(di, 'fanMode', payload);
     }
 
+    getDevicesAvailability(di) {
+        return this.getDeviceResource(di, "availability");
+    }
+
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
         subscriptionInfo.deviceType = this.deviceType;

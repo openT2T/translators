@@ -202,7 +202,7 @@ class Translator {
         return this.postDeviceResource(di, 'power', payload);
     }
 
-    getDevicesavailability(di) {
+    getDevicesAvailability(di) {
         return this.getDeviceResource(di, "availability");
     }
 

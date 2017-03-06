@@ -266,7 +266,7 @@ class Translator {
         return this.postDeviceResource(di, "colourChroma", payload);
     }
     
-    getDevicesavailability(di) {
+    getDevicesAvailability(di) {
         return this.getDeviceResource(di, "availability");
     }
 

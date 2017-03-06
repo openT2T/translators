@@ -429,7 +429,7 @@ class Translator {
         return this.postDeviceResource(di, 'fanMode', payload);
     }
 
-    getDevicesavailability(di) {
+    getDevicesAvailability(di) {
         return this.getDeviceResource(di, "availability");
     }
 

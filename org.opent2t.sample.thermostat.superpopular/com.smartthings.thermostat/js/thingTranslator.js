@@ -399,6 +399,10 @@ class Translator {
         return this.postDeviceResource(di, 'fanMode', payload);
     }
 
+    getDevicesAvailability(di) {
+        return this.getDeviceResource(di, "availability");
+    }
+
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
         return this.smartThingsHub.postSubscribe(subscriptionInfo);
