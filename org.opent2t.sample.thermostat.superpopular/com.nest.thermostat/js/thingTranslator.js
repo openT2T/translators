@@ -1,15 +1,21 @@
 'use strict';
+
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var NestConstants = require('./constants');
+
 var crypto = require('crypto');
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -23,13 +29,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di; 
     }); 
     
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+    }
     
     var resource = entity.resources.find((r) => { 
         return r.id === resourceId;  
     }); 
 
-    if (!resource) throw new Error('NotFound'); 
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource; 
 }
 
@@ -177,11 +187,14 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         },
         pi: generateGUID(providerSchema['device_id']),
         mnmn: 'Nest',
-        mnmo: 'Undefined',
+        mnmo: 'Thermostat',
         n: providerSchema['name_long'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['name_long'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: thermostatDeviceDi,
                 resources: [
@@ -211,15 +224,21 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     switch (resourceId) {
         case 'targetTemperature':
-            if (resourceSchema.units === undefined) throw new Error('Resource Schema missing temperature units.');
+            if (!resourceSchema.units) {
+                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
+            }
             result['target_temperature_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureHigh':
-            if (resourceSchema.units === undefined) throw new Error('Resource Schema missing temperature units.');
+            if (!resourceSchema.units) {
+                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
+            }
             result['target_temperature_high_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'targetTemperatureLow':
-            if (resourceSchema.units === undefined) throw new Error('Resource Schema missing temperature units.');
+            if (!resourceSchema.units) {
+                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
+            }
             result['target_temperature_low_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
             break;
         case 'hvacMode':
@@ -238,11 +257,11 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'humidity':
         case 'ecoMode':
         case 'fanTimerTimeout':
-            throw new Error('NotMutable');
+            throw new OpenT2TError(403, NestConstants.ResourceNotMutable);
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -253,7 +272,7 @@ function validateResourceGet(resourceId) {
         case 'heatingFuelSource':
         case 'fanMode':
         case 'fanTimerTimeout':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 
@@ -262,8 +281,9 @@ const thermostatDeviceDi = "f7074ee7-4fd8-4885-8997-487b8f3d14eb";
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Nest Thermostat initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.info('Nest Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
@@ -271,7 +291,7 @@ class Translator {
         this.nestHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        console.log('Nest Thermostat initializing...Done');
+        this.ConsoleLogger.info('Nest Thermostat initializing...Done');
     }
 
     /**
@@ -323,7 +343,7 @@ class Translator {
                     });
             }
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 

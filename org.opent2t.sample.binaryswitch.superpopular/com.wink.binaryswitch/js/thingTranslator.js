@@ -1,14 +1,16 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +24,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('Entity - ' + di + ' not found.');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
+    }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' + resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+    }
     return resource;
 }
 
@@ -49,6 +55,17 @@ class StateReader {
         else {
             return this.last_reading[state];
         }
+    }
+}
+
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
     }
 }
 
@@ -76,12 +93,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema.binary_switch_id
         },
         pi: providerSchema['uuid'],
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Binary Switch (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: smartplugDeviceDi,
                 resources: [
@@ -112,8 +132,9 @@ const smartplugDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Wink Binary Switch initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
+        this.ConsoleLogger.verbose('Wink Binary Switch initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
@@ -121,7 +142,7 @@ class Translator {
         this.deviceType = 'binary_switches';
         this.winkHub = deviceInfo.hub;
 
-        console.log('Wink Binary Switch initializing...Done');
+        this.ConsoleLogger.verbose('Wink Binary Switch initializing...Done');
     }
 
 

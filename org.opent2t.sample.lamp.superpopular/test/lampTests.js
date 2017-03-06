@@ -1,28 +1,14 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
-const SchemaName = 'org.opent2t.sample.lamp.superpopular';
+var helpers = require('opent2t-testcase-helpers');
 var translator = undefined;
+const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 
 function runLampTests(settings) {
     var test = settings.test;
     var deviceId = settings.deviceId;
-
-    function runTest(t, hasTestData, testMethod) {
-        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
-
-        if(hasTestData && settings.setTestData) {
-            settings.setTestData(t.title, t);
-        }
-
-        if(expectedException !== undefined) {
-            t.throws(testMethod(), expectedException);
-        }
-        else {
-            return testMethod();
-        }
-    }
-
+    
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
@@ -62,7 +48,7 @@ function runLampTests(settings) {
     });
 
     test.serial('GetPower', t => {
-        return runTest(t, false, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesPower', [deviceId])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.switch.binary');
@@ -71,7 +57,7 @@ function runLampTests(settings) {
     });
 
     test.serial('SetPower', t => {
-        return runTest(t, true, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': true }])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.switch.binary');
@@ -88,7 +74,7 @@ function runLampTests(settings) {
     });
 
     test.serial('GetDimming', t => {
-        return runTest(t, false, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDeviceResource', [deviceId, 'dim'])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.light.dimming');
@@ -98,7 +84,7 @@ function runLampTests(settings) {
     });
 
     test.serial('SetDimming', t => {
-        return runTest(t, true, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDeviceResource', [deviceId, 'dim', { 'dimmingSetting': 10 }])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.light.dimming');
@@ -115,16 +101,15 @@ function runLampTests(settings) {
     });
 
     test.serial('GetColourMode', t => {
-        return runTest(t, false, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourMode', [deviceId]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
-                t.truthy(Object.prototype.toString.call(response.modes) === '[object Array]', 'Verify modes array returned');
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('GetColourRGB', t => {
-        return runTest(t, false, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.colour.rgb');
             });
@@ -132,12 +117,11 @@ function runLampTests(settings) {
     });
 
     test.serial('SetColourRGB', t => {
-        return runTest(t, true, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((initialColor) => {
                 return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourRGB', [deviceId, { 'rgbvalue': [100,175,255] }]).then(() => {
                     return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((targetColor) => {
-                        t.not(targetColor.rgbvalue, initialColor.rgbvalue)
-                        //t.is(targetColor.rgbvalue, [100,175,255]);
+                        t.not(targetColor.rgbvalue, initialColor.rgbvalue);
                     });
                 });
             });
@@ -145,7 +129,7 @@ function runLampTests(settings) {
     });
 
     test.serial('GetColourChroma', t => {
-        return runTest(t, false, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.colour.chroma');
             });
@@ -153,7 +137,7 @@ function runLampTests(settings) {
     });
 
     test.serial('SetColourChroma', t => {
-        return runTest(t, true, () => {
+        return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((initialTemperature) => {
                 return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourChroma', [deviceId, { 'ct': 30 }]).then(() => {
                     return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((targetTemperature) => {

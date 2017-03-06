@@ -1,11 +1,13 @@
 {  "expected_exceptions" :
     {
-        "GetHeatingFuelSource" : "NotImplemented",
-        "GetFanTimerTimeout" : "NotImplemented",
-        "GetFanMode" : "NotImplemented",
-        "SetFanMode" : "NotImplemented",
-        "SetAwayTemperatureHigh" : "NotMutable",
-        "SetAwayTemperatureLow" : "NotMutable",
-        "SetFanTimerTimeout" : "NotMutable"
+        "GetHeatingFuelSource" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureHigh" : {"statusCode" : 403, "message" : "Resource is not mutable"},
+        "SetAwayTemperatureLow" : {"statusCode" : 403, "message" : "Resource is not mutable"},
+        "SetFanTimerTimeout" : {"statusCode" : 403, "message" : "Resource is not mutable"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404},
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }

@@ -1,5 +1,6 @@
 var test = require('ava');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TLogger = require('opent2t').Logger;
 var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
 var config = require('./testConfig');
 var testData = require('./testdata');
@@ -8,6 +9,7 @@ var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hu
 var http = require('http');
 var q = require('q');
 var deviceInfo = {};
+var ConsoleLogger = new OpenT2TLogger("info");
 
 function getThermostat(platforms) {
     return platforms.find((p) => {
@@ -26,7 +28,7 @@ function createTranslator() {
     });
 }
 
-var settings = {
+let settings = {
     createTranslator: createTranslator,
     test: test,
     deviceId: 'D5D37EB6-F428-41FA-AC5D-918F084A4C93',
@@ -52,13 +54,13 @@ test.serial('Notifications - Subscribe', t => {
 
         var port = require('url').parse(config.callback_url).port || 80;
 
-        console.log("using port " + port);
+        ConsoleLogger.verbose("Using port ", port);
 
         // Create a simple server that will hand off requests to the appropriate translators.
         var server = http.createServer((request, response) => {
             switch(request.method) {
                 case "GET":
-                    console.log("Subscription part 2");
+                    ConsoleLogger.verbose("Subscription part 2");
                     var subscription = translator.postSubscribeThermostatResURI(null, request);
                     response.writeHead(200, {'Content-Type': 'text/plain'});
                     response.end(subscription.response);
@@ -106,14 +108,14 @@ test.serial('Notifications - Subscribe', t => {
 
         var callbackUrlParams = config.callback_url + "?schema=" + deviceInfo.openT2T.schema + "&deviceId=" + deviceInfo.id;
 
-        console.log("Subscription part 1");
+        ConsoleLogger.verbose("Subscription part 1");
 
         translator.postSubscribeThermostatResURI(callbackUrlParams).then((response) => {
-            console.log("Subscription expires at %d", response.expiration);
+            ConsoleLogger.verbose("Subscription expires at %d", response.expiration);
 
             // Validation of the subscription will not happen unless it's already expired.
             translator.getSubscriptions().then((subscriptions) => {
-                        console.log(subscriptions);
+                        ConsoleLogger.verbose(subscriptions);
                         t.true(subscriptions.length > 0);
                     });
 
@@ -122,7 +124,7 @@ test.serial('Notifications - Subscribe', t => {
 
         // Once the notification has been received, unsubscribe and end the test
         return deferred.promise.then(() => {
-            console.log("Unsubscribing");
+            ConsoleLogger.verbose("Unsubscribing");
             return translator.deleteSubscribeThermostatResURI(callbackUrlParams).then(() => {
                 t.pass("Unsubscribed successfully");
             });

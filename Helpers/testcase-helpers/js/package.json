@@ -1,20 +1,15 @@
 {
-  "name": "opent2t-device-hub",
+  "name": "opent2t-testcase-helpers",
   "version": "0.1.1",
-  "description": "Hub device",
+  "description": "Shared testcase helpers",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/opent2t/translators.git"
   },
-  "main": "mockHub.js",
+  "main": "helpers.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "^1.0.1",
-    "q": "^1.4.1"
-  },
-  "devDependencies": {
-    "opent2t": "*",
-    "q": "^1.4.1"
+    "opent2t": "^1.0.3"
   }
 }

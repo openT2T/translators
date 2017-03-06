@@ -1,14 +1,18 @@
 'use strict';
 
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TLogger = require('opent2t').Logger;
+
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,25 +26,29 @@ function findResource(schema, di, resourceId) {
         return d.di === di; 
     }); 
     
-    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+    }
     
     var resource = entity.resources.find((r) => { 
         return r.id === resourceId;  
     }); 
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource; 
 }
 
 /**
- * Return the string "Undefined" if the value is undefined and null.
- * Otherwise, return the value itself.
+ * Returns a default value if the specified property is null, undefined, or an empty string
  */
-function validateValue(value) {
-    if (value === undefined || value === null) {
-        return 'Undefined';
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
     }
-    return value;
 }
 
 // Helper method to convert the device schema to the translator schema.
@@ -64,12 +72,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id']
         },
         pi: providerSchema['id'],
-        mnmn: validateValue(providerSchema['manufacturer']),
-        mnmo: validateValue(providerSchema['model']),
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Binary Switch (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.binaryswitch.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                ivc: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [ power ]
@@ -96,15 +107,17 @@ const switchDeviceDi = "d455d979-d1f9-430a-8a15-61c432eda4a2";
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('SmartThings Binary Switch initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+
+        this.ConsoleLogger.info('SmartThings Binary Switch initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Binary Switch initializing...Done');
+        this.ConsoleLogger.info('SmartThings Binary Switch initializing...Done');
     }
 
     /**
@@ -140,7 +153,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 

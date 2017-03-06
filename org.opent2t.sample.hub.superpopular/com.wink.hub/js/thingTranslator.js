@@ -7,20 +7,37 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TLogger = require('opent2t').Logger;
 var Crypto = require('crypto');
+
+/**
+ * Gets a property from a JSON dictionary without case sensitivity
+ * this will return the first item it finds, though multiple may match
+ * in JSON.
+ */
+function getDictionaryItemCaseInsensitive(obj, propertyName) {
+    var upperName = propertyName.toUpperCase();
+    for(var name in obj) {
+        if (upperName === name.toUpperCase()) {
+            return obj[name];
+        }
+    }
+}
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
         this._oAuthPath = '/oauth2/token';
-
-        this._name = "Wink Hub"; // TODO: Can be pulled from OpenT2T global constants. This information is not available, at least, on wink hub.
+        this._name = "Wink Hub";
+        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
     }
 
     /**
@@ -45,16 +62,27 @@ class Translator {
         // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
         // converted to the opent2t/ocf representation.
         if (payload !== undefined) {
+
+            // The payload must be an object for translation, and a string/buffer for calculating
+            // the HMAC. Ensure we have a copy in both formats
+            var payloadAsString = typeof payload === 'object' ? JSON.stringify(payload) : payload;
+            var payloadAsObject = typeof payload === 'object' ? payload : JSON.parse(payload);
+
             // Calculate the HMAC for the payload using the secret
             if (verification !== undefined && verification.key !== undefined) {
-                var hashFromWink = verification.header["X-Hub-Signature"];
-                if (!this._verifyHmac(hashFromWink, verification.key, payload)) {
-                    throw new Error("Payload signature doesn't match.");
+                // HTTP headers are case insensitive, while the JSON dictionary is case sensitive,
+                // so the hub signature can be either x-hub-signature or X-Hub-Signature depending on
+                // what server was used to capture the notification POST request.
+                var hashFromWink = getDictionaryItemCaseInsensitive(verification.header, "x-hub-signature");
+                var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
+
+                if (hashFromWink !== hashFromPayload) {
+                    throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
                 }
             }
 
-            // Return the verified payload 
-            return this._providerSchemaToPlatformSchema(payload, expand);
+            // Return the verified payload
+            return this._providerSchemaToPlatformSchema(payloadAsObject, expand);
         }
         else {
             return this._makeRequest(this._devicesPath, 'GET').then((response) => {
@@ -98,11 +126,9 @@ class Translator {
     /**
      * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
-    refreshAuthToken(authInfo) {
-        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object  with clientId + client_secret to allow the oAuth token to be refreshed";
-        
-        if (authInfo == undefined || authInfo == null){
-            throw new Error(invalidAuthErrorMessage); 
+    refreshAuthToken(authInfo) {  
+        if (!authInfo){
+            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput); 
         }
 
         if (authInfo.length !== 2)
@@ -110,7 +136,7 @@ class Translator {
             // We expect the original authInfo object used in the onboarding flow
             // not defining a brand new type for the Refresh() contract and re-using
             // what is defined for Onboarding()
-            throw new Error(invalidAuthErrorMessage);
+            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
         }
 
         // POST oauth2/token
@@ -161,8 +187,8 @@ class Translator {
             // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
             // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
             if ((winkDevice.model_name !== 'HUB')  && 
-                typeof opent2tInfo !== 'undefined' &&
-                (winkDevice.hidden_at == undefined || winkDevice.hidden_at == null))
+                typeof opent2tInfo !== "undefined" &&
+                (!winkDevice.hidden_at))
             {
                 // set the opent2t info for the wink device
                 var deviceInfo = {};
@@ -238,7 +264,7 @@ class Translator {
                 case "denied":
                     // The subscription cannot be completed, access was denied.
                     // This is likely due to a bad access token.
-                    throw new Error("Access denied");
+                    throw new OpenT2TError(403, OpenT2TConstants.AccessDenied);
                 case "unsubscribe":
                     // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
                     // with no verification.
@@ -255,7 +281,7 @@ class Translator {
                     }
                 default:
                     // Hub mode is unknown.
-                    throw new Error("Unknown request");
+                    throw new OpenT2TError(400, OpenT2TConstants.UnknownHubSubscribeRequest);
             }
         }
         else if (subscriptionInfo.callbackUrl) {
@@ -271,7 +297,7 @@ class Translator {
                 // Provider/Hub level subscription
                 // Subscribing to Wink as a provider (to receive notification of device add/delete etc.) will likely be
                 // possible in the future.  This should just require a different request path, but for now it's an error
-                throw new Error("Must subscribe to a device.");
+                throw new OpenT2TError(400, OpenT2TConstants.MustSubscribeToDevice);
             }
 
             // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
@@ -424,11 +450,12 @@ class Translator {
             .then(function (body) {
                 return JSON.parse(body);
             })
-            .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                throw err;
-            });
+            .catch((err) => {                
+                this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
+                request.reject(err);
+                return;
+            }).bind(this); //Pass in the context via bind() to use instance variables
+            
     }
 
     /**
@@ -469,15 +496,12 @@ class Translator {
     }
 
     /** 
-     * Calculates a new hash of contents using key, and compares it to the master hash.
-     * Returns true is the contents can be verified.
+     * Calculates a new hash of contents using key.
      */
-    _verifyHmac(hash, key, contents) {
+    _generateHmac(key, contents) {
         var hmac = Crypto.createHmac("sha1", key);
         hmac.update(contents.toString());
-        var crypted = hmac.digest("hex");
-
-        return (crypted == hash);
+        return hmac.digest("hex");
     }
 }
 

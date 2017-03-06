@@ -1,14 +1,17 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +25,18 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
+    }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('NotFound');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+    }
+    
     return resource;
 }
 
@@ -108,6 +116,17 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     return resource;
 }
 
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
@@ -162,12 +181,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema.thermostat_id
         },
         pi: providerSchema['uuid'],
-        mnmn: providerSchema['device_manufacturer'],
-        mnmo: providerSchema['manufacturer_device_model'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Thermostat (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['name'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: deviceIds['opent2t.d.thermostat'],
                 resources: [
@@ -226,9 +248,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
     }
 
     return result;
@@ -243,7 +265,7 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
 
@@ -255,8 +277,9 @@ var deviceIds = {
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Initializing device.');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.info('Initializing device.');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
@@ -264,7 +287,7 @@ class Translator {
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        console.log('Wink Thermostat Translator initialized.');
+        this.ConsoleLogger.info('Wink Thermostat Translator initialized.');
     }
 
     /**
@@ -308,7 +331,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 
