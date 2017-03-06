@@ -5,7 +5,6 @@ var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
 var config = require('./testConfig');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/js');
 var deviceId = undefined;
-var translator = undefined;
 
 function getThermostat(platforms) {
     return platforms.find((p) => {
@@ -18,7 +17,7 @@ function createTranslator() {
         return OpenT2T.invokeMethodAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'get', [false]).then(platforms => {
             var platformInfo = getThermostat(platforms.platforms);
             var deviceInfo = {'opent2t': platformInfo.opent2t};
-            deviceId = platformInfo.entities[0].di;;
+            deviceId = platformInfo.entities[0].di;
             return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
         });
     });
@@ -29,7 +28,7 @@ var settings = {
     test: test
 };
 
-//runThermostatTests(settings);
+runThermostatTests(settings);
 
 /**
  * Verifies that realtime notifications can be subscribed to for the device.

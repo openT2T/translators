@@ -125,7 +125,7 @@
               {"$ref": "#/definitions/dim"},
               {"$ref": "#/definitions/colourMode"},
               {"$ref": "#/definitions/colourRGB"},
-              {"$ref": "#/definitions/colourChroma"}
+              {"$ref": "#/definitions/colourChroma"},
               {"$ref": "#/definitions/availability"}
             ]
           }

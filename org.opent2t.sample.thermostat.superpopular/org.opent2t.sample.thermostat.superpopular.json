@@ -314,7 +314,7 @@
               {"$ref": "#/definitions/fanTimerActive"},
               {"$ref": "#/definitions/fanTimerTimeout"},
               {"$ref": "#/definitions/fanMode"},
-              "$ref": "#/definitions/availability"}
+              {"$ref": "#/definitions/availability"}
             ]
           }
         }
