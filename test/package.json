@@ -1,6 +1,6 @@
 {
   "name": "opent2t-test-mocks",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Opent2t test mock devices and test files",
   "dependencies": {
     "opent2t": "^1.0.4",
