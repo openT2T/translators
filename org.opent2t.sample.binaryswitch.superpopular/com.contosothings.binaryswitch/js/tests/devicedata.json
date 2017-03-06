@@ -1,0 +1,21 @@
+{   "base_state" :
+    {
+        "Switch":false,
+        "Id":"fb8e4fef-092c-486f-80d7-502a2715dfb7",
+        "Name":"Backyard Lights",
+        "ThingsType":0,
+        "ThingsTypeString":"Switch"
+    },
+    "test_data" :
+    {
+        "SetPower" :
+            [
+                {
+                    "Switch" : true
+                },
+                {
+                    "Switch" : false
+                }
+            ]
+    }
+}
