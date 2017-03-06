@@ -56,7 +56,7 @@ class Translator {
             case 'colourMode':
             case 'colourRgb':
             case 'colourChroma':
-                throw new OpenT2TError(501, "NotImplemented");
+                throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         }
         
         return this.get(true)
@@ -159,7 +159,7 @@ class Translator {
             case 'colourMode':
             case 'colourRgb':
             case 'colourChroma':
-                throw new OpenT2TError(501, "NotImplemented");
+                throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
             default:
                 // Error case
                 throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
