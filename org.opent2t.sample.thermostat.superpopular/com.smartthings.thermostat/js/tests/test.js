@@ -4,7 +4,8 @@ var translatorPath = require('path').join(__dirname, '..');
 var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
 var config = require('./testConfig');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/js');
-var controlId = undefined;
+var deviceId = undefined;
+var translator = undefined;
 
 function getThermostat(platforms) {
     return platforms.find((p) => {
@@ -17,7 +18,7 @@ function createTranslator() {
         return OpenT2T.invokeMethodAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'get', [false]).then(platforms => {
             var platformInfo = getThermostat(platforms.platforms);
             var deviceInfo = {'opent2t': platformInfo.opent2t};
-            controlId = deviceInfo.opent2t.controlId;
+            deviceId = platformInfo.entities[0].di;;
             return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
         });
     });
@@ -28,29 +29,30 @@ var settings = {
     test: test
 };
 
-runThermostatTests(settings);
+//runThermostatTests(settings);
 
 /**
  * Verifies that realtime notifications can be subscribed to for the device.
  * Please check the "live logging" section for your SmartApp to see if the notification was send or not.
  */
 test.serial('Notifications - Subscribe', t => {
-    console.log("Subscripting...");
 
+    var subscriptionInfo = {};
     return createTranslator().then(translator => {
-        return translator.postSubscribe().then((response) => {
+        console.log('Subscripting for ' + deviceId + ' ...');
+        return translator.postSubscribe(subscriptionInfo).then((response) => {
             t.is(response[0], 'succeed');
 
-            var targetTemperatureHigh = { 'temperature': 85 };
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperatureHigh', [controlId, targetTemperatureHigh])
-            .then((response) => {
-                t.is(response.rt[0], 'oic.r.temperature');
-                t.is(response.temperature, 85);
+            var targetTemperatureHigh = { 'temperature': 85, 'units': 'f' };
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperatureHigh', [deviceId, targetTemperatureHigh])
+            .then((responseTwo) => {
+                t.is(responseTwo.rt[0], 'oic.r.temperature');
+                t.is(responseTwo.temperature, targetTemperatureHigh.temperature);
                 
                 // Unsubscribe and end the test
-                console.log("Unsubscribing...");
-                return translator.deleteSubscribe().then((response) => {
-                    t.is(response, 'succeed');
+                console.log('Unsubscribing for ' + deviceId + ' ...');
+                return translator.deleteSubscribe(subscriptionInfo).then((responseThree) => {
+                    t.is(responseThree, 'succeed');
                 });
             });
         });
