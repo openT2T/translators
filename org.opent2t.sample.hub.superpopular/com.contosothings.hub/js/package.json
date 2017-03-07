@@ -1,0 +1,23 @@
+{
+  "name": "opent2t-translator-com-contosothings-hub",
+  "version": "0.0.2",
+  "description": "ContosoThings Hub",
+  "license": "MIT",
+  "main": "thingTranslator.js",
+  "repository": {
+    "type": "git",
+    "url": "githttps://github.com/openT2T/translators.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openT2T/translators/issues"
+  },
+  "homepage": "https://github.com/openT2T/translators#readme",
+  "dependencies": {
+    "request": "^2.74.0",
+    "request-promise": "^4.1.1",
+    "opent2t": "^1.0.4"
+  },
+  "devDependencies": {
+    "ava": "^0.18.2"
+  }
+}
