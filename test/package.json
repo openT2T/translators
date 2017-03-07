@@ -1,14 +1,15 @@
 {
   "name": "opent2t-test-mocks",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Opent2t test mock devices and test files",
   "dependencies": {
-    "opent2t": "^1.0.2",
+    "opent2t": "^1.0.4",
     "ava": "^0.18.2",
     "es6-sleep": "*",
     "opent2t-device-insteonhub": "file:../org.opent2t.sample.hub.superpopular/com.insteon.hub/test",
     "opent2t-device-nesthub": "file:../org.opent2t.sample.hub.superpopular/com.nest.hub/test",
     "opent2t-device-smartthingshub": "file:../org.opent2t.sample.hub.superpopular/com.smartthings.hub/test",
+    "opent2t-device-mockcontosothingshub": "file:../org.opent2t.sample.hub.superpopular/com.contosothings.hub/test",
     "opent2t-device-winkhub": "file:../org.opent2t.sample.hub.superpopular/com.wink.hub/test",
     "opent2t-device-thermostat": "file:../org.opent2t.sample.thermostat.superpopular/test",
     "opent2t-device-binaryswitch": "file:../org.opent2t.sample.binaryswitch.superpopular/test",
