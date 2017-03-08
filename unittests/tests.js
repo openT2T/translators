@@ -18,7 +18,7 @@ function runTranslatorTests(settings) {
                 if(deviceId === undefined) {
                     deviceId = response.entities[0].di;
                 }
-			});
+            });
         });
     });
 
