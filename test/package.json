@@ -13,6 +13,6 @@
     "opent2t-device-thermostat": "file:../org.opent2t.sample.thermostat.superpopular/test",
     "opent2t-device-binaryswitch": "file:../org.opent2t.sample.binaryswitch.superpopular/test",
     "opent2t-device-lamp": "file:../org.opent2t.sample.lamp.superpopular/test",
-    "opent2t-device-multisensor": "file:../org.opent2t.multisensor.superpopular/test"
+    "opent2t-device-multisensor": "file:../org.opent2t.sample.multisensor.superpopular/test"
   }
 }
