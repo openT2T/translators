@@ -293,7 +293,7 @@ const deviceIds = {
     'opent2t.d.battery': 'CD873FF4-79BB-47BD-865A-2D1357601E6A'
 }
 
-// This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
+// This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.
 class Translator {
 
     constructor(deviceInfo) {
@@ -309,8 +309,8 @@ class Translator {
     }
 
     /**
-     * Queries the entire state of the lamp
-     * and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+     * Queries the entire state of the multisensor
+     * and returns an object that maps to the json schema org.opent2t.sample.multisensor.superpopular
      */
     get(expand, payload) {
         if (payload) {
