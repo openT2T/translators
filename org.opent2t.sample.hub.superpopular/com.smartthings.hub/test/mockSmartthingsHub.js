@@ -11,7 +11,7 @@ function modifyDeviceState(deviceState, modifications) {
 }
 
 function verifyPayload(modification, t, args) {
-    return JSON.stringify(args[1]) === JSON.stringify(modification);
+    return JSON.stringify(args[2]) === JSON.stringify(modification);
 }
 
 class MockSmartthingsHub extends MockHub {
