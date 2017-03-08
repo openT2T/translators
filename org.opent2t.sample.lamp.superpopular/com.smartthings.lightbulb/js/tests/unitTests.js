@@ -7,6 +7,7 @@ var MockHub = require('opent2t-device-smartthingshub/mockSmartthingsHub');
 var mockHub = new MockHub(deviceData);
 
 var settings = {
+    name: "com.smartthings.lightbulb",
     createTranslator: mockHub.createTranslator(translatorPath, deviceData.base_state.id),
     test: test,
     setTestData: mockHub.setTestData,

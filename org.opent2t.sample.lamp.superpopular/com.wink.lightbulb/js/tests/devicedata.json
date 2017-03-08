@@ -9,7 +9,8 @@
             },
             "object_type" : "Mock Type",
             "object_id" : "F8CFB903-58BB-4753-97E0-72BD7DBC7933",
-            "name" : "Mock Name"
+            "name" : "Mock Name",
+            "uuid" : "F8CFB903-58BB-4753-97E0-72BD7DBC7933"
         }
     },
     "test_data" :
