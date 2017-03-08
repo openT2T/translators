@@ -4,7 +4,7 @@ var translatorPath = require('path').join(__dirname, '..');
 var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
 var config = require('./testConfig');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/js');
-var controlId = undefined;
+var deviceId = undefined;
 
 function getThermostat(platforms) {
     return platforms.find((p) => {
