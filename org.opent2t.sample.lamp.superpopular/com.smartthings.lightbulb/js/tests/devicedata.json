@@ -7,10 +7,11 @@
             "level" : 20,
             "colorTemperature" : 50
         },
-        "id" : "Mock Id",
-        "manufacturer" : "Mock Manufacturer",
-        "model" : "Mock Model",
-        "name" : "Mock Name"
+        "id" : "d827d753-88d8-45a8-bab3-36bc3899467a",
+        "manufacturer" : null,
+        "model" : null,
+        "name" : "Mock Name",
+        "deviceType": "light"
     },
     "test_data" :
     {

@@ -100,6 +100,7 @@ class Translator {
             rt: ['org.opent2t.sample.binaryswitch.superpopular'],
             entities: [
                 {
+                    n: providerSchema['Name'],
                     rt: ['oic.d.smartplug'],
                     di: lightDeviceDi,
                     icv: 'core.1.1.0',
