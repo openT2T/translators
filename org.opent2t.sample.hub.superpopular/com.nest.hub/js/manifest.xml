@@ -24,6 +24,10 @@
         <arg name="url" />
         <description language="en">https://home.nest.com/login/oauth2?client_id={client_id}&amp;state={state}</description>
       </flow>
+      <flow>
+        <arg name="method" />
+        <description language="en">getUserVerificationUri</description>
+      </flow>
     </onboardflow>
   </onboarding>
 </manifest>

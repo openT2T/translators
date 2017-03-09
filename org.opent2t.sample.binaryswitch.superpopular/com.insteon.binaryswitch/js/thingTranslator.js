@@ -1,4 +1,8 @@
 'use strict';
+
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TLogger = require('opent2t').Logger;
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -6,10 +10,10 @@ var crypto = require('crypto');
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -24,14 +28,16 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('Entity - '+ di +' not found.');
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource;
 }
 
@@ -63,9 +69,20 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         if: ['oic.if.a', 'oic.if.baseline']
     };
     
+    // Build the connectionStatus resource (read-only)
+    var connectionStatus = {
+        "href": "/connectionStatus",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
+
     if (expand) {
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
+
+        connectionStatus.id = 'connectionStatus';
+        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
+        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -87,7 +104,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [
-                    power
+                    power,
+                    connectionStatus
                 ]
             }
         ]
@@ -106,9 +124,11 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'n':
             result['DeviceName'] = resourceSchema.n;
             break;
+        case 'connectionStatus':
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
-            throw new Error("Invalid resourceId");
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
     return result;
 }
@@ -118,15 +138,17 @@ const switchDeviceDi = "f9604075-1a64-498b-ae9b-7436a63721ba";
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Insteon Binary Switch initializing...');
+    constructor(deviceInfo, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+
+        this.ConsoleLogger.info('Insteon Binary Switch initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        console.log('Insteon Binary Switch initializing...Done');
+        this.ConsoleLogger.info('Insteon Binary Switch initializing...Done');
     }
 
     /**
@@ -167,6 +189,8 @@ class Translator {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
                 });
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 
@@ -176,6 +200,10 @@ class Translator {
 
     postDevicesPower(di, payload) {
         return this.postDeviceResource(di, 'power', payload);
+    }
+
+    getDevicesConnectionStatus(di) {
+        return this.getDeviceResource(di, "connectionStatus");
     }
 
     postSubscribe(subscriptionInfo) {

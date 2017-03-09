@@ -328,14 +328,18 @@ private getDeviceType(device) {
 		{
 			case "switch":
             	deviceType = "switch"
-                //If the device also contains "Power Meter" capability, identify it as a "switch" device.
-				if (capabilities.any{it.name.toLowerCase() == "power meter"}){
-                	return deviceType
-                }
+
                 //If the device also contains "Switch Level" capability, identify it as a "light" device.
                 if (capabilities.any{it.name.toLowerCase() == "switch level"}){
-                	deviceType = "light"
-                    return deviceType
+                	
+					//If the device also contains "Power Meter" capability, identify it as a "dimmerSwitch" device.
+					if (capabilities.any{it.name.toLowerCase() == "power meter"}){
+                		deviceType = "dimmerSwitch"
+						return deviceType
+                	} else {
+						deviceType = "light"
+						return deviceType
+					}
                 }
 				break
 			case "contact sensor":
@@ -415,7 +419,7 @@ private mapDeviceCommands(command, value) {
 			resultCommand = "setSaturation"
 			resultValue = value
 			break
-		case "ct":
+		case "colorTemperature":
 			resultCommand = "setColorTemperature"
 			resultValue = value
 			break

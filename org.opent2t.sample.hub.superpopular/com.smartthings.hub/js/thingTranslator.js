@@ -4,17 +4,18 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
-
+var OpenT2TLogger = require('opent2t').Logger;
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
         this._name = "SmartThings Hub"; // TODO: Can be pulled from OpenT2T global constants.
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
 
     /**
@@ -148,17 +149,27 @@ class Translator {
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
+                    }).catch((err) => {
+                        console.log('warning: OpenT2T.createTranslatorAsync error - ' + err);
+                        return Promise.resolve(undefined);
                     }));
             }
         });
 
         return Promise.all(platformPromises)
-                .then((platforms) => {
-                    var toReturn = {};
-                    toReturn.schema = "opent2t.p.hub";
-                    toReturn.platforms = platforms;
-                    return toReturn;
-                });
+            .then((platforms) => {
+
+                var toReturn = {};
+                toReturn.schema = "org.opent2t.sample.hub.superpopular";
+                toReturn.platforms = [];
+                for (var i = 0; i < platforms.length; i++) {
+                    if (platforms[i] !== undefined) {
+                        toReturn.platforms.push(platforms[i]);
+                    }
+                }
+
+                return toReturn;
+            });
     }
 
     /** 
@@ -166,6 +177,7 @@ class Translator {
      */
     _getOpent2tInfo(deviceType) {
         switch (deviceType) {
+            case "dimmerSwitch":
             case "light":
                 return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
@@ -249,17 +261,19 @@ class Translator {
         return request(options)
             .then(function (body) {
                 if (method === 'PUT' || method === 'DELETE') {
-                    if (body.length === 0) return "succeed";
-                    return "Unkown error";
+                    // TODO: Why is this check below in the first place? 
+                    // It seems very weird to check 0 length body
+                    if (body.length === 0) {
+                        return "succeed";
+                    } else {
+                        let errorMsg = "Non-zero length body for PUT/DELETE call to SmartThings";
+                        this.ConsoleLogger.warn(errorMsg);
+                        return errorMsg;
+                    }
                 } else {
                     return JSON.parse(body);
                 }                
-            })
-            .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err);
-                throw err;
-            });
+            }.bind(this));
     }
 }
 

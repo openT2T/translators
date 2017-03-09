@@ -1,6 +1,7 @@
 'use strict';
 
 var request = require('request-promise');
+var OpenT2TLogger = require('opent2t').Logger;
 
 // wink v2 api endpoint as documented here: http://docs.winkapiv2.apiary.io/
 var apiEndpoint = 'https://api.wink.com';
@@ -11,10 +12,11 @@ var bearerToken;
 class WinkHelper {
 
     // Init Helper: Sets the initial parameters to build our target endpoint
-    constructor(accessToken) {
+    constructor(accessToken, logLevel = "info") {
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.ConsoleLogger.info("Initilizing WINK helper");
         bearerToken = accessToken;
-
-        console.log('Initialized Wink Helper.');
+        this.ConsoleLogger.info('Initialized Wink Helper.');
     }
 
     // Gets device details (all fields), response formatted per http://docs.winkapiv2.apiary.io/
