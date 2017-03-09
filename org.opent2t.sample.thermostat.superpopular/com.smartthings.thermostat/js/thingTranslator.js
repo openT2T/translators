@@ -146,18 +146,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         humidity: providerSchema['attributes'].humidity
     });
 
-    // Build the availability resource (read-only)
-    var availability = createResource('oic.r.mode', 'oic.if.s', 'availability', expand, {
-        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
-        modes: [providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline']
-    });
-    
     return {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-smartthings-thermostat',
             controlId: providerSchema['id']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Thermostat (Generic)"),
@@ -179,8 +174,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     hvacMode,
                     hasFan,
                     fanMode,
-                    humidity,
-                    availability
+                    humidity
                 ]
             }
         ]
@@ -212,7 +206,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'targetTemperature':
             result['thermostatSetpoint'] = resourceSchema.temperature;
             break;
-        case 'availability':
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
@@ -397,10 +390,6 @@ class Translator {
 
     postDevicesFanMode(di, payload) {
         return this.postDeviceResource(di, 'fanMode', payload);
-    }
-
-    getDevicesAvailability(di) {
-        return this.getDeviceResource(di, "availability");
     }
 
     postSubscribe(subscriptionInfo) {

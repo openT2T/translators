@@ -93,6 +93,7 @@ class Translator {
                 translator: 'opent2t-translator-com-contosothings-binaryswitch',
                 controlId: this.deviceId
             },
+            availability: 'online',
             pi: providerSchema["Id"],
             mnmn: "ContosoThings",
             mnmo: "ctSwitch1",

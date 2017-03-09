@@ -9,6 +9,7 @@
             "supported" : ["home", "away"],
             "mode" : "away"
         },
+        "is_online": true,
         "temperature_scale" : "c",
         "ambient_temperature_c" : 25,
         "target_temperature_c" : 22,
@@ -20,17 +21,20 @@
         "has_fan" : true,
         "fan_timer_active" : false,
         "device_id" : "Mock Id",
+        "structure_id" : "Mock Structure Id",
         "humidity" : 25,
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
-        "name" : "Mock Name"
+        "name" : "Mock Name",
+        "name_long" : "Mock Name Thermostat",
+        "away" : "home"
     },
     "test_data" :
     {
         "SetAwayMode" :
             [
                 {
-                    "awayMode" : "Away"
+                    "awayMode" : "away"
                 }
             ],
         "SetTargetTemperature" :

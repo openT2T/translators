@@ -151,7 +151,7 @@ class Translator {
                             });
                     }).catch((err) => {
                         // Being logged in HubController already
-                        return Promise.reject(err);
+                        return Promise.resolve(undefined);
                     }));
             }
         });

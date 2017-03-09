@@ -78,13 +78,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
-    // Build the availability resource (read-only)
-    var availability = {
-        "href": "/availability",
-        "rt": ["oic.r.mode"],
-        "if": ["oic.if.s", "oic.if.baseline"]
-    }
-
     // Include the values is expand is specified
     if (expand) {  
         power.id = 'power';
@@ -93,10 +86,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['Level'];
         dim.range = [0, 100];
-
-        availability.id = 'availability';
-        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        availability.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -105,6 +94,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-insteon-lightbulb',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID(providerSchema['DeviceID']),
         mnmn: defaultValueIfEmpty(providerSchema['Manufacturer'], 'Insteon'),
         mnmo: defaultValueIfEmpty(providerSchema['ProductType'], 'Light Bulb (Generic)'),
@@ -119,8 +109,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 dmv: 'res.1.1.0',
                 resources: [
                     power,
-                    dim,
-                    availability
+                    dim
                 ]
             }
         ]
@@ -148,7 +137,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-        case 'availability':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
@@ -266,10 +254,6 @@ class Translator {
         return this.postDeviceResource(di, "colourChroma", payload);
     }
     
-    getDevicesAvailability(di) {
-        return this.getDeviceResource(di, "availability");
-    }
-
     postSubscribe(subscriptionInfo) {
         return this.insteonHub.postSubscribe(subscriptionInfo);
     }

@@ -46,6 +46,7 @@ traits:
                   "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
                   "controlId": "123"
                 },
+                "availability": "online",
                 "pi": "8045C566-B44B-462F-A4AB-FA7FC968CE71",
                 "mnmn": "Contoso",
                 "n": "Bedside lamp",
@@ -104,10 +105,11 @@ traits:
             example: |
               {
                 "opent2t": {
-                  "schema": "opent2t.p.outlet",
+                  "schema": "org.opent2t.sample.lamp.superpopular",
                   "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
                   "controlId": "123"
                 },
+                "availability": "online",
                 "pi": "8045C566-B44B-462F-A4AB-FA7FC968CE71",
                 "mnmn": "Contoso",
                 "n": "Bedside lamp",
@@ -143,14 +145,6 @@ traits:
                         "dimmingSetting": 30,
                         "step": 5,
                         "range": [0, 100]
-                      },
-                      {
-                        "href": "/availability",
-                        "rt": [ "oic.r.mode" ],
-                        "if": [ "oic.if.a", "oic.if.baseline" ],
-                        "id": "availability",
-                        "modes": [ "online" ]
-                        "supportedModes": [ "online", "offline", "hidden", "deleted" ]
                       }
                     ]
                   }
@@ -335,23 +329,6 @@ traits:
                   "csc":         [0.41,0.51],
                   "ct":          467
                 }
-  /availability:
-    displayName: Availability
-    is: [ interface-sensor ]
-
-    get:
-      responses:
-        200:
-          body:
-            application/json:
-              schema: availability
-              example: |
-                {
-                  "rt":         ["oic.r.mode"],
-                  "id":         "unique_example_id",
-                  "modes":      ["online"],
-                  "supportedmodes": [ "online", "offline", "hidden", "deleted" ]
-                }
                 
 #
 # Notification subscription URIs
@@ -409,3 +386,24 @@ traits:
         body:
           application/json:
           example: {}
+
+/?$availability: |
+  displayName: Availability
+
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: OutletPlatform
+            example:  |
+              {
+                "opent2t": {
+                  "schema": "org.opent2t.sample.lamp.superpopular",
+                  "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
+                  "controlId": "123"
+                },
+                "availability": "online",
+                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
+                "rt": ["org.opent2t.sample.lamp.superpopular"]
+              }

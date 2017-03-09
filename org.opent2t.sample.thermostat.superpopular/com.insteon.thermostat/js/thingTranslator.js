@@ -170,18 +170,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan'] !== undefined
     });
 
-    // Build the availability resource (read-only)
-    var availability = createResource('oic.r.mode', 'oic.if.s', 'availability', expand, {
-        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
-        modes: [providerSchema['Reachable'] ? 'online' : 'offline']
-    });
-
     var PlatformSchema =  {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-insteon-thermostat',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID( providerSchema['DeviceID'] ),
         mnmn: defaultValueIfEmpty(providerSchema['Manufacturer'], 'Insteon'),
         mnmo: defaultValueIfEmpty(providerSchema['ProductType'], 'Thermostat (Generic)'),
@@ -189,6 +184,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['DeviceName'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: thermostatDeviceDi,
                 resources: [
@@ -198,8 +196,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     targetTemperatureLow,
                     humidity,
                     hvacMode,
-                    hasFan,
-                    availability
+                    hasFan
                 ]
             }
         ]
@@ -246,7 +243,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-        case 'availability':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
@@ -428,11 +424,7 @@ class Translator {
     postDevicesFanMode(di, payload) {
         return this.postDeviceResource(di, 'fanMode', payload);
     }
-
-    getDevicesAvailability(di) {
-        return this.getDeviceResource(di, "availability");
-    }
-
+    
     postSubscribe(subscriptionInfo) {
         return this.insteonHub._subscribe(subscriptionInfo);
     }

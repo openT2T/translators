@@ -205,6 +205,7 @@ class Translator {
                 translator: 'opent2t-translator-com-contosothings-lightbulb',
                 controlId: providerSchema["Id"]
             },
+            availability: 'online',
             pi: providerSchema["Id"],
             mnmn: "ContosoThings",
             mnmo: "ctLight1",

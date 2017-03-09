@@ -2,7 +2,8 @@
     {
         "DeviceID" : "Mock Device",
         "Power" : "off",
-        "Level" : 10
+        "Level" : 10,
+        "Reachable": true
     },
     "test_data" :
     {

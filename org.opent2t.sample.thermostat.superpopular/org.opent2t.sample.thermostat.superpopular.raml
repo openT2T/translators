@@ -276,8 +276,10 @@ resourceTypes:
               {
                 "opent2t": {
                   "schema": "org.opent2t.sample.thermostat.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1"
+                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1",
+                  "controlId": 123
                 },
+                "availability": "online",
                 "pi": "05E69E6E-CD88-40B0-8CF8-B887EB480AA4",
                 "mnmn": "Contoso",
                 "n": "Hallway thermostat",
@@ -369,11 +371,6 @@ resourceTypes:
                         "href": "/fanMode",
                         "rt": ["oic.r.mode"],
                         "if": ["oic.if.a", "oic.if.baseline"]
-                      },
-                      {
-                        "href": "/availability",
-                        "rt": ["oic.r.mode"],
-                        "if": ["oic.if.a", "oic.if.baseline"]
                       }
                      ]
                   }
@@ -392,8 +389,10 @@ resourceTypes:
               {
                 "opent2t": {
                   "schema": "org.opent2t.sample.thermostat.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1"
+                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1",
+                  "controlId": 123
                 },
+                "availability": "online",
                 "pi": "05E69E6E-CD88-40B0-8CF8-B887EB480AA4",
                 "mnmn": "Contoso",
                 "n": "Hallway thermostat",
@@ -516,14 +515,6 @@ resourceTypes:
                         "rt": ["oic.r.mode"],
                         "modes": ["auto"],
                         "supportedModes": ["on","auto"]
-                      },
-                      {
-                        "href": "/availability",
-                        "rt": [ "oic.r.mode" ],
-                        "if": [ "oic.if.a", "oic.if.baseline" ],
-                        "id": "availability",
-                        "modes": [ "online" ]
-                        "supportedModes": [ "online", "offline", "hidden", "deleted" ]
                       }
                      ]
                   }
@@ -582,3 +573,24 @@ resourceTypes:
         body:
           application/json:
           example: {}
+
+/?$availability: |
+  displayName: Availability
+
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: OutletPlatform
+            example:  |
+              {
+                "opent2t": {
+                  "schema": "org.opent2t.sample.thermostat.superpopular",
+                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1",
+                  "controlId": 123
+                },
+                "availability": "online",
+                "pi": "05E69E6E-CD88-40B0-8CF8-B887EB480AA4",
+                "rt": ["org.opent2t.sample.thermostat.superpopular"]
+              }

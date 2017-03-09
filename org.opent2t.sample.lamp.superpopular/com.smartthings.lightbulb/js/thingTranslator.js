@@ -194,14 +194,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "rt": ["oic.r.colour.chroma"],
         "if": ["oic.if.a", "oic.if.baseline"]
     }
-
-    // Build the availability resource (read-only)
-    var availability = {
-        "href": "/availability",
-        "rt": ["oic.r.mode"],
-        "if": ["oic.if.s", "oic.if.baseline"]
-    }
-    
+  
     // Include the values is expand is specified
     if (expand) {
         power.id = 'power';
@@ -210,10 +203,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['attributes'].level;
         dim.range = [0, 100];
-
-        availability.id = 'availability';
-        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        availability.modes = [providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline'];
         
         if (supportColour) {
             colourMode.id = 'colourMode';
@@ -241,7 +230,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         }
     }
 
-    var resources = [power, dim, availability];
+    var resources = [power, dim];
 
     if (supportColour && supportCT) {
         resources.push(colourMode);
@@ -261,6 +250,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-smartthings-lightbulb',
             controlId: providerSchema['id']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Light Bulb (Generic)"),
@@ -311,7 +301,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
                 throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
             }
             break
-        case 'availability':
         default:
             // Error case
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
@@ -411,10 +400,6 @@ class Translator {
 
     postDevicesColourChroma(di, payload) {
         return this.postDeviceResource(di, "colourChroma", payload);
-    }
-
-    getDevicesAvailability(di) {
-        return this.getDeviceResource(di, "availability");
     }
 
     postSubscribe(subscriptionInfo) {

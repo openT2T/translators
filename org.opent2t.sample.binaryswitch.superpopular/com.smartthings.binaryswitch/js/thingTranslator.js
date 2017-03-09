@@ -59,21 +59,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['oic.r.switch.binary'],
         if: ['oic.if.a', 'oic.if.baseline']
     };
-    
-    // Build the availability resource (read-only)
-    var availability = {
-        "href": "/availability",
-        "rt": ["oic.r.mode"],
-        "if": ["oic.if.s", "oic.if.baseline"]
-    }
 
     if (expand) {
         power.id = 'power';
         power.value = providerSchema['attributes'].switch == 'on';
-        
-        availability.id = 'availability';
-        availability.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        availability.modes = [providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline'];
     }
 
     return {
@@ -82,6 +71,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-smartthings-binaryswitch',
             controlId: providerSchema['id']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Binary Switch (Generic)"),
@@ -95,8 +85,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [ 
-                    power,
-                    availability
+                    power
                 ]
             }
         ]
@@ -179,10 +168,6 @@ class Translator {
 
     postDevicesPower(di, payload) {
         return this.postDeviceResource(di, 'power', payload);
-    }
-
-    getDevicesAvailability(di) {
-        return this.getDeviceResource(di, "availability");
     }
 
     postSubscribe(subscriptionInfo) {

@@ -5,7 +5,8 @@
                 "powered" : false
             },
             "last_reading" : {
-                "powered" : false
+                "powered" : false,
+                "connection": true
             },
             "object_type" : "Mock Type",
             "object_id" : "F8CFB903-58BB-4753-97E0-72BD7DBC7933",
