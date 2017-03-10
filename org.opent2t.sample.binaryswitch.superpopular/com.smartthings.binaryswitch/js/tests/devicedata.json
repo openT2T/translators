@@ -1,12 +1,13 @@
-{   "base_state" :
-    {   "attributes" :
-        {
-            "switch" : "on"
+{
+    "base_state": {
+        "attributes": {
+            "switch": "on"
         },
-        "id" : "Mock Id",
-        "manufacturer" : "Mock Manufacturer",
-        "model" : "Mock Model",
-        "name" : "Mock Name",
+        "id": "3b5e69d7-1e74-4bce-8b5d-da9ead378a56",
+        "manufacturer": "Mock Manufacturer",
+        "model": "Mock Model",
+        "name": "Mock Name",
+        "deviceType": "switch",
         "status": "ONLINE"
     },
     "test_data" :

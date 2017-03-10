@@ -1,8 +1,9 @@
-{   "base_state" :
-    {
-        "DeviceID" : "Mock Device",
-        "Power" : "off",
-        "Reachable": true
+{
+    "base_state": {
+      "DeviceID": "Mock Device",
+      "DeviceName": "Mock Device",
+      "Power": "off",
+      "Reachable": true
     },
     "test_data" :
     {

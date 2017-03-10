@@ -80,7 +80,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities: [
             {
                 n: providerSchema['name'],
-                ivc: "core.1.1.0",
+                icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
