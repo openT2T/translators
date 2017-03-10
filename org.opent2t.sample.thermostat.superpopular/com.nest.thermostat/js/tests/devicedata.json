@@ -28,7 +28,7 @@
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
         "name" : "Mock Name",
-        "name_long" : "Mock Name Thermostat",
+        "name_long" : "Mock Name",
         "away" : "home"
     },
     "test_data" :
