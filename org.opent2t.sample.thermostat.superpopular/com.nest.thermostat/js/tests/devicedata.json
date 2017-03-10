@@ -17,6 +17,8 @@
         "target_temperature_low_c" : 20,
         "away_temperature_high_c" : 26,
         "away_temperature_low_c" : 21,
+        "hvac_mode": "heat-cool",
+        "hvac_state": "off",
         "has_leaf" : true,
         "has_fan" : true,
         "fan_timer_active" : false,
