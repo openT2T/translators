@@ -31,6 +31,7 @@ traits:
           enum: ["oic.if.s", "oic.if.baseline"]
 
 resourceTypes:
+  - !include org.opent2t.availability.yaml
   - temperatureType:
       get:
         queryParameters:
@@ -575,22 +576,7 @@ resourceTypes:
           example: {}
 
 /?$availability: |
+  description: This resource shows device availability
   displayName: Availability
-
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: OutletPlatform
-            example:  |
-              {
-                "opent2t": {
-                  "schema": "org.opent2t.sample.thermostat.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1",
-                  "controlId": 123
-                },
-                "availability": "online",
-                "pi": "05E69E6E-CD88-40B0-8CF8-B887EB480AA4",
-                "rt": ["org.opent2t.sample.thermostat.superpopular"]
-              }
+  is: [ interface-sensor ]
+  type: {availabilityType}

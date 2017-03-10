@@ -31,6 +31,9 @@ traits:
         if:
           enum: ["oic.if.s", "oic.if.baseline"]
 
+resourceTypes:
+  - !include org.opent2t.availability.yaml
+
 /:
   displayName: Platform
   get:
@@ -388,22 +391,7 @@ traits:
           example: {}
 
 /?$availability: |
+  description: This resource shows device availability
   displayName: Availability
-
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: OutletPlatform
-            example:  |
-              {
-                "opent2t": {
-                  "schema": "org.opent2t.sample.lamp.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
-                  "controlId": "123"
-                },
-                "availability": "online",
-                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
-                "rt": ["org.opent2t.sample.lamp.superpopular"]
-              }
+  is: [ interface-sensor ]
+  type: {availabilityType}

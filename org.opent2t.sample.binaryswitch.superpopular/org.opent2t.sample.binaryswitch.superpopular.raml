@@ -21,6 +21,9 @@ traits:
         if:
           enum: ["oic.if.a", "oic.if.baseline"]
 
+resourceTypes:
+  - !include org.opent2t.availability.yaml
+
 #
 # Device relative URIs
 #
@@ -195,22 +198,7 @@ traits:
           example: {}
 
 /?$availability: |
+  description: This resource shows device availability
   displayName: Availability
-
-  get:
-    responses:
-      200:
-        body:
-          application/json:
-            schema: OutletPlatform
-            example:  |
-              {
-                "opent2t": {
-                  "schema": "org.opent2t.sample.binaryswitch.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-binaryswitch@0.1.1",
-                  "controlId": 123
-                },
-                "availability": "online",
-                "pi": "9D2D20D8-10B0-4913-B62F-CEF8218E1E14C",
-                "rt": ["org.opent2t.sample.binaryswitch.superpopular"]
-              }
+  is: [ interface-sensor ]
+  type: {availabilityType}
