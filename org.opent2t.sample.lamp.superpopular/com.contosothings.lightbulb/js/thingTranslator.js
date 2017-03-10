@@ -212,6 +212,7 @@ class Translator {
             rt: ['org.opent2t.sample.lamp.superpopular'],
             entities: [
                 {
+                    n: providerSchema['Name'],
                     rt: ['opent2t.d.light'],
                     di: lightDeviceDi,
                     icv: 'core.1.1.0',

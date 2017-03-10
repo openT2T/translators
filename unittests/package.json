@@ -1,0 +1,16 @@
+{
+  "name": "opent2t-device-all",
+  "version": "0.1.1",
+  "description": "Generic unit tests for all OpenT2T translators.",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "tests.js",
+  "license": "MIT",
+  "dependencies": {
+    "opent2t": "1.0.4",
+    "opent2t-testcase-helpers": "file:../Helpers/testcase-helpers/js"
+  }
+}

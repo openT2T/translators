@@ -2,18 +2,22 @@
 
 var OpenT2T = require('opent2t').OpenT2T;
 var helpers = require('opent2t-testcase-helpers');
+var runAllPlatformTests = require('opent2t-device-all/tests');
 var translator = undefined;
 const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 
 function runThermostatTests(settings) {
     var test = settings.test;
     var deviceId = settings.deviceId;
+    settings.schemaName = SchemaName;
 
     function verifyTemperatureData(t, response) {
         t.is(response.rt[0], 'oic.r.temperature');
         t.is(typeof(response.temperature),  'number', 'Verify temperature is a number');
         t.is(typeof(response.units), 'string', 'Verify units is a string, actual: ' + typeof(response.units));
     }
+
+    runAllPlatformTests(settings);
 
     test.before(() => {
         return settings.createTranslator().then(trans => {
@@ -23,33 +27,6 @@ function runThermostatTests(settings) {
                     deviceId = response.entities[0].di;
                 }
 			});
-        });
-    });
-
-    test.serial('Valid Thermostat Translator', t => {
-        t.is(typeof translator, 'object') && t.truthy(translator);
-    });
-
-    test.serial('GetPlatform', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
-            t.is(response.rt[0], SchemaName);
-            
-            var resource = response.entities[0].resources[0];
-            t.is(resource.href, '/ambientTemperature');
-            t.is(resource.rt[0], 'oic.r.temperature');
-            t.true(resource.temperature === undefined);
-        });
-    });
-
-    test.serial('GetPlatformExpanded', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', [true])
-            .then((response) => {
-                t.is(response.rt[0], SchemaName);
-
-                var resource = response.entities[0].resources[0];
-                t.is(resource.id, 'ambientTemperature');
-                t.is(resource.rt[0], 'oic.r.temperature');
-                t.true(resource.temperature !== undefined);
         });
     });
 

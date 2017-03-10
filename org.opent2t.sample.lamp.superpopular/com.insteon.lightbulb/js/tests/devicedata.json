@@ -1,6 +1,7 @@
 {   "base_state" :
     {
         "DeviceID" : "Mock Device",
+        "DeviceName" : "Mock Device",
         "Power" : "off",
         "Level" : 10
     },

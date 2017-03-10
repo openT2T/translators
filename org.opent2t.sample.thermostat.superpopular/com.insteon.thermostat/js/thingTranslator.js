@@ -189,6 +189,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['org.opent2t.sample.thermostat.superpopular'],
         entities: [
             {
+                n: providerSchema['DeviceName'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
                 di: thermostatDeviceDi,
                 resources: [
