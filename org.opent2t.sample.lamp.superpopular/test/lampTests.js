@@ -96,9 +96,9 @@ function runLampTests(settings) {
     test.serial('SetColourRGB', t => {
         return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((initialColor) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourRGB', [deviceId, { 'rgbvalue': [100,175,255] }]).then(() => {
+                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourRGB', [deviceId, { 'rgbValue': [100,175,255] }]).then(() => {
                     return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourRGB', [deviceId]).then((targetColor) => {
-                        t.not(targetColor.rgbvalue, initialColor.rgbvalue);
+                        t.not(targetColor.rgbValue, initialColor.rgbValue);
                     });
                 });
             });
@@ -116,7 +116,7 @@ function runLampTests(settings) {
     test.serial('SetColourChroma', t => {
         return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourChroma', [deviceId, { 'ct': 250 }]).then(() => {
+                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourChroma', [deviceId, { 'ct': 250 }]).then((chromaResult) => {
                     return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.ct, initialTemperature.ct)
                         t.truthy(Math.abs(targetTemperature.ct - 250) < 5);
