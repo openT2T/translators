@@ -1,16 +1,16 @@
 {
-  "id": "http://openinterconnect.org/iotdatamodels/schemas/oic.r.sensor.json#",
+  "id": "http://openinterconnect.org/iotdatamodels/schemas/oic.r.sensor.radiation.uv.json#",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "description" : "Copyright (c) 2016 Open Connectivity Foundation, Inc. All rights reserved.",
-  "title": "Generic Sensor",
+  "title": "UV Radiation",
   "definitions": {
-    "oic.r.sensor": {
+    "oic.r.sensor.radiation.uv": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "boolean",
+        "measurement":   {
+          "type": "number",
           "readOnly": true,
-          "description": "true = sensed, false = not sensed."
+          "description": "The measured UV Index"
         }
       }
     }
@@ -19,6 +19,7 @@
   "allOf": [
     {"$ref": "oic.core.json#/definitions/oic.core"},
     {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
-    {"$ref": "#/definitions/oic.r.sensor"}
-  ]
+    {"$ref": "#/definitions/oic.r.sensor.radiation.uv"}
+  ],
+  "required": ["measurement"]
 }

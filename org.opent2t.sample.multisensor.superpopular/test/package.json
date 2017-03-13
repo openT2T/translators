@@ -1,0 +1,16 @@
+{
+  "name": "opent2t-device-multisensor",
+  "version": "0.1.1",
+  "description": "Multisensor device",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "multisensorTests.js",
+  "license": "MIT",
+  "dependencies": {
+    "opent2t": "^1.0.3",
+    "opent2t-testcase-helpers": "file:../../Helpers/testcase-helpers/js"
+  }
+}
