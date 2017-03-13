@@ -125,7 +125,7 @@ function createColourChromaResource(expand, hsvValue, cscValue, ctValue) {
         }
 
         if (cscValue) {
-            colourChroma.csc = [xyzValue[0], xyzValue[1]];
+            colourChroma.csc = [cscValue[0], cscValue[1]];
         }
 
         if (ctValue) {
@@ -143,8 +143,8 @@ function createColourChromaResource(expand, hsvValue, cscValue, ctValue) {
  */
 function createColourModeResource(expand, modes, supportedModes) {
     // Ensure that modes have no duplicates in either array
-    var modes = modes.filter((m, pos) => { return modes.indexOf(m) == pos});
-    var supportedModes = supportedModes.filter((m, pos) => { return supportedModes.indexOf(m) == pos});
+    modes = modes.filter((m, pos) => { return modes.indexOf(m) == pos});
+    supportedModes = supportedModes.filter((m, pos) => { return supportedModes.indexOf(m) == pos});
 
     var colourMode = {
         href: "/colourMode",
@@ -223,7 +223,7 @@ function createDimmingResource(expand, dimmingSetting, dimmingRange = [0, 100]) 
  */
 function createLightBulbResources(expand, bulbInfo) {
     var resources = [];
-    var hsvValue, xyzValue, ctValue, rgbValue, dimValue;
+    var hsvValue, xyzValue, ctValue, rgbValue;
 
     // If Hue & Saturation are provided we can convert them into RGB
     if (bulbInfo.hasOwnProperty('hue') && bulbInfo.hasOwnProperty('saturation')) {
@@ -689,7 +689,6 @@ class Translator {
                 return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
                     return getDesiredColourState(providerSchema.data, resourceSchema);
                 });
-                break;
             default:
                 // Error case
                 return Promise.reject(OpenT2TConstants.InvalidResourceId);
