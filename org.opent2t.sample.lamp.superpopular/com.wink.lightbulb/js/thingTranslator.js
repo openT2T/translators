@@ -268,7 +268,6 @@ function createLightBulbResources(expand, bulbInfo) {
     // the bulb doesn't truly support it, but the conversion responsibility on POST belongs
     // to the translator.
     if (rgbValue) {
-         
          bulbInfo.supportedModes.push('rgb');
     }
 
@@ -488,10 +487,23 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
      * If the caller is subscribed to changes in state, then this is all moot as they would get a post back when
      * the last_reading state changes.
      */
-    bulbInfo.supportedModes = getProviderColourModes(providerSchema.last_reading);
-    var colorModel = bulbInfo.supportedModes.indexOf(stateReader.get('color_model')) > -1 ?
+    var winkModes = getProviderColourModes(providerSchema.last_reading);
+    var colorModel = winkModes.indexOf(stateReader.get('color_model')) > -1 ?
         stateReader.get('color_model') : 
         providerSchema.last_reading.color_model;
+
+    // Convert Wink color_model names into resource names
+    bulbInfo.supportedModes = winkModes.map((mode) => {
+        switch (mode) {
+            case 'hsb':
+            case 'rgb':
+                return mode;
+            case 'xy':
+                return 'csc';
+            case 'color_temperature':
+                return 'ct';
+       }
+    });
 
     switch(colorModel) {
         case 'hsb':
