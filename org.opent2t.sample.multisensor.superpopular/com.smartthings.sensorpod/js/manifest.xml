@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest>
+  <!-- associated schemas -->
+  <schemas>
+    <schema id="org.opent2t.sample.multisensor.superpopular" main="true" type="OCF" />
+    <schema id="opent2t.platform" type="OCF" />
+    <schema id="oic.core" type="OCF" />
+    <schema id="oic.baseresource" type="OCF" />
+    <schema id="oic.oic-link" type="OCF" />
+    <schema id="oic.r.sensor" type="OCF" />
+    <schema id="oic.r.sensor.acceleration" type="OCF" />
+    <schema id="oic.r.airquality" type="OCF" />
+    <schema id="oic.r.sensor.atmosphericpressure" type="OCF" />
+    <schema id="oic.r.sensor.carbondioxide" type="OCF" />
+    <schema id="oic.r.sensor.carbonmonoxide" type="OCF" />
+    <schema id="oic.r.sensor.contact" type="OCF" />
+    <schema id="oic.r.sensor.glassbreak" type="OCF" />
+    <schema id="oic.r.sensor.illuminance" type="OCF" />
+    <schema id="oic.r.sensor.motion" type="OCF" />
+    <schema id="oic.r.sensor.presence" type="OCF" />
+    <schema id="oic.r.sensor.radiation.uv" type="OCF" />
+    <schema id="oic.r.sensor.smoke" type="OCF" />
+    <schema id="oic.r.sensor.touch" type="OCF" />
+    <schema id="oic.r.sensor.water" type="OCF" />
+    <schema id="oic.r.energy.battery" type="OCF" />
+    <schema id="oic.r.humidity" type="OCF" />
+    <schema id="oic.r.temperature" type="OCF" />
+  </schemas>
+</manifest>

@@ -333,7 +333,7 @@
     },
 
    "loudnesschange": {
-      "description": "ReadOnly, Brightness change. Whether or not the sensor currently senses a large delta in sound. True = sensed, false = not sensed.",
+      "description": "ReadOnly, Loudness change. Whether or not the sensor currently senses a large delta in sound. True = sensed, false = not sensed.",
       "type": "object",
       "default": {
         "id": "loudnesschange",
