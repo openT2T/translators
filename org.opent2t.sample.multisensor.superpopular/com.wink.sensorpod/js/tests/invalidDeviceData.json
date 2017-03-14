@@ -1,0 +1,123 @@
+{   "base_state" :
+    {   "data" :
+        {
+            "last_event": {
+                "brightness_occurred_at": null,
+                "loudness_occurred_at": null,
+                "vibration_occurred_at": null
+            },
+            "object_type": "sensor_pod",
+            "object_id": "123456",
+            "uuid": "01234567-0123-0123-0123-0123456789ab",
+            "icon_id": null,
+            "icon_code": null,
+            "desired_state": {},
+            "last_reading": {
+                "temperature": 22.77777777777778,
+                "temperature_updated_at": 1488847336.5081685,
+                "motion": true,
+                "motion_updated_at": 1488847336.5081685,
+                "battery": 0.0,
+                "battery_updated_at": 1488847336.5081685,
+                "tamper_detected": false,
+                "tamper_detected_updated_at": 1488847031.0248313,
+                "motion_true": "N/A",
+                "motion_true_updated_at": null,
+                "tamper_detected_true": "N/A",
+                "tamper_detected_true_updated_at": null,
+                "connection": true,
+                "connection_updated_at": 1488847336.5081685,
+                "agent_session_id": null,
+                "agent_session_id_updated_at": null,
+                "connection_changed_at": 1488846785.7296247,
+                "motion_changed_at": "undefined",
+                "battery_changed_at": "N/A",
+                "temperature_changed_at": 1488847336.5081685,
+                "tamper_detected_changed_at": 1488847025.6141558,
+                "tamper_detected_true_changed_at": 1488846998.8763678,
+                "motion_true_changed_at": "undefined",
+                "brightness": false,
+                "brightness_changed_at": "null",
+                "brightness_updated_at": 1488847000.3741136,
+                "humidity": 0.5,
+                "humidity_changed_at": 1488847000.3741136,
+                "humidity_updated_at": 1488847000.3741136,
+                "loudness": false,
+                "loudness_changed_at": null,
+                "loudness_updated_at": 1488847000.3741136,
+                "vibration": true,
+                "vibration_changed_at": "",
+                "vibration_updated_at": 1488847000.3741136,
+                "opened": true,
+                "opened_changed_at": 1488847000.3741136,
+                "opened_updated_at": 1488847000.3741136,
+                "locked": false,
+                "locked_changed_at": 1488847000.3741136,
+                "locked_updated_at": 1488847000.3741136,
+                "liquid_detected": false,
+                "liquid_detected_changed_at": 1488847000.3741136,
+                "liquid_detected_updated_at": 1488847000.3741136,
+                "occupied": false,
+                "occupied_changed_at": 1488847000.3741136,
+                "occupied_updated_at": 1488847000.3741136
+            },
+            "subscription": {
+                "pubnub": {
+                    "subscribe_key": "sub-fake-key1923182",
+                    "channel": "fakechannel|sensor_pod-123456|user-123456"
+                }
+            },
+            "sensor_pod_id": "123456",
+            "name": "Office Motion Sensor",
+            "locale": "en_us",
+            "units": {},
+            "created_at": 1488846785,
+            "hidden_at": null,
+            "capabilities": {
+                "fields": [
+                    {
+                        "type": "float",
+                        "field": "temperature",
+                        "mutability": "read-only"
+                    },
+                    {
+                        "type": "boolean",
+                        "field": "motion",
+                        "mutability": "read-only"
+                    },
+                    {
+                        "type": "percentage",
+                        "field": "battery",
+                        "mutability": "read-only"
+                    },
+                    {
+                        "type": "boolean",
+                        "field": "tamper_detected",
+                        "mutability": "read-only"
+                    }
+                ]
+            },
+            "triggers": [],
+            "manufacturer_device_model": "linear_wapirz_1",
+            "manufacturer_device_id": null,
+            "device_manufacturer": "linear",
+            "model_name": "Z-Wave Passive Infrared (PIR) Sensor",
+            "upc_id": "207",
+            "upc_code": "093863125102",
+            "primary_upc_code": "linear_motion_sensor_2",
+            "gang_id": null,
+            "hub_id": "123456",
+            "local_id": "2",
+            "radio_type": "zwave",
+            "linked_service_id": null,
+            "lat_lng": [
+                0.000000,
+                0.000000
+            ],
+            "location": ""
+        }
+    },
+    "test_data" :
+    {
+    }
+}

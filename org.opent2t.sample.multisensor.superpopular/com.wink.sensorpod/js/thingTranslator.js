@@ -70,10 +70,15 @@ class StateReader {
 }
 
 function convertDeviceDateToTranslatorDate(unixTimestamp) {
-    // Date takes a number of milliseconds, so convert seconds to milliseconds
-    var datetime = new Date(unixTimestamp * 1000);
+    // Only convert if input is valid numeric value
+    if (unixTimestamp && !isNaN(unixTimestamp)) { 
+        // Date takes a number of milliseconds, so convert seconds to milliseconds
+        var datetime = new Date(unixTimestamp * 1000);
+        return datetime.toISOString();
+    }
 
-    return datetime.toISOString();
+    // return all other invalid input as-is since we can't convert to DateTime
+    return unixTimestamp;
 }
 
 function convertDeviceBatteryToTranslatorBattery(batteryValue) {

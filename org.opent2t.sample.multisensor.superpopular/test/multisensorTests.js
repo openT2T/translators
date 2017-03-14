@@ -284,6 +284,17 @@ function runMultisensorTests(settings) {
             });
     });
 
+        test.serial('GetBrightnessChange', t => {
+        return helpers.runTest(settings, t, () => {
+            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesBrightnesschange', [deviceIds['opent2t.d.sensor.brightnesschange']])
+                .then((response) => {
+                    t.is(response.rt[0], 'oic.r.sensor');
+                    t.true(response.value !== undefined);
+                    t.true(response.id === 'brightnesschange');
+                });
+            });
+    });
+
     test.serial('GetSmoke', t => {
         return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesSmoke', [deviceIds['opent2t.d.sensor.smoke']])

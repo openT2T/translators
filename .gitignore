@@ -13,3 +13,4 @@ testconfig.json
 
 // Private Tarballs
 *.tgz
+*.snap
