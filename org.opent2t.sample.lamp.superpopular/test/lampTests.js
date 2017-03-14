@@ -2,13 +2,17 @@
 
 var OpenT2T = require('opent2t').OpenT2T;
 var helpers = require('opent2t-testcase-helpers');
+var runAllPlatformTests = require('opent2t-device-all/tests');
 var translator = undefined;
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 
 function runLampTests(settings) {
     var test = settings.test;
     var deviceId = settings.deviceId;
-    
+    settings.schemaName = SchemaName;
+
+    runAllPlatformTests(settings);
+
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
@@ -17,33 +21,6 @@ function runLampTests(settings) {
                     deviceId = response.entities[0].di;
                 }
 			});
-        });
-    });
-
-    test.serial('Valid Lamp Translator', t => {
-        t.is(typeof translator, 'object') && t.truthy(translator);
-    });
-
-    test.serial('GetPlatform', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
-            t.is(response.rt[0], SchemaName);
-            
-            var resource = response.entities[0].resources[0];
-            t.is(resource.rt[0], 'oic.r.switch.binary');
-            t.true(resource.value == undefined);
-            t.true(resource.id == undefined);
-        });
-    });
-
-    test.serial('GetPlatformExpanded', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', [true])
-            .then((response) => {
-                t.is(response.rt[0], SchemaName);
-
-                var resource = response.entities[0].resources[0];
-                t.is(resource.id, 'power');
-                t.is(resource.rt[0], 'oic.r.switch.binary');
-                t.true(resource.value !== undefined);
         });
     });
 
@@ -139,10 +116,10 @@ function runLampTests(settings) {
     test.serial('SetColourChroma', t => {
         return helpers.runTest(settings, t, () => {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourChroma', [deviceId, { 'ct': 30 }]).then(() => {
+                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesColourChroma', [deviceId, { 'ct': 250 }]).then(() => {
                     return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesColourChroma', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.ct, initialTemperature.ct)
-                        t.truthy(Math.abs(targetTemperature.ct - 30) < 0.75);
+                        t.truthy(Math.abs(targetTemperature.ct - 250) < 5);
                     });
                 });
             });

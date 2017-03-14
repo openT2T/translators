@@ -5,12 +5,13 @@
             "hue" : 10,
             "saturation" : 30,
             "level" : 20,
-            "colorTemperature" : 50
+            "colorTemperature" : 3000
         },
-        "id" : "Mock Id",
-        "manufacturer" : "Mock Manufacturer",
-        "model" : "Mock Model",
-        "name" : "Mock Name"
+        "id" : "d827d753-88d8-45a8-bab3-36bc3899467a",
+        "manufacturer" : null,
+        "model" : null,
+        "name" : "Mock Name",
+        "deviceType": "light"
     },
     "test_data" :
     {
@@ -35,7 +36,7 @@
         "SetColourChroma" :
             [
                 {
-                    "colorTemperature" : 33333
+                    "colorTemperature" : 4000
                 }
             ],
         "SetColourRGB" :

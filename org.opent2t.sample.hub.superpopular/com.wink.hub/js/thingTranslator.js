@@ -407,6 +407,12 @@ class Translator {
                 "translator": "opent2t-translator-com-wink-lightbulb"
             };
         }
+        else if (winkDevice.sensor_pod_id) {
+            return {
+                "schema": 'org.opent2t.sample.multisensor.superpopular',
+                "translator": "opent2t-translator-com-wink-sensorpod"
+            };
+        }
         
         return undefined;
     }

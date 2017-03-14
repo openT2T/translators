@@ -29,6 +29,10 @@
         <arg name="url" />
         <description language="en">https://graph.api.smartthings.com/oauth/authorize?response_type=code&amp;client_id={client_id}&amp;redirect_uri={redirect_url}&amp;scope=app</description>
       </flow>
+      <flow>
+        <arg name="method" />
+        <description language="en">getUserVerificationUri</description>
+      </flow>
     </onboardflow>
   </onboarding>
 </manifest>
