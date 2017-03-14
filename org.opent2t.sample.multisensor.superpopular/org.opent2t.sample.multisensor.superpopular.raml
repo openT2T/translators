@@ -1,0 +1,1300 @@
+#%RAML 0.8
+title: org.opent2t.sample.thermostat.superpopular
+version: v1.0
+
+schemas:
+  - Acceleration: !include oic.r.sensor.acceleration.json
+  - AirQuality: !include oic.r.airquality.json
+  - AtmosphericPressure: !include oic.r.sensor.atmosphericpressure.json
+  - Battery: !include oic.r.energy.battery.json
+  - Humidity: !include oic.r.humidity.json
+  - Illuminance: !include oic.r.sensor.illuminance.json
+  - Sensor: !include oic.r.sensor.json
+  - Temperature: !include oic.r.temperature.json
+  - UVRadiation: !include oic.r.sensor.radiation.uv.json
+  - MultisensorPlatform: !include org.opent2t.sample.multisensor.superpopular.json
+  - TimeStamp: !include org.opent2t.sample.multisensor.superpopular.json#/definitions/opent2t.r.timestamp
+  - Subscription: |
+      {
+        "type": "object",
+        "properties": {
+          "callbackUrl": { "type": "string" },
+          "expiration": { "type": "number" },
+          "response": { "type": "string"}
+        }
+      }
+
+traits:
+ - interface-sensor:
+      queryParameters:
+        if:
+          enum: ["oic.if.s", "oic.if.baseline"]
+
+resourceTypes:
+  - booleanSensorType:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                schema: Sensor
+                example: |
+                  {
+                    "rt": <<sensorRT>>,
+                    "id": "unique_example_id",
+                    "value": true
+                  }
+
+  - accelerationType:
+      get:
+        responses:
+          200:
+            body:
+              application/json:
+                schema: Acceleration
+                example: |
+                  {
+                    "rt": ["oic.r.sensor.acceleration"],
+                    "id": "unique_example_id",
+                    "acceleration":  0.5
+                  }
+
+
+#
+# Device relative URIs
+#
+/devices/{deviceid}:
+
+  /accelerationX:
+    displayName: X-axis sensed acceleration
+    is: [ interface-sensor ]
+    type: {accelerationType}
+
+  /accelerationY:
+    displayName: Y-axis sensed acceleration
+    is: [ interface-sensor ]
+    type: {accelerationType}
+
+  /accelerationZ:
+    displayName: X-axis sensed acceleration
+    is: [ interface-sensor ]
+    type: {accelerationType}
+
+  /airquality:
+    displayName: Air Quality
+    is: [ interface-sensor ]
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: AirQuality
+              example: |
+                {
+                  "rt": ["oic.r.airquality"],
+                  "id": "unique_example_id",
+                  "airquality": [
+                    {"contaminanttype": "CO",
+                    "valuetype": "Measured",
+                    "value": 10,
+                    "range": [0,500]},
+                    {"contaminanttype": "Smoke",
+                    "valuetype": "Qualitative",
+                    "value": 8,
+                    "range": [0,10]}
+                  ]
+                }
+
+  /atmosphericpressure:
+    displayName: Current atmospheric pressure in hPa
+    is: [ interface-sensor ]
+    get:
+        responses:
+          200:
+            body:
+              application/json:
+                schema: AtmosphericPressure
+                example: |
+                  {
+                    "rt": ["oic.r.sensor.atmosphericpressure"],
+                    "id": "unique_example_id",
+                    "atmosphericPressure": 1000.4
+                  }
+
+  /brightnesschange:
+    displayName: Brighness Change detected
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor"]'}}
+
+  /carbondioxide:
+    displayName: Carbon dioxide detected
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.carbondioxide"]'}}
+
+  /carbonmonoxide:
+    displayName: Carbon monoxide detected
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.carbonmonoxide"]'}}
+
+  /contact:
+    displayName: Contact sensor
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.contact"]'}}
+
+  /combustiblegas:
+    displayName: Combustible Gas detected
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor"]'}}
+
+  /glassbreak:
+    displayName: Glass break sensor
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.glassbreak"]'}}
+
+  /humidity:
+    displayName: Humidity
+    is: [ interface-sensor ]
+    get:
+       description: |
+         Retrieves the current (relative) humidity level.
+       responses:
+         200:
+           body:
+             application/json:
+               schema: Humidity
+               example: |
+                 {
+                 "rt": ["oic.r.humidity"],
+                 "id": "unique_example_id",
+                 "humidity":40
+                 }
+
+  /illuminance:
+    displayName: Sensed luminous flux per unit area in lux
+    is: [ interface-sensor ]
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: Illuminance
+              example: |
+                {
+                  "rt": ["oic.r.sensor.illuminance"],
+                  "id": "unique_example_id",
+                  "illuminance": 450.0
+                }
+
+  /loudnesschange:
+    displayName: Loudness Change detected
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor"]'}}
+
+  /motion:
+    displayName: Motion sensor
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.motion"]'}}
+
+  /presence:
+    displayName: Presence sensor
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.presence"]'}}
+
+  /smoke:
+    displayName: Smoke detector
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.smoke"]'}}
+
+  /temperature:
+    displayName: Temperature
+    is: [ interface-sensor ]
+    get:
+      queryParameters:
+        units:
+          displayName: Units
+          enum: ["C","F","K"]
+      responses:
+        200:
+          body:
+            application/json:
+              schema: Temperature
+              example: |
+                {
+                  "rt": ["oic.r.temperature"],
+                  "id": "unique_example_id",
+                  "temperature": 20.0,
+                  "units": "C",
+                  "range": [0.0,100.0]
+                }
+
+  /touch:
+    displayName: Touch sensor
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.touch"]'}}
+
+  /uvradiation:
+    displayName: Measured UV Index
+    is: [ interface-sensor ]
+    get:
+      description: |
+        Retrieves the current UV Radiation value
+      responses:
+        200:
+          body:
+            application/json:
+              schema: UVRadiation
+              example: |
+                {
+                  "rt": ["oic.r.sensor.radiation.uv"],
+                  "id": "unique_example_id",
+                  "measurement": 3.5
+                }
+
+  /vibrationchange:
+    displayName: Vibration Change detected
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor"]'}}
+
+  /water:
+    displayName: Water sensor
+    is: [ interface-sensor ]
+    type: {booleanSensorType: {sensorRT: '["oic.r.sensor.water"]'}}
+
+  /battery:
+    displayName:  The charge is an integer showing the current battery charge level as a percentage
+    is: [ interface-sensor]
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: Battery
+              example: |
+                {
+                  "rt":     ["oic.r.energy.battery"],
+                  "id":     "unique_example_id",
+                  "charge": 50
+                }
+
+  /lastchanged:
+    displayName:  Timestamp showing last time sensor value changed
+    is: [ interface-sensor]
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              schema: TimeStamp
+              example: |
+                {
+                  "rt":     ["opent2t.r.timestamp"],
+                  "id":     "unique_example_id",
+                  "timestamp": "2017-04-05T14:30Z"
+                }
+
+
+
+#
+# Platform Level URIs
+#
+/:
+  displayName: Platform
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: MultisensorPlatform
+            example: |
+              {
+                "opent2t": {
+                  "schema": "org.opent2t.sample.multisensor.superpopular",
+                  "translator": "opent2t-translator-com-opent2t-p-multisensor@0.1.1"
+                },
+                "pi": "8ECFEDB2-7220-419C-8E9C-EFCB96A34D45",
+                "mnmn": "Contoso",
+                "n": "Living Room Sensor Pod",
+                "rt": ["org.opent2t.sample.multisensor.superpopular"],
+                "entities": [
+                  {
+                    "rt": ["opent2t.d.acceleration"],
+                    "n": "Device 1",
+                    "di": "0766A97C-8844-40F3-A632-48B5EF06F5B9",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/accelerationX",
+                        "rt": ["oic.r.sensor.acceleration"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/accelerationY",
+                        "rt": ["oic.r.sensor.acceleration"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/accelerationZ",
+                        "rt": ["oic.r.sensor.acceleration"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.airquality"],
+                    "n": "Device 2",
+                    "di": "A718B07C-366B-4BB1-BB3F-A1BF012F8DEC",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/airquality",
+                        "rt": ["oic.r.airquality"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.atmosphericpressure"],
+                    "n": "Device 3",
+                    "di": "9441F8F3-23FB-43B6-80D2-E0AB778C09E3",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/atmosphericpressure",
+                        "rt": ["oic.r.sensor.atmosphericpressure"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.brightnesschange"],
+                    "n": "Device 4",
+                    "di": "B3A26031-87E5-4395-91D6-7490C346CA10",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/brightnesschange",
+                        "rt": ["oic.r.sensor"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.carbondioxide"],
+                    "n": "Device 5",
+                    "di": "0196602D-6CE4-4773-8BC1-56AB9EF2BB6",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/carbondioxide",
+                        "rt": ["oic.r.sensor.carbondioxide"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.carbonmonoxide"],
+                    "n": "Device 6",
+                    "di": "51E97C0E-CB62-488E-B572-858D36EEAB88",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/carbonmonoxide",
+                        "rt": ["oic.r.sensor.carbonmonoxide"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.contact"],
+                    "n": "Device 7",
+                    "di": "45186604-348C-43BD-8562-F99D455E954F",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/contact",
+                        "rt": ["oic.r.sensor.contact"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.combustiblegas"],
+                    "n": "Device 8",
+                    "di": "458AA680-B262-466E-A3D6-B149D8020B92",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/combustiblegas",
+                        "rt": ["oic.r.sensor"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.glassbreak"],
+                    "n": "Device 9",
+                    "di": "DFFD761E-935D-424A-AD7D-2A83C0B503C6",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/glassbreak",
+                        "rt": ["oic.r.sensor.glassbreak"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.humidity"],
+                    "n": "Device 10",
+                    "di": "A67F3210-36DE-4098-865C-155A97884E6D",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/humidity",
+                        "rt": ["oic.r.humidity"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.illuminance"],
+                    "n": "Device 11",
+                    "di": "4BE41890-CD46-4C67-8904-E90F07AF23E8",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/illuminance",
+                        "rt": ["oic.r.sensor.illuminance"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.locked"],
+                    "n": "Device 12",
+                    "di": "1E9BE487-2F24-4BDD-B918-A6F265124622",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/locked",
+                        "rt": ["oic.r.sensor"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.loudnesschange"],
+                    "n": "Device 13",
+                    "di": "DC8694F5-EC8A-4C8E-AD11-CD515575C159",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/loudnesschange",
+                        "rt": ["oic.r.sensor"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.motion"],
+                    "n": "Device 14",
+                    "di": "DDA24D55-101E-4952-8D35-0ABB665B79D0",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/motion",
+                        "rt": ["oic.r.sensor.motion"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.presence"],
+                    "n": "Device 15",
+                    "di": "C559EBA6-D7A5-45E2-AB1E-94A2E4810535",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/presence",
+                        "rt": ["oic.r.sensor.presence"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.temperature"],
+                    "n": "Device 16",
+                    "di": "6976DEBA-E935-46F2-99A1-5F82C7217CA3",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/temperature",
+                        "rt": ["oic.r.temperature"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.uvradiation"],
+                    "n": "Device 17",
+                    "di": "ADA310B5-9B7C-4E34-B0DF-5CEFEA7E183E",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/uvradiation",
+                        "rt": ["oic.r.sensor.radiation.uv"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.vibrationchange"],
+                    "n": "Device 18",
+                    "di": "49C447A8-F3FB-477E-AFB1-D6AD171816D6",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/vibrationchange",
+                        "rt": ["oic.r.sensor"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.smoke"],
+                    "n": "Device 19",
+                    "di": "DEF4557A-552A-4E2E-B807-9BE096130237",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/smoke",
+                        "rt": ["oic.r.sensor.smoke"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.touch"],
+                    "n": "Device 20",
+                    "di": "20EE4A06-431C-47C2-9988-D904F397F93A",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/touch",
+                        "rt": ["oic.r.sensor.touch"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.water"],
+                    "n": "Device 21",
+                    "di": "BEC4C7D1-8C1B-438D-956C-B38C94BBE701",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/water",
+                        "rt": ["oic.r.sensor.water"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.battery"],
+                    "n": "Device 22",
+                    "di": "1EE41C20-060C-4BD2-898F-8837F5CAB7F9",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/battery",
+                        "rt": ["oic.r.energy.battery"],
+                        "if": ["oic.if.s", "oic.if.baseline"]
+                      }
+                    ]
+                  }
+                ]
+              }
+
+/?$expand:
+  displayName: Platform
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            schema: MultisensorPlatform
+            example: |
+              {
+                "opent2t": {
+                  "schema": "org.opent2t.sample.multisensor.superpopular",
+                  "translator": "opent2t-translator-com-opent2t-p-multisensor@0.1.1"
+                },
+                "pi": "8ECFEDB2-7220-419C-8E9C-EFCB96A34D45",
+                "mnmn": "Contoso",
+                "n": "Living Room Sensor Pod",
+                "rt": ["org.opent2t.sample.multisensor.superpopular"],
+                "entities": [
+                  {
+                    "rt": ["opent2t.d.acceleration"],
+                    "n": "Device 1",
+                    "di": "0766A97C-8844-40F3-A632-48B5EF06F5B9",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/accelerationX",
+                        "id": "acceleration",
+                        "rt": ["oic.r.sensor.acceleration"],
+                        "acceleration":  0.1
+                      },
+                      {
+                        "href": "/accelerationY",
+                        "id": "acceleration",
+                        "rt": ["oic.r.sensor.acceleration"],
+                        "acceleration":  0.2
+                      },
+                      {
+                        "href": "/accelerationZ",
+                        "id": "acceleration",
+                        "rt": ["oic.r.sensor.acceleration"],
+                        "acceleration":  0.5
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.airquality"],
+                    "n": "Device 2",
+                    "di": "A718B07C-366B-4BB1-BB3F-A1BF012F8DEC",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/airquality",
+                        "id": "airquality",
+                        "rt": ["oic.r.airquality"],
+                        "airquality": [
+                          {"contaminanttype": "CO",
+                          "valuetype": "Measured",
+                          "value": 10,
+                          "range": [0,500]},
+                          {"contaminanttype": "Smoke",
+                          "valuetype": "Qualitative",
+                          "value": 8,
+                          "range": [0,10]}
+                        ]
+                     },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.atmosphericpressure"],
+                    "n": "Device 3",
+                    "di": "9441F8F3-23FB-43B6-80D2-E0AB778C09E3",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/atmosphericpressure",
+                        "id": "atmosphericpressure",
+                        "rt": ["oic.r.sensor.atmosphericpressure"],
+                        "atmosphericPressure": 1000.4
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.brightnesschange"],
+                    "n": "Device 4",
+                    "di": "B3A26031-87E5-4395-91D6-7490C346CA10",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/brightnesschange",
+                        "id": "brightnesschange",
+                        "rt": ["oic.r.sensor"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+
+                  {
+                    "rt": ["opent2t.d.carbondioxide"],
+                    "n": "Device 5",
+                    "di": "0196602D-6CE4-4773-8BC1-56AB9EF2BB6",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/carbondioxide",
+                        "id": "carbondioxide",
+                        "rt": ["oic.r.sensor.carbondioxide"],
+                        "value": true
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.carbonmonoxide"],
+                    "n": "Device 6",
+                    "di": "51E97C0E-CB62-488E-B572-858D36EEAB88",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/carbonmonoxide",
+                        "id": "carbonmonoxide",
+                        "rt": ["oic.r.sensor.carbonmonoxide"],
+                        "value": true
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.contact"],
+                    "n": "Device 7",
+                    "di": "45186604-348C-43BD-8562-F99D455E954F",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/contact",
+                        "id": "contact",
+                        "rt": ["oic.r.sensor.contact"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.combustiblegas"],
+                    "n": "Device 8",
+                    "di": "458AA680-B262-466E-A3D6-B149D8020B92",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/combustiblegas",
+                        "id": "/combustiblegas",
+                        "rt": ["oic.r.sensor"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.glassbreak"],
+                    "n": "Device 9",
+                    "di": "DFFD761E-935D-424A-AD7D-2A83C0B503C6",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/glassbreak",
+                        "id": "glassbreak",
+                        "rt": ["oic.r.sensor.glassbreak"],
+                        "value": false
+                     },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.humidity"],
+                    "n": "Device 10",
+                    "di": "A67F3210-36DE-4098-865C-155A97884E6D",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/humidity",
+                        "id": "humidity",
+                        "rt": ["oic.r.humidity"],
+                        "humidity":40
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.illuminance"],
+                    "n": "Device 11",
+                    "di": "4BE41890-CD46-4C67-8904-E90F07AF23E8",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/illuminance",
+                        "id": "illuminance",
+                        "rt": ["oic.r.sensor.illuminance"],
+                        "illuminance": 450.0
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.locked"],
+                    "n": "Device 12",
+                    "di": "1E9BE487-2F24-4BDD-B918-A6F265124622",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/locked",
+                        "id": "locked",
+                        "rt": ["oic.r.sensor"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.loudnesschange"],
+                    "n": "Device 13",
+                    "di": "DC8694F5-EC8A-4C8E-AD11-CD515575C159",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/loudnesschange",
+                        "id": "loudnesschange",
+                        "rt": ["oic.r.sensor"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.motion"],
+                    "n": "Device 914",
+                    "di": "DDA24D55-101E-4952-8D35-0ABB665B79D0",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/motion",
+                        "id": "motion",
+                        "rt": ["oic.r.sensor.motion"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.presence"],
+                    "n": "Device 15",
+                    "di": "C559EBA6-D7A5-45E2-AB1E-94A2E4810535",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/presence",
+                        "id": "presence",
+                        "rt": ["oic.r.sensor.presence"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.temperature"],
+                    "n": "Device 16",
+                    "di": "6976DEBA-E935-46F2-99A1-5F82C7217CA3",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/temperature",
+                        "id": "temperature",
+                        "rt": ["oic.r.temperature"],
+                        "temperature": 20.0,
+                        "units": "C",
+                        "range": [0.0,100.0]
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.uvradiation"],
+                    "n": "Device 17",
+                    "di": "ADA310B5-9B7C-4E34-B0DF-5CEFEA7E183E",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/uvradiation",
+                        "id": "uvradiation",
+                        "rt": ["oic.r.sensor.radiation.uv"],
+                        "measurement": 3.5
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.vibrationchange"],
+                    "n": "Device 18",
+                    "di": "49C447A8-F3FB-477E-AFB1-D6AD171816D6",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/vibrationchange",
+                        "id": "vibrationchange",
+                        "rt": ["oic.r.sensor"],
+                        "value": true
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.smoke"],
+                    "n": "Device 19",
+                    "di": "DEF4557A-552A-4E2E-B807-9BE096130237",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/smoke",
+                        "id": "smoke",
+                        "rt": ["oic.r.sensor.smoke"],
+                        "value": true
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.touch"],
+                    "n": "Device 20",
+                    "di": "20EE4A06-431C-47C2-9988-D904F397F93A",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/touch",
+                        "id": "touch",
+                        "rt": ["oic.r.sensor.touch"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.water"],
+                    "n": "Device 21",
+                    "di": "BEC4C7D1-8C1B-438D-956C-B38C94BBE701",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/water",
+                        "id": "water",
+                        "rt": ["oic.r.sensor.water"],
+                        "value": false
+                      },
+                      {
+                        "href": "/lastchanged",
+                        "id": "lastchanged",
+                        "rt": ["opent2t.r.timestamp"],
+                        "timestamp": "2017-02-165T16:40Z"
+                      }
+                    ]
+                  },
+                  {
+                    "rt": ["opent2t.d.battery"],
+                    "n": "Device 22",
+                    "di": "1EE41C20-060C-4BD2-898F-8837F5CAB7F9",
+                    "icv": "core.1.1.0",
+                    "dmv": "res.1.1.0",
+                    "resources": [
+                      {
+                        "href": "/battery",
+                        "id": "battery",
+                        "rt": ["oic.r.energy.battery"],
+                        "charge": 76
+                      }
+                    ]
+                  }
+                ]
+              }
+
+/subscribe:
+  description: This resource manages subscriptions to changes on this device.
+  displayName: Subscribe
+
+  post:
+    description: |
+        Creates or refreshes a subscription to this Thermostat.  This method can be called twice, first with
+        a callback URL (verificationRequest will be ignored), and the second time with the parameters of an http GET to the
+        callback Url server for verification of the subscription (in which case callback Url will be ignored). The second call
+        will construct a response that should be returned to the notifications server.
+    body:
+      application/json:
+        schema: Subscription
+        example: |
+          {
+            "callbackUrl": "http://myserver.com"
+          }
+    responses:
+       200:
+        body:
+          application/json:
+            schema: Subscription
+            example: |
+                {
+                  "callbackUrl":"http://myserver.com",
+                  "expiration": 123456678,
+                  "response":  "plain text response"
+                }
+       400:
+          body:
+            application/json:
+              example: |
+                { "message": "Bad request" }
+       403:
+          body:
+            application/json:
+              example: |
+                { "message": "Subscription is denied" }
+
+  delete:
+    description: Unsubscribes to notifications to a callback Url
+    body:
+      application/json:
+        schema: Subscription
+        example: |
+          {
+            "callbackUrl": "http://myserver.com"
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+                {}

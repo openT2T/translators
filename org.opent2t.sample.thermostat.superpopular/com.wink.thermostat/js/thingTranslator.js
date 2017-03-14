@@ -133,7 +133,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units').temperature;
+
+    // according to Wink docs the temperature is always returned as C 
+    var temperatureUnits = "c";
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: stateReader.get('temperature'),

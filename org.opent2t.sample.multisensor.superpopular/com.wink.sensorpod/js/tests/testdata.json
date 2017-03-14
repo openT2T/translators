@@ -1,0 +1,17 @@
+{  "expected_exceptions" :
+    {
+        "GetAccelerationX" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetAccelerationY" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetAccelerationZ" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetAirquality" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetAtmosphericpressure" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetCarbondioxide" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetCarbonmonoxide" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetCombustiblegas" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetGlassbreak" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetIlluminance" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetUvradiation" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetSmoke" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."},
+        "GetTouch" : {"statusCode" : 404, "messageConst" : "Error: Entity - undefined not found."}
+    }
+}

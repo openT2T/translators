@@ -1,11 +1,11 @@
-{
-    "base_state": {
-        "attributes": {
-            "switch": "on",
-            "hue": 10,
-            "saturation": 30,
-            "level": 20,
-            "colorTemperature": 50
+{   "base_state" :
+    {   "attributes" :
+        {
+            "switch" : "on",
+            "hue" : 10,
+            "saturation" : 30,
+            "level" : 20,
+            "colorTemperature" : 3000
         },
         "id": "d827d753-88d8-45a8-bab3-36bc3899467a",
         "manufacturer": null,
@@ -37,7 +37,7 @@
         "SetColourChroma" :
             [
                 {
-                    "colorTemperature" : 33333
+                    "colorTemperature" : 4000
                 }
             ],
         "SetColourRGB" :
