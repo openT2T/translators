@@ -7,7 +7,8 @@
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
         "name" : "Mock Name",
-        "deviceType": "switch"
+        "deviceType": "switch",
+        "endpointUri": "https://sample.endpoint.com/123"
     },
     "test_data" :
     {
