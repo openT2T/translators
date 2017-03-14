@@ -86,10 +86,12 @@ function convertDeviceBatteryToTranslatorBattery(batteryValue) {
 }
 
 /**
- * Returns a default value if the specified property is null, undefined, or an empty string
+ * Returns a default value if the specified property is null, undefined, or an empty string only
  */
 function defaultValueIfEmpty(property, defaultValue) {
-    if (!property) {
+    if (property === undefined || 
+        property === null || 
+        property === "") {
         return defaultValue;
     } else {
         return property;
