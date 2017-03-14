@@ -11,7 +11,8 @@
         "manufacturer" : null,
         "model" : null,
         "name" : "Mock Name",
-        "deviceType": "light"
+        "deviceType": "light",
+        "endpointUri": "https://sample.endpoint.com/123"
     },
     "test_data" :
     {

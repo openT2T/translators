@@ -4,7 +4,7 @@ var translatorPath = require('path').join(__dirname, '..');
 var runThermostatTests = require('opent2t-device-thermostat/thermostatTests');
 var config = require('./testConfig');
 var hubPath = require('path').join(__dirname, '../../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/js');
-var controlId = undefined;
+var deviceId = undefined;
 
 function getThermostat(platforms) {
     return platforms.find((p) => {
@@ -17,7 +17,7 @@ function createTranslator() {
         return OpenT2T.invokeMethodAsync(hubTranslator, 'org.opent2t.sample.hub.superpopular', 'get', [false]).then(platforms => {
             var platformInfo = getThermostat(platforms.platforms);
             var deviceInfo = {'opent2t': platformInfo.opent2t};
-            controlId = deviceInfo.opent2t.controlId;
+            deviceId = platformInfo.entities[0].di;
             return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', {'deviceInfo': deviceInfo, 'hub': hubTranslator});
         });
     });
@@ -37,19 +37,20 @@ runThermostatTests(settings);
 test.serial('Notifications - Subscribe', t => {
     console.log("Subscripting...");
 
+    var subcriptionInfo = {};
     return createTranslator().then(translator => {
-        return translator.postSubscribe().then((response) => {
+        return translator.postSubscribe(subcriptionInfo).then((response) => {
             t.is(response[0], 'succeed');
 
             var targetTemperatureHigh = { 'temperature': 85 };
-            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperatureHigh', [controlId, targetTemperatureHigh])
+            return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperatureHigh', [deviceId, targetTemperatureHigh])
             .then((response) => {
                 t.is(response.rt[0], 'oic.r.temperature');
                 t.is(response.temperature, 85);
                 
                 // Unsubscribe and end the test
                 console.log("Unsubscribing...");
-                return translator.deleteSubscribe().then((response) => {
+                return translator.deleteSubscribe(subcriptionInfo).then((response) => {
                     t.is(response, 'succeed');
                 });
             });
