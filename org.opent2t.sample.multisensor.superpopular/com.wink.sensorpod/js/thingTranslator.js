@@ -28,7 +28,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
+        throw new OpenT2TError(404, `Entity: ${di} for resourceId:  ${resourceId} not found.`);
     }
 
     var resource = entity.resources.find((r) => {
@@ -36,7 +36,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!resource) {
-        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+        throw new OpenT2TError(404, `Resource with resourceID: ${resourceId} not found.`);
     }
     
     return resource;
@@ -89,7 +89,7 @@ function convertDeviceBatteryToTranslatorBattery(batteryValue) {
  * Returns a default value if the specified property is null, undefined, or an empty string
  */
 function defaultValueIfEmpty(property, defaultValue) {
-    if (property === undefined || property === null || property === "") {
+    if (!property) {
         return defaultValue;
     } else {
         return property;

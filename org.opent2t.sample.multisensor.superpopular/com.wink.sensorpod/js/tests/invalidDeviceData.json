@@ -40,7 +40,7 @@
                 "brightness_changed_at": "null",
                 "brightness_updated_at": 1488847000.3741136,
                 "humidity": 0.5,
-                "humidity_changed_at": 1488847000.3741136,
+                "humidity_changed_at": "343434",
                 "humidity_updated_at": 1488847000.3741136,
                 "loudness": false,
                 "loudness_changed_at": null,
@@ -61,12 +61,7 @@
                 "occupied_changed_at": 1488847000.3741136,
                 "occupied_updated_at": 1488847000.3741136
             },
-            "subscription": {
-                "pubnub": {
-                    "subscribe_key": "sub-fake-key1923182",
-                    "channel": "fakechannel|sensor_pod-123456|user-123456"
-                }
-            },
+
             "sensor_pod_id": "123456",
             "name": "Office Motion Sensor",
             "locale": "en_us",
