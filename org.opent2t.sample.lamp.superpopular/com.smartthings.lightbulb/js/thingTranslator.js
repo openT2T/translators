@@ -211,7 +211,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             colourMode.supportedModes = ['rgb'];
 
             colourRGB.id = 'colourRGB';
-            colourRGB.rgbvalue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
+            colourRGB.rgbValue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
                                           providerSchema['attributes'].saturation / 100.0,
                                           providerSchema['attributes'].level / 100.0);
             colourRGB.range = [0, 255];
@@ -286,7 +286,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             result['level'] = resourceSchema.dimmingSetting;
             break;
         case 'colourRGB':
-            var HSVColor = RGBtoHSV(resourceSchema.rgbvalue);
+            var HSVColor = RGBtoHSV(resourceSchema.rgbValue);
             if (HSVColor !== undefined)
             {
                 result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);

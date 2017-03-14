@@ -1,5 +1,7 @@
 'use strict';
 
+var _ = require('lodash');
+
 var MockHub = require('opent2t-device-hub/mockHub');
 
 function modifyDeviceState(deviceState, modifications) {
@@ -11,7 +13,7 @@ function modifyDeviceState(deviceState, modifications) {
 }
 
 function verifyPayload(modification, t, args) {
-    return JSON.stringify(args[2]) === JSON.stringify({"desired_state": modification});
+    return _.isEqual(args[2], {"desired_state": modification});
 }
 
 class MockWinkHub extends MockHub {
