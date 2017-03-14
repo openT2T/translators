@@ -150,7 +150,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-smartthings-thermostat',
-            controlId: providerSchema['id']
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
         },
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
@@ -241,6 +242,7 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartThingsHub = deviceInfo.hub;
 
         this.ConsoleLogger.info('SmartThings Thermostat initializing...Done');
@@ -254,7 +256,7 @@ class Translator {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -281,7 +283,7 @@ class Translator {
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
@@ -393,11 +395,13 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
-        return this.smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartThingsHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
+        subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }
