@@ -693,7 +693,17 @@ class Translator {
                 validateHasOwnProperty(resourceSchema, 'modes');
                 // Try to set the mode, a bad mode won't error.
                 // It will sit in desired_state for 2 minutes and then go away.
-                desired_state['color_model'] = resourceSchema.modes[0];
+                // Convert from resource modes to Wink colour names
+                switch (resourceSchema.modes[0]) {
+                    case 'ct':
+                        desired_state['color_model'] = 'color_temperature';
+                        break;
+                    case 'csc':
+                        desired_state['color_model'] = 'xy';
+                        break;
+                    default:
+                        desired_state['color_model'] = resourceSchema.modes[0];
+                }
                 break;
             case 'colourRGB':
             case 'colourChroma':
