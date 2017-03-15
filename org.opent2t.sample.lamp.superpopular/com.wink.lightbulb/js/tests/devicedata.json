@@ -15,7 +15,8 @@
                 "color_model" : "hsb",
                 "hue" : 0.65,
                 "saturation" : 0.8,
-                "color_temperature" : 4000
+                "color_temperature" : 4000,
+                "connection": true
             },
             "object_type" : "Mock Type",
             "object_id" : "F8CFB903-58BB-4753-97E0-72BD7DBC7933",
