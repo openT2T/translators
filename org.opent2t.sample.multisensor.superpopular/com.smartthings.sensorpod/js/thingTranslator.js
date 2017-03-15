@@ -97,8 +97,6 @@ function getLastChangedResource(expand, timeStamp) {
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var attributes = providerSchema.attributes;
-    // return (state in this.desired_state || state in this.last_reading); 
-    console.log(JSON.stringify(providerSchema, null, 2));
     
     var name = providerSchema['name'];
     var entities = [];
@@ -122,6 +120,17 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.locked', [
             locked,
             getLastChangedResource(expand, attributes['lock_lastUpdated'])
+        ]));
+    }
+
+    if ('humidity' in attributes) {
+        var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
+            humidity: attributes['humidity']
+        });
+
+        entities.push(createEntity(name, 'opent2t.d.sensor.humidity', [
+            humidity,
+            getLastChangedResource(expand, attributes['humidity_lastUpdated'])
         ]));
     }
 
@@ -207,7 +216,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.multisensor.superpopular',
             translator: 'opent2t-translator-com-smartthings-sensorpod',
-            controlId: providerSchema['id']
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
         },
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
@@ -254,8 +264,8 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartthingsHub = deviceInfo.hub;
-        this.deviceType = 'sensor_pods';
 
         this.ConsoleLogger.info('SmartThings Sensorpod Translator initialized.');
     }
@@ -269,9 +279,9 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return this.smartthingsHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
+            return this.smartthingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
-                    return providerSchemaToPlatformSchema(response.data, expand);
+                    return providerSchemaToPlatformSchema(response, expand);
                 });
         }
     }
@@ -388,13 +398,13 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
-        subscriptionInfo.deviceType = this.deviceType;
+        subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartthingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
-        subscriptionInfo.deviceType = this.deviceType;
+        subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartthingsHub._unsubscribe(subscriptionInfo);
     }
 }

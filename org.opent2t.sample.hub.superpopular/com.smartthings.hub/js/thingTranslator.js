@@ -203,6 +203,7 @@ class Translator {
             case "motionSensor":
             case "presenceSensor":
             case "waterSensor":
+            case "genericSensor":
                 return {
                     "schema": 'org.opent2t.sample.multisensor.superpopular',
                     "translator": 'opent2t-translator-com-smartthings-sensorpod'
