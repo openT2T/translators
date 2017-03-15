@@ -30,16 +30,32 @@ class Translator {
      */
     getPlatforms(expand, payload) {
         if (payload != undefined) {
-            return this._providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
-            return this._hasValidEndpoint().then((isValid) => {
-                if (isValid == false) return undefined;
-
-                return this._makeRequest(this._devicesPath, 'GET')
-                    .then((devices) => {
-                        return this._providerSchemaToPlatformSchema(devices, expand);
-                    });
+            return this._providerSchemaToPlatformSchema(payload, expand, undefined);
+        } else {
+            return this._getEndpoints().then((endpoints) => {
+                if (endpoints.length === 0) return undefined;
+                    
+                var endpointPromises = [];
+                
+                endpoints.forEach((endpointUri) => {
+                    endpointPromises.push(this._makeRequest(endpointUri, this._devicesPath, 'GET') 
+                        .then((devices) => {
+                            return this._providerSchemaToPlatformSchema(devices, expand, endpointUri);
+                        }));
+                });
+                
+                return Promise.all(endpointPromises)
+                   .then((hubResults) => {
+                       // merge all platforms from hubs.
+                       var allPlatforms = [];
+                       hubResults.forEach((hub) => {
+                           allPlatforms = allPlatforms.concat(hub.platforms);
+                       });
+                       return {
+                           schema: "org.opent2t.sample.hub.superpopular",
+                           platforms: allPlatforms
+                       };
+                   });
             });
         }
     }
@@ -54,33 +70,27 @@ class Translator {
     /**
      * Gets device details (all fields)
      */
-    getDeviceDetailsAsync(deviceId) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            return this._makeRequest(this._devicesPath + '/' + deviceId, 'GET')
-                .then((device) => {
-                    return device;
-                });
-        });
+    getDeviceDetailsAsync(endpointUri, deviceId) {
+        return this._makeRequest(endpointUri, this._devicesPath + '/' + deviceId, 'GET')
+            .then((device) => {
+                var returnDevice = device;
+                returnDevice.endpointUri = endpointUri;
+                return returnDevice;
+            });
     }
 
     /**
      * Puts device details (all fields) payload
      */
-    putDeviceDetailsAsync(deviceId, putPayload) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var putPayloadString = JSON.stringify(putPayload);
-            return this._makeRequest(this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
-                .then((result) => {
-                    if (result === "succeed") {
-                        return this.getDeviceDetailsAsync(deviceId);
-                    }
-                    return undefined;
-                });
-        });
+    putDeviceDetailsAsync(endpointUri, deviceId, putPayload) {
+        var putPayloadString = JSON.stringify(putPayload);
+        return this._makeRequest(endpointUri, this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
+            .then((result) => {
+                if (result === "succeed") {
+                    return this.getDeviceDetailsAsync(endpointUri, deviceId);
+                }
+                return undefined;
+            });
     }
 
     /* eslint no-unused-vars: "off" */
@@ -90,7 +100,6 @@ class Translator {
     refreshAuthToken(authInfo) {
         return this._authTokens;
     }
-
     /* eslint no-unused-vars: "warn" */
 
     /**
@@ -98,13 +107,9 @@ class Translator {
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
      */
-    postSubscribe(subscriptionInfo) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var requestPath = '/subscription/' + subscriptionInfo.controlId;
-            return this._makeRequest(requestPath, 'POST', '');
-        });
+    _subscribe(subscriptionInfo) {
+        var requestPath = '/subscription/' + subscriptionInfo.controlId;
+        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', '');
     }
 
     /**
@@ -112,18 +117,14 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        return this._hasValidEndpoint().then((isValid) => {
-            if (isValid == false) return undefined;
-
-            var requestPath = '/subscription/' + subscriptionInfo.controlId;
-            return this._makeRequest(requestPath, 'DELETE');
-        });
+        var requestPath = '/subscription/' + subscriptionInfo.controlId;
+        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'DELETE');
     }
 
     /**
      * Translates an array of provider schemas into an opent2t/OCF representations
      */
-    _providerSchemaToPlatformSchema(providerSchemas, expand) {
+    _providerSchemaToPlatformSchema(providerSchemas, expand, endpointUri) {
         var platformPromises = [];
 
         // Ensure that we have an array of provider schemas, even if a single object was given.
@@ -139,13 +140,18 @@ class Translator {
                 var deviceInfo = {};
                 deviceInfo.opent2t = {};
                 deviceInfo.opent2t.controlId = smartThingsDevice.id;
+                deviceInfo.opent2t.endpointURI = endpointUri;
 
                 // Create a translator for this device and get the platform information, possibly expanded
                 platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                     .then((translator) => {
+
+                        var deviceData = smartThingsDevice;
+                        deviceData.endpointUri = endpointUri;
+
                         // Use get to translate the SmartThings formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
-                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, smartThingsDevice])
+                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
@@ -197,41 +203,27 @@ class Translator {
     }
 
     /**
-     * Get the endpoint URI associated to the account
+     * Get all endpointUri URIs associated to the account
      */
-    _getEndpoint() {
+    _getEndpoints() {
         var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this._authTokens['access'].client_id + '?access_token=' + this._authTokens['access'].token;
 
-        return this._makeRequest(endpointUrl, 'GET').then((responses) => {
-            if (responses.length !== 0 && responses[0].uri !== undefined) {
-                return Promise.resolve(responses[0].uri);
-            }
-            return Promise.resolve(undefined);
-        });
-    }
-
-    /**
-     * Get all OpenT2T-supported devices from the based (endpoint) URI
-     */
-    _hasValidEndpoint() {
-        if (this._baseUrl === '') {
-            return this._getEndpoint().then((endpointURI) => {
-                if (endpointURI === undefined) return Promise.resolve(false);
-                this._baseUrl = endpointURI;
-                return Promise.resolve(true)
+        return this._makeRequest("", endpointUrl, 'GET').then((responses) => {
+            var endpoints = [];
+            responses.forEach((response) => {
+                endpoints.push(response.uri);
             });
-        } else {
-            return Promise.resolve(true);
-        }
+            return Promise.resolve(endpoints);
+        });
     }
 
     /**
      * Internal helper method which makes the actual request to the hue service
      */
-    _makeRequest(path, method, content) {
+    _makeRequest(endpointUri, path, method, content) {
 
         // build request URI
-        var requestUri = this._baseUrl + path;
+        var requestUri = endpointUri + path;
 
         // Set the headers
         var headers = {
@@ -258,6 +250,7 @@ class Translator {
         // Start the async request
         return request(options)
             .then(function (body) {
+
                 if (method === 'PUT' || method === 'DELETE') {
                     // TODO: Why is this check below in the first place? 
                     // It seems very weird to check 0 length body

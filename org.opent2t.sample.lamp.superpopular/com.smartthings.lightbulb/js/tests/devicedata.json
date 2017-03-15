@@ -8,11 +8,12 @@
             "colorTemperature" : 3000
         },
         "id": "d827d753-88d8-45a8-bab3-36bc3899467a",
-        "manufacturer": null,
-        "model": null,
-        "name": "Mock Name",
-        "deviceType": "light",
-        "status": "ONLINE"
+        "manufacturer" : null,
+        "model" : null,
+        "name" : "Mock Name",
+        "deviceType" : "light",
+        "status" : "ONLINE",
+        "endpointUri" : "https://sample.endpoint.com/123"
     },
     "test_data" :
     {

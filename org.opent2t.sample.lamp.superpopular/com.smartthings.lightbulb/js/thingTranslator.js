@@ -154,7 +154,7 @@ function defaultValueIfEmpty(property, defaultValue) {
  * Converts a representation of a platform from the Wink API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
-
+    
     var supportCT = providerSchema['attributes'].colorTemperature !== undefined;
     var supportColour = ( providerSchema['attributes'].hue !== undefined
         && providerSchema['attributes'].saturation !== undefined
@@ -210,7 +210,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             colourMode.supportedModes = ['rgb'];
 
             colourRGB.id = 'colourRGB';
-            colourRGB.rgbvalue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
+            colourRGB.rgbValue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
                                           providerSchema['attributes'].saturation / 100.0,
                                           providerSchema['attributes'].level / 100.0);
             colourRGB.range = [0, 255];
@@ -248,7 +248,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-smartthings-lightbulb',
-            controlId: providerSchema['id']
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
         },
         availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
@@ -285,7 +286,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             result['level'] = resourceSchema.dimmingSetting;
             break;
         case 'colourRGB':
-            var HSVColor = RGBtoHSV(resourceSchema.rgbvalue);
+            var HSVColor = RGBtoHSV(resourceSchema.rgbValue);
             if (HSVColor !== undefined)
             {
                 result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
@@ -318,6 +319,7 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartThingsHub = deviceInfo.hub;
 
         this.ConsoleLogger.info('SmartThings Lightbulb initializing...Done');
@@ -332,7 +334,7 @@ class Translator {
             return providerSchemaToPlatformSchema(payload, expand);
         }
         else {
-            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -356,7 +358,7 @@ class Translator {
         if (di === lightDeviceDi) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
@@ -404,11 +406,13 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
-        return this.smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartThingsHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
+        subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }

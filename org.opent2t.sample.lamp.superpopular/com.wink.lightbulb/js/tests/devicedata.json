@@ -2,11 +2,20 @@
     {   "data" :
         {
             "desired_state" : {
-                "powered" : false
+                "powered" : false,
+                "brightness" : 0.2,
+                "color_model" : "hsb",
+                "hue" : 0.65,
+                "saturation" : 0.8,
+                "color_temperature": 4000
             },
             "last_reading" : {
                 "powered" : false,
-                "connection": true
+                "brightness" : 0.2,
+                "color_model" : "hsb",
+                "hue" : 0.65,
+                "saturation" : 0.8,
+                "color_temperature" : 4000
             },
             "object_type" : "Mock Type",
             "object_id" : "F8CFB903-58BB-4753-97E0-72BD7DBC7933",
@@ -32,6 +41,22 @@
                 },
                 {
                     "brightness" : 0.5
+                }
+            ],
+        "SetColourChroma" :
+            [
+                {
+                    "color_temperature" : 4000,
+                    "color_model": "color_temperature"
+                }
+            ],
+        "SetColourRGB" :
+            [
+                {
+                    "color_model": "hsb",
+                    "hue" :  0.5861111111111111,
+                    "saturation" : 0.61,
+                    "brightness": 1
                 }
             ]
     }

@@ -1,9 +1,5 @@
 {  "expected_exceptions" :
     {
-        "GetColourMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
-        "GetColourRGB" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
-        "GetColourChroma" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
-        "SetColourRGB" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
-        "SetColourChroma" : {"statusCode" : 501, "messageConst" : "NotImplemented"}
+        "SetColourMode" : {"statusCode" : 400}
     }
 }

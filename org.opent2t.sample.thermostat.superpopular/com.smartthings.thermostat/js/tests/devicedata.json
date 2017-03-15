@@ -20,7 +20,8 @@
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
         "name" : "Mock Name",
-        "status": "ONLINE"
+        "status" : "ONLINE",
+        "endpointUri": "https://sample.endpoint.com/123"
     },
     "test_data" :
     {
