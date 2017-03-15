@@ -125,7 +125,6 @@ def initialize() {
 	state.endpointURL = "<PLACEHOLDER: Your HTTP endpoint to receive udpate notification>"
 	registerSubscriptions()
 }
-
 //Subscribe events for all devices
 def registerSubscriptions() {
 	registerChangeHandler(inputs)
@@ -176,16 +175,20 @@ def eventHandler(evt) {
 	def evt_name = evt.name
 	def evt_device = evt.device
 	def evt_deviceType = getDeviceType(evt_device);
+    def deviceInfo
+    
+    if(evt_deviceType == "thermostat")
+	{
+		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType), locationMode: getLocationModeInfo()] 
+	}
+	else
+	{
+		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType)]
+	}
+    
 	def params = [
 		uri: "${state.endpointURL}/${state.connectionId}",
-		body: [
-			name: evt_device.displayName,
-			id: evt_device.id,
-			deviceType:evt_deviceType, 
-			manufacturer:evt_device.getManufacturerName(), 
-			model:evt_device.getModelName(),
-			attributes: deviceAttributeList(evt_device) 
-		]
+		body: [ deviceInfo ]
 	]
 	try {
 		log.trace "POST URI: ${params.uri}"
@@ -222,11 +225,11 @@ def getDevices() {
 		def deviceType = getDeviceType(it)
 		if(deviceType == "thermostat")
 		{
-			deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it), locationMode: getLocationModeInfo()] 
+			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType), locationMode: getLocationModeInfo()] 
 		}
 		else
 		{
-			deviceData << [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
+			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType)]
 		} 
     }
  
@@ -241,11 +244,11 @@ def getDevice() {
 	def device
 	if(deviceType == "thermostat")
 	{
-		device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it), locationMode: getLocationModeInfo()] 
+		device = [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it,deviceType), locationMode: getLocationModeInfo()] 
 	}
 	else
 	{
-		device = [name: it.displayName, id: it.id, deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
+		device = [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType)]
 	}   
 	log.debug "getDevice, return: ${device}"
 	return device
@@ -342,9 +345,6 @@ private getDeviceType(device) {
 					}
                 }
 				break
-			case "contact sensor":
-				deviceType = "contactSensor"
-                return deviceType
 			case "garageDoorControl":
 				deviceType = "garageDoor"
                 return deviceType
@@ -354,17 +354,15 @@ private getDeviceType(device) {
 			case "video camera":
 				deviceType = "camera"
                 return deviceType
-			case "motion sensor":
-				deviceType = "motionSensor"
-                return deviceType
-			case "presence sensor":
-				deviceType = "presenceSensor"
-                return deviceType
 			case "thermostat":
 				deviceType = "thermostat"
-                return deviceType
+                return deviceType    
+            case "acceleration sensor":
+			case "contact sensor":
+            case "motion sensor":
+			case "presence sensor":
 			case "water sensor":
-				deviceType = "waterSensor"
+            	deviceType = "genericSensor"
                 return deviceType
 			default:
 				break
@@ -379,14 +377,33 @@ private findDevice(deviceId) {
 }
  
 //Return a list of device attributes
-private deviceAttributeList(device) {
-	device.supportedAttributes.collectEntries { attribute->
-		try {
-			[ (attribute.name): device.currentValue(attribute.name) ]
+private deviceAttributeList(device, deviceType) {
+	def attributeList = [:]
+	def allAttributes = device.supportedAttributes
+	allAttributes.each { attribute ->
+        try {
+        	def currentState = device.currentState(attribute.name)
+            if(currentState != null ){
+                switch(attribute.name){
+                    case 'temperature':
+                        attributeList.putAll([ (attribute.name): currentState.value, 'temperatureScale':location.temperatureScale ])
+                        break;
+                    default:
+                        attributeList.putAll([(attribute.name): currentState.value ])
+                        break;
+                }             
+                if( deviceType == "genericSensor" ){
+                    def key = attribute.name + "_lastUpdated"
+                	attributeList.putAll([ (key): currentState.isoDate ])
+                }               
+            } else {
+            	attributeList.putAll([ (attribute.name): null ]);
+            }         
 		} catch(e) {
-			[ (attribute.name): null ]
+			attributeList.putAll([ (attribute.name): null ]);
 		}
 	}
+    return attributeList
 }
 
 //Map device command and value. 
