@@ -19,7 +19,8 @@
         "id" : "9a2aeba7-f848-4d80-9fd9-91b9f1b52451",
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
-        "name" : "Mock Name"
+        "name" : "Mock Name",
+        "endpointUri": "https://sample.endpoint.com/123"
     },
     "test_data" :
     {
