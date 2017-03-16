@@ -359,7 +359,6 @@ class Translator {
                     "schema": 'org.opent2t.sample.binaryswitch.superpopular',
                     "translator": "opent2t-translator-com-insteon-binaryswitch"
                 };
-                return undefined;
             case 5:
                 return {
                     "schema": 'org.opent2t.sample.thermostat.superpopular',
