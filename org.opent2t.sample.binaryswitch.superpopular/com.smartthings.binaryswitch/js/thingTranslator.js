@@ -102,7 +102,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     if ('power' === resourceId) {
         result['switch'] = resourceSchema.value ? 'on' : 'off';
     }else{
-        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+        throw new OpenT2TError(501, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
