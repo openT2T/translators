@@ -77,8 +77,8 @@ function convertDeviceDateToTranslatorDate(unixTimestamp) {
         return datetime.toISOString();
     }
 
-    // return all other invalid input as-is since we can't convert to DateTime
-    return unixTimestamp;
+    // for all other invalid input return undefined
+    return undefined;
 }
 
 function convertDeviceBatteryToTranslatorBattery(batteryValue) {
@@ -124,16 +124,43 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     return resource;
 }
 
-function getLastChangedResource(stateReader, property, expand) {
+/**
+ * Retrieves the _changed_at value for the given property as date value if available.
+ * If not, it will try to retrieve the the _updated_at value.
+ * If that is also not available it will return undefined.
+ * @param {*} stateReader 
+ * @param {*} property 
+ * @param {*} expand 
+ * @param {*} logger 
+ */
+function getLastChangedResource(stateReader, property, expand, logger) {
+    
+    if (!logger) {
+        logger = new OpenT2TLogger("info");
+    }
+    
+    let lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_changed_at'));
+
+    if (!lastChangedTime) {
+        logger.warn(`Failed to retrieve '_changed_at time for property ${property}`);
+        logger.warn(`Attempting to retrieve '_updated_at' for property ${property} instead`);
+        lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_updated_at'));
+    
+        if (!lastChangedTime) {
+            logger.warn(`Failed to retrieve neither '_updated_at_' nor '_changed_at_' for ${property}`);
+        }
+    }
+    
+    logger.info(`Returning value '${lastChangedTime}' for lastChangedResource- ${property}`);
     return createResource('opent2t.r.timestamp', 'oic.if.s', 'lastchanged', expand, {
-        timestamp: convertDeviceDateToTranslatorDate(stateReader.get(property + '_changed_at'))
+        timestamp: lastChangedTime
     });
 }
 
 /**
  * Converts a representation of a platform from the Wink API into an OCF representation.
  */
-function providerSchemaToPlatformSchema(providerSchema, expand) {
+function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
     var name = providerSchema['name'];
@@ -146,7 +173,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.brightnesschange', [
             brightnesschange,
-            getLastChangedResource(stateReader, 'brightness', expand)
+            getLastChangedResource(stateReader, 'brightness', expand, logger)
         ]));
     }
 
@@ -157,7 +184,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.contact', [
             contact,
-            getLastChangedResource(stateReader, 'opened', expand)
+            getLastChangedResource(stateReader, 'opened', expand, logger)
         ]));
     }
 
@@ -168,7 +195,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.humidity', [
             humidity,
-            getLastChangedResource(stateReader, 'humidity', expand)
+            getLastChangedResource(stateReader, 'humidity', expand, logger)
         ]));
     }
 
@@ -179,7 +206,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.locked', [
             locked,
-            getLastChangedResource(stateReader, 'locked', expand)
+            getLastChangedResource(stateReader, 'locked', expand, logger)
         ]));
     }
 
@@ -190,7 +217,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.loudnesschange', [
             loudnesschange,
-            getLastChangedResource(stateReader, 'loudness', expand)
+            getLastChangedResource(stateReader, 'loudness', expand, logger)
         ]));
     }
 
@@ -201,7 +228,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.motion', [
             motion,
-            getLastChangedResource(stateReader, 'motion', expand)
+            getLastChangedResource(stateReader, 'motion', expand, logger)
         ]));
     }
 
@@ -212,7 +239,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.presence', [
             presence,
-            getLastChangedResource(stateReader, 'occupied', expand)
+            getLastChangedResource(stateReader, 'occupied', expand, logger)
         ]));
     }
 
@@ -224,7 +251,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.temperature', [
             temperature,
-            getLastChangedResource(stateReader, 'temperature', expand)
+            getLastChangedResource(stateReader, 'temperature', expand, logger)
         ]));
     }
 
@@ -235,7 +262,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.vibrationchange', [
             vibrationchange,
-            getLastChangedResource(stateReader, 'vibration', expand)
+            getLastChangedResource(stateReader, 'vibration', expand, logger)
         ]));
     }
 
@@ -246,7 +273,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.sensor.water', [
             water,
-            getLastChangedResource(stateReader, 'liquid_detected', expand)
+            getLastChangedResource(stateReader, 'liquid_detected', expand, logger)
         ]));
     }
 
@@ -305,6 +332,7 @@ const deviceIds = {
 class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
+
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
         this.ConsoleLogger.info('Initializing device.');
 
@@ -323,14 +351,14 @@ class Translator {
      */
     get(expand, payload) {
         if (payload) {
-            return providerSchemaToPlatformSchema(payload, expand);
+            return providerSchemaToPlatformSchema(payload, expand, this.ConsoleLogger);
         }
         else {
             return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
-                    return providerSchemaToPlatformSchema(response.data, expand);
+                    return providerSchemaToPlatformSchema(response.data, expand, this.ConsoleLogger);
                 });
-        }
+            }
     }
 
     /**
