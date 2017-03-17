@@ -238,7 +238,7 @@ function runMultisensorTests(settings) {
                     let testChangedAt = testSettings.inputLastReading["motion_changed_at"];
                     let testUpdatedAt = testSettings.inputLastReading["motion_updated_at"];
                     if ((!testChangedAt || isNaN(testChangedAt))
-                        && (!testUpdatedAt || isNan(testUpdatedAt))) { 
+                        && (!testUpdatedAt || isNaN(testUpdatedAt))) { 
                         t.true(response.timestamp === undefined, "Expected undefined value for motion-lastchanged");
                     }
                     else {
