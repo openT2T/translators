@@ -3,7 +3,6 @@
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var InsteonConstants = require('./constants');
-
 var crypto = require('crypto');
 var OpenT2TLogger = require('opent2t').Logger;
 

@@ -1,14 +1,6 @@
 {   "base_state" :
-    {   "attributes" :
-        {
-            "switch" : "on",
-            "temperature" : 50
-        },
-        "locationMode" :
-        {
-            "supported" : ["home", "away"],
-            "mode" : "away"
-        },
+    {   
+        "is_online": true,
         "temperature_scale" : "c",
         "ambient_temperature_c" : 25,
         "target_temperature_c" : 22,
@@ -16,15 +8,19 @@
         "target_temperature_low_c" : 20,
         "away_temperature_high_c" : 26,
         "away_temperature_low_c" : 21,
+        "hvac_mode": "heat-cool",
+        "hvac_state": "off",
         "has_leaf" : true,
         "has_fan" : true,
         "fan_timer_active" : false,
         "device_id" : "Mock Id",
+        "structure_id" : "Mock Structure Id",
         "humidity" : 25,
         "manufacturer" : "Mock Manufacturer",
         "model" : "Mock Model",
         "name" : "Mock Name",
-        "name_long" : "Mock Name"
+        "name_long" : "Mock Name",
+        "away" : "home"
     },
     "test_data" :
     {
