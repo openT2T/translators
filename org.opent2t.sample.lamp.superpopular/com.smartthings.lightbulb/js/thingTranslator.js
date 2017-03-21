@@ -7,6 +7,14 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
         throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
@@ -48,8 +56,6 @@ const ChangeTolerance = 0.0001;
 const MaxHue = 360.0;
 const MaxColor = 255;
 const OneMil = 1000000.0;
-
-const lightDeviceDi = "c1e94444-792a-472b-9f91-dd4d96a24ee9"
 
 /**
  * Convert HSV to RGB colours
@@ -261,7 +267,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             {
                 n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
-                di: lightDeviceDi,
+                di: generateGUID(providerSchema['id']+'opent2t.d.light'),
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: resources
@@ -355,7 +361,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === lightDeviceDi) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)

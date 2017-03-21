@@ -25,6 +25,16 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 /**
+ * Generate a GUID for given an ID.
+ *
+ * TODO: This method should be moved to a shared location for all translators
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+}
+
+/**
  * Finds a resource for an entity in a schema
  * 
  * TODO: This method should be moved to a shared location for all translators
@@ -538,7 +548,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             {
                 n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
-                di: lightDeviceDi,
+                di: generateGUID( providerSchema['object_id'] + 'opent2t.d.light' ),
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: createLightBulbResources(expand, bulbInfo)
@@ -546,9 +556,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         ]
     };
 }
-
-// Each device in the platform has is own unique static identifier
-const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
 
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
@@ -596,14 +603,18 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
-            .then((putPayload) => {
-                return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
-                    .then((response) => {
-                        var schema = providerSchemaToPlatformSchema(response.data, true);
-                        return findResource(schema, di, resourceId);
-                    });
-            });
+        if(di == generateGUID(this.controlId +'opent2t.d.light')) {
+            return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+                .then((putPayload) => {
+                    return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
+                        .then((response) => {
+                            var schema = providerSchemaToPlatformSchema(response.data, true);
+                            return findResource(schema, di, resourceId);
+                        });
+                });
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
+        }
     }
 
     getDevicesPower(deviceId) {

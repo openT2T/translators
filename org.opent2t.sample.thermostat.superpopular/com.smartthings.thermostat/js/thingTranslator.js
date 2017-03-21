@@ -7,6 +7,14 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
         throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
@@ -164,7 +172,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: thermostatDeviceDi,
+                di: generateGUID(providerSchema['id']+'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -230,8 +238,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-const thermostatDeviceDi = "185981bb-b056-42dd-959a-bc0d3f6080ea";
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
      
@@ -279,7 +285,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === thermostatDeviceDi)
+        if (di === generateGUID(this.controlId+'opent2t.d.thermostat'))
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 

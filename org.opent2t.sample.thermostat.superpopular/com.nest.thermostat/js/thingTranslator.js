@@ -196,7 +196,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: thermostatDeviceDi,
+                di: generateGUID(providerSchema['device_id']+'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -276,8 +276,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-const thermostatDeviceDi = "f7074ee7-4fd8-4885-8997-487b8f3d14eb";
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
@@ -325,7 +323,7 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === thermostatDeviceDi)
+        if (di === generateGUID(this.controlId+'opent2t.d.thermostat'))
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 

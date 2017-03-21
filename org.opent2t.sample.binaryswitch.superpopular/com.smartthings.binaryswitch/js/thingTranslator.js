@@ -7,6 +7,14 @@ var OpenT2TLogger = require('opent2t').Logger;
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
         throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
@@ -83,7 +91,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
-                di: switchDeviceDi,
+                di: generateGUID( providerSchema['id'] + 'oic.d.smartplug' ),
                 resources: [ power ]
             }
         ]
@@ -102,8 +110,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     return result;
 }
-
-const switchDeviceDi = "d455d979-d1f9-430a-8a15-61c432eda4a2";
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -146,7 +152,7 @@ class Translator {
     }
 
     postDeviceResource(di, resourceId, payload) {
-        if (di === switchDeviceDi) {
+        if (di === generateGUID( this.controlId + 'oic.d.smartplug' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)

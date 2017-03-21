@@ -193,7 +193,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: thermostatDeviceDi,
+                di: generateGUID( providerSchema['DeviceID']+'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -272,8 +272,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-const thermostatDeviceDi = "6d3b1cbc-2532-44ba-80f5-a41b60213c04";
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
@@ -319,7 +317,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === thermostatDeviceDi) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.thermostat' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)

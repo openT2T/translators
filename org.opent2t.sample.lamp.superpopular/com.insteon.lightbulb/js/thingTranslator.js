@@ -114,7 +114,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             {
                 n: providerSchema['DeviceName'],
                 rt: ['opent2t.d.light'],
-                di: lightbulbDeviceDi,
+                di: generateGUID( providerSchema['DeviceID'] + 'opent2t.d.light' ),
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -166,8 +166,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-const lightbulbDeviceDi = "882b5bb8-5522-4c77-b09a-e761842eb1e2";
-
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
@@ -215,7 +213,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === lightbulbDeviceDi) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)

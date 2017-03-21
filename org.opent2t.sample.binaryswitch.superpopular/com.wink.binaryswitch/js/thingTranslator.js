@@ -5,6 +5,16 @@ var OpenT2TLogger = require('opent2t').Logger;
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ *
+ * TODO: This method should be moved to a shared location for all translators
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
+    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
         throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
@@ -103,7 +113,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
-                di: smartplugDeviceDi,
+                di: generateGUID( providerSchema.binary_switch_id + 'oic.d.smartplug' ),
                 resources: [
                     power
                 ]
@@ -125,9 +135,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     return result;
 }
-
-// Each device in the platform has its own static identifier
-const smartplugDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -176,7 +183,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === smartplugDeviceDi) {
+        if (di === generateGUID( this.controlId + 'oic.d.smartplug' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
@@ -185,6 +192,8 @@ class Translator {
 
                     return findResource(schema, di, resourceId);
                 });
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 
