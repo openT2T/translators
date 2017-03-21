@@ -6,6 +6,7 @@
     "opent2t": "^1.0.4",
     "ava": "^0.18.2",
     "es6-sleep": "*",
+    "color-convert": "^1.9.0",
     "opent2t-device-insteonhub": "file:../org.opent2t.sample.hub.superpopular/com.insteon.hub/test",
     "opent2t-device-nesthub": "file:../org.opent2t.sample.hub.superpopular/com.nest.hub/test",
     "opent2t-device-smartthingshub": "file:../org.opent2t.sample.hub.superpopular/com.smartthings.hub/test",
