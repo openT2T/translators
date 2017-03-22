@@ -101,8 +101,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     if ('power' === resourceId) {
         result['switch'] = resourceSchema.value ? 'on' : 'off';
-    }else{
-        throw new OpenT2TError(501, OpenT2TConstants.InvalidResourceId);
+    } else {
+        throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -134,8 +134,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);

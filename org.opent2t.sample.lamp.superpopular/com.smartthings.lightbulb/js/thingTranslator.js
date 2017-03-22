@@ -332,8 +332,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);

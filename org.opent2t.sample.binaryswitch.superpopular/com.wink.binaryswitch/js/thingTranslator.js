@@ -52,8 +52,7 @@ class StateReader {
     get(state) {
         if (this.desired_state[state] !== undefined) {
             return this.desired_state[state];
-        }
-        else {
+        } else {
             return this.last_reading[state];
         }
     }
@@ -123,8 +122,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     if ('power' === resourceId) {
         desired_state['powered'] = resourceSchema.value;
-    }else{
-        throw new OpenT2TError(501, OpenT2TConstants.InvalidResourceId);
+    } else {
+        throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -157,8 +156,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return  providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);

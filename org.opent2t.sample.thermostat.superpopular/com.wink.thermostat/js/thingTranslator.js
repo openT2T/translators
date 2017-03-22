@@ -53,8 +53,7 @@ class StateReader {
     get(state) {
         if (this.desired_state[state] !== undefined) {
             return this.desired_state[state];
-        }
-        else {
+        } else {
             return this.last_reading[state];
         }
     }
