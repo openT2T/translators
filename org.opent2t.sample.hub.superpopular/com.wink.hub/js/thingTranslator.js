@@ -11,7 +11,7 @@ var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var OpenT2TLogger = require('opent2t').Logger;
 var Crypto = require('crypto');
-var promiseReflect = require('promise-reflect');
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
 
 /**
  * Gets a property from a JSON dictionary without case sensitivity
@@ -217,6 +217,8 @@ class Translator {
         });
 
         // Return a promise for all platform translations.
+        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
+        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
         return Promise.all(platformPromises.map(promiseReflect))
             .then((values) => {
                 // Resolved promises will be succesfully translated platforms
