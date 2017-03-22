@@ -155,10 +155,11 @@ class Translator {
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
-                    }).catch((err) => {
-                        // Being logged in HubController already
+                    }).bind(this) //Pass in the context via bind() to use instance variables
+                    .catch((err) => {
+                        this.ConsoleLogger.warn('warning: OpenT2T.createTranslatorAsync error - ', err);
                         return Promise.resolve(undefined);
-                    }));
+                    }).bind(this)); //Pass in the context via bind() to use instance variables
             }
         });
 
