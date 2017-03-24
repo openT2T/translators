@@ -9,10 +9,10 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 */
 class Translator {
     constructor(deviceInfo) {
-        this._hubId = deviceInfo.hubId;
-        this._contosoPassword = deviceInfo.contosoPassword;
+        this._hubId = deviceInfo[0].hubId;
+        this._contosoPassword = deviceInfo[1].contosoPassword;
 
-        this._baseUrl = deviceInfo.contosoUrl;
+        this._baseUrl = deviceInfo[1].contosoUrl;
         this._devicesPath = '/api/hubsApi/' + this._hubId;
 
         this._name = "ContosoThings Hub";

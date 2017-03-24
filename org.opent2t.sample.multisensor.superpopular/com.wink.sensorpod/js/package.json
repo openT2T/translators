@@ -11,7 +11,7 @@
     "license": "MIT",
     "scripts": {
         "test": "ava tests/test.js",
-        "unittest": "ava tests/unitTests.js"
+        "unittest": "ava tests/unitTests.js tests/invalidTests.js"
     },
     "ava": {
         "files": [
