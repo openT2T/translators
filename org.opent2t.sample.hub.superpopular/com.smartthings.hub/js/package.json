@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-smartthings-hub",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "SmartThings Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
@@ -21,7 +21,7 @@
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
     "opent2t": "^1.0.4",
-    "opent2t-onboarding-org-opent2t-onboarding-smartthings": "^0.2.0"
+    "opent2t-onboarding-org-opent2t-onboarding-smartthings": "^0.2.2"
   },
   "devDependencies": {
     "ava": "^0.18.2"
