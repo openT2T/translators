@@ -8,8 +8,18 @@
       "type": "object",
       "properties": {
         "platforms": {
-          "$ref": "org.opent2t.device.json#/definitions/org.opent2t.device",
-          "description": "ReadOnly, Gets the current set of devices associated with the hub."
+          "type": "array",
+          "description": "ReadOnly, Gets the current set of devices associated with the hub.",
+          "items": {
+            "$ref": "org.opent2t.device.json#/definitions/org.opent2t.device"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "description": "ReadOnly, Gets any errors that were produced when translating this hub's platforms.",
+          "items": {
+            "$ref": "opent2t.error.json#/definitions/opent2t.error"
+          }
         }
       }
     }
@@ -20,5 +30,8 @@
     { "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource" },
     { "$ref": "org.opent2t.device.json#/definitions/org.opent2t.device" },
     { "$ref": "#/definitions/org.opent2t.sample.hub.superpopular" }
+  ],
+  "required": [
+    "platforms"
   ]
 }
