@@ -11,6 +11,7 @@ var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var OpenT2TLogger = require('opent2t').Logger;
 var Crypto = require('crypto');
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
 
 /**
  * Gets a property from a JSON dictionary without case sensitivity
@@ -174,27 +175,33 @@ class Translator {
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {
         var platformPromises = [];
+        var toReturn = {
+            schema: "org.opent2t.sample.hub.superpopular",
+            platforms: [],
+            errors: []
+        };
 
         // Ensure that we have an array of provider schemas, even if a single object was given.
         var winkDevices = [].concat(providerSchemas);
 
         winkDevices.forEach((winkDevice) => {
-            // get the opent2t schema and translator for the wink device
+            // Ignore physical hubs for now
+            if (winkDevice.model_name.toLowerCase() === 'hub') {
+                return;
+            }
+
+            // Get the opent2t schema and translator for the wink device
             var opent2tInfo = this._getOpent2tInfo(winkDevice);
             
-            // Do not return the physical hub device, nor any devices for which there are not translators.
-            // Additionally, do not return devices that have been marked as hidden by Wink (hidden_at is a number)
-            // This state is used by third party devices (such as a Nest Thermostat) that were connected to a
-            // Wink account and then removed.  Wink keeps the connection, but marks them as hidden.
-            if ((winkDevice.model_name !== 'HUB')  && 
-                typeof opent2tInfo !== "undefined" &&
-                (!winkDevice.hidden_at))
-            {
-                // set the opent2t info for the wink device
+            if (!opent2tInfo) {
+                // Platforms without translators should be recorded as errors, but can be safely ignored.
+                toReturn.errors.push(new OpenT2TError(404, `${OpenT2TConstants.UnknownPlatform}: ${winkDevice.model_name}`));
+            }
+            else {
                 var deviceInfo = {};
                 deviceInfo.opent2t = {};
                 deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
-                
+
                 // Create a translator for this device and get the platform information, possibly expanded
                 platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
                     .then((translator) => {
@@ -203,7 +210,7 @@ class Translator {
                         // We already have this data, so no need to make an unnecesary request over the wire.
                         return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
                             .then((platformResponse) => {
-                                return platformResponse; 
+                                return platformResponse;
                             });
                     }).catch((err) => {
                         // Being logged in HubController already
@@ -213,16 +220,15 @@ class Translator {
         });
 
         // Return a promise for all platform translations.
-        return Promise.all(platformPromises)
-            .then((platforms) => {
-                var toReturn = {};
-                toReturn.schema = "org.opent2t.sample.hub.superpopular";
-                toReturn.platforms = [];
-                for (var i = 0; i < platforms.length ; i++) {
-                    if (platforms[i] !== undefined) {
-                        toReturn.platforms.push(platforms[i]);
-                    }
-                }
+        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
+        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
+        return Promise.all(platformPromises.map(promiseReflect))
+            .then((values) => {
+                // Resolved promises will be succesfully translated platforms
+                toReturn.platforms = values.filter(v => v.status == 'resolved').map(p => { return p.data; });
+                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
+                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
+                }));
                 return toReturn;
             });
     }
@@ -466,8 +472,7 @@ class Translator {
             })
             .catch((err) => {                
                 this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
-                request.reject(err);
-                return;
+                return Promise.reject(err);
             }).bind(this); //Pass in the context via bind() to use instance variables
             
     }

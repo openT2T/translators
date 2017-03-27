@@ -19,11 +19,6 @@ class Translator {
     constructor(authTokens, logLevel = "info") {
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
-        this._subCatMap = {
-            lightBulbs: ['E', '3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
-            binarySwitch: ['8', 'B', '1E', '1F', '2B', '2A', '2B', '2C', '2E', '2D', '2F', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A'],
-            thermostats: ['3', '7', 'A', 'B', 'E', 'F', '10', '11', '12', '13', '14', '15']
-        };
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
@@ -347,51 +342,28 @@ class Translator {
     /** 
      * Given the hub specific device, returns the opent2t schema and translator
      * devCat: Insteon device category
-     * subCat: Insteon device sub-category.
      * We can identify the device using those two value based on the table at
      * https://insteon.atlassian.net/wiki/display/IKB/Insteon+Device+Categories+and+Sub-Categories#InsteonDeviceCategoriesandSub-Categories-devcat-subcat
      */
     _getOpent2tInfo(deviceData) {
 
         var devCat = deviceData.DevCat
-        var subCat = deviceData.SubCat.toString(16).toUpperCase();
         switch (devCat) {
-            case 0:
-                if( subCat === '0' && deviceData.ProductType ==='thermostat'){
-                    return undefined;       //Nest thermostat, not supported now
-                }
-                return undefined;
             case 1:
-                if (this._subCatMap.lightBulbs.indexOf(subCat) >= 0)
-                {
-                    return {
-                        "schema": 'org.opent2t.sample.lamp.superpopular',
-                        "translator": "opent2t-translator-com-insteon-lightbulb"
-                    };
-                }// else a dimmer switch. 
-                
-                //Since dimmer switch schema is not ready, return light schema.
                 return {
                     "schema": 'org.opent2t.sample.lamp.superpopular',
                     "translator": "opent2t-translator-com-insteon-lightbulb"
                 };
             case 2:
-                if (this._subCatMap.binarySwitch.indexOf(subCat) >= 0)
-                {
-                    return {
-                        "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                        "translator": "opent2t-translator-com-insteon-binaryswitch"
-                    };
-                }
-                return undefined;
+                return {
+                    "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                    "translator": "opent2t-translator-com-insteon-binaryswitch"
+                };
             case 5:
-                if (this._subCatMap.thermostats.indexOf(subCat) >= 0) {
-                    return {
-                        "schema": 'org.opent2t.sample.thermostat.superpopular',
-                        "translator": "opent2t-translator-com-insteon-thermostat"
-                    };
-                }
-                return undefined;
+                return {
+                    "schema": 'org.opent2t.sample.thermostat.superpopular',
+                    "translator": "opent2t-translator-com-insteon-thermostat"
+                };
             default:
                 return undefined;
         }
