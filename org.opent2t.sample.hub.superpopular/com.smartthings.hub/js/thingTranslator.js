@@ -7,7 +7,8 @@ var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TLogger = require('opent2t').Logger;
-var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete 
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
+
 /**
 * This translator class implements the "Hub" interface.
 */
@@ -164,10 +165,9 @@ class Translator {
                         // We already have this data, so no need to make an unnecesary request over the wire.
                         return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                             .then((platformResponse) => {
-                                return platformResponse;
+                                return Promise.resolve(platformResponse);
                             });
-                    })
-                    .catch((err) => {
+                    }).catch((err) => {
                         return Promise.reject(err);
                     }));
             } else {
