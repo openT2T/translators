@@ -4,9 +4,11 @@ var OpenT2T = require('opent2t').OpenT2T;
 var helpers = require('opent2t-testcase-helpers');
 var translator = undefined;
 const SchemaName = 'org.opent2t.sample.multisensor.superpopular';
+var testSettings = undefined;
 
 function runMultisensorTests(settings) {
     var test = settings.test;
+    testSettings = settings;
     var deviceIds = {};
     
     test.before(() => {
@@ -233,7 +235,15 @@ function runMultisensorTests(settings) {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesLastchanged', [deviceIds['opent2t.d.sensor.motion']])
                 .then((response) => {
                     t.is(response.rt[0], 'opent2t.r.timestamp');
-                    t.true(response.timestamp !== undefined);
+                    let testChangedAt = testSettings.inputLastReading["motion_changed_at"];
+                    let testUpdatedAt = testSettings.inputLastReading["motion_updated_at"];
+                    if ((!testChangedAt || isNaN(testChangedAt))
+                        && (!testUpdatedAt || isNaN(testUpdatedAt))) { 
+                        t.true(response.timestamp === undefined, "Expected undefined value for motion-lastchanged");
+                    }
+                    else {
+                        t.true(response.timestamp !== undefined, "Expected a valid datetime value for motion-lastchanged");
+                    }
                     t.true(response.id === 'lastchanged');
                 });
             });

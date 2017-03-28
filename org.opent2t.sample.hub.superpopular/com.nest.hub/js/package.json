@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-nest-hub",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Nest Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
