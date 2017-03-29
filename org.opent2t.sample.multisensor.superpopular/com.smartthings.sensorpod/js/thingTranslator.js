@@ -42,13 +42,6 @@ function findResource(schema, di, resourceId) {
     return resource;
 }
 
-function convertDeviceDateToTranslatorDate(unixTimestamp) {
-    // Date takes a number of milliseconds, so convert seconds to milliseconds
-    var datetime = new Date(unixTimestamp * 1000);
-
-    return datetime.toISOString();
-}
-
 /**
  * Returns a default value if the specified property is null, undefined, or an empty string
  */
