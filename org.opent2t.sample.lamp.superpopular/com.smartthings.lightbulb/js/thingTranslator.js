@@ -194,7 +194,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "rt": ["oic.r.colour.chroma"],
         "if": ["oic.if.a", "oic.if.baseline"]
     }
-
+  
     // Include the values is expand is specified
     if (expand) {
         power.id = 'power';
@@ -203,8 +203,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['attributes'].level;
         dim.range = [0, 100];
-
-
+        
         if (supportColour) {
             colourMode.id = 'colourMode';
             colourMode.modes = ['rgb'];
@@ -252,6 +251,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id'],
             endpointUri: providerSchema['endpointUri']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Light Bulb (Generic)"),
@@ -332,8 +332,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);

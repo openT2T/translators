@@ -165,16 +165,14 @@ class Translator {
 
         return Promise.all(platformPromises)
             .then((platforms) => {
-
                 var toReturn = {};
                 toReturn.schema = "org.opent2t.sample.hub.superpopular";
                 toReturn.platforms = [];
-                for (var i = 0; i < platforms.length; i++) {
+                for (var i = 0; i < platforms.length ; i++) {
                     if (platforms[i] !== undefined) {
                         toReturn.platforms.push(platforms[i]);
                     }
                 }
-
                 return toReturn;
             });
     }

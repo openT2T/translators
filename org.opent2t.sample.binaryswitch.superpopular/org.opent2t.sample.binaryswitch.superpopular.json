@@ -19,7 +19,6 @@
         {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
       ]
     },
-
     "oic.d.smartplug": {
       "description": "The OCF Smarthome defined smartplug",
       "properties": {

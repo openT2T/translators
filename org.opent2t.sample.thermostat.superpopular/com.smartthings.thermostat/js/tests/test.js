@@ -35,23 +35,23 @@ runThermostatTests(settings);
  * Please check the "live logging" section for your SmartApp to see if the notification was send or not.
  */
 test.serial('Notifications - Subscribe', t => {
-    console.log("Subscripting...");
 
-    var subcriptionInfo = {};
+    var subscriptionInfo = {};
     return createTranslator().then(translator => {
-        return translator.postSubscribe(subcriptionInfo).then((response) => {
+        console.log('Subscripting for ' + deviceId + ' ...');
+        return translator.postSubscribe(subscriptionInfo).then((response) => {
             t.is(response[0], 'succeed');
 
-            var targetTemperatureHigh = { 'temperature': 85 };
+            var targetTemperatureHigh = { 'temperature': 85, 'units': 'f' };
             return OpenT2T.invokeMethodAsync(translator, 'org.opent2t.sample.thermostat.superpopular', 'postDevicesTargetTemperatureHigh', [deviceId, targetTemperatureHigh])
-            .then((response) => {
-                t.is(response.rt[0], 'oic.r.temperature');
-                t.is(response.temperature, 85);
+            .then((responseTwo) => {
+                t.is(responseTwo.rt[0], 'oic.r.temperature');
+                t.is(responseTwo.temperature, targetTemperatureHigh.temperature);
                 
                 // Unsubscribe and end the test
-                console.log("Unsubscribing...");
-                return translator.deleteSubscribe(subcriptionInfo).then((response) => {
-                    t.is(response, 'succeed');
+                console.log('Unsubscribing for ' + deviceId + ' ...');
+                return translator.deleteSubscribe(subscriptionInfo).then((responseThree) => {
+                    t.is(responseThree, 'succeed');
                 });
             });
         });
