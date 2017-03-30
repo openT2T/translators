@@ -153,7 +153,7 @@ function getLastChangedResource(stateReader, property, expand, logger) {
     let lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_changed_at'));
 
     if (!lastChangedTime) {
-        logger.warn(`Failed to retrieve '_changed_at time for property ${property}`);
+        logger.warn(`Failed to retrieve '_changed_at time' for property ${property}`);
         logger.warn(`Attempting to retrieve '_updated_at' for property ${property} instead`);
         lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_updated_at'));
     

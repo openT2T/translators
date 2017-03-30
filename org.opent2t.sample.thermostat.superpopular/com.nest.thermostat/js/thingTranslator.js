@@ -196,7 +196,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: generateGUID(providerSchema['device_id']+'opent2t.d.thermostat'),
+                di: generateGUID(providerSchema['device_id'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -323,7 +323,7 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId+'opent2t.d.thermostat'))
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat'))
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
