@@ -6,7 +6,7 @@
             "thermostatSetpoint" : 50,
             "coolingSetpoint" : 20,
             "heatingSetpoint" : 15,
-            "deviceTemperatureUnit" : "c",
+            "temperatureScale" : "c",
             "humidity" : 25,
             "thermostatMode" : "heat",
             "thermostatFanMode" : "auto"
