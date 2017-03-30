@@ -34,6 +34,7 @@ function runTranslatorTests(settings) {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 // Verify required platform properties are present.
                 // This is helpful for new translators that do not have a snapshot yet.
+                t.truthy(response.availability, `Platform requires platform availability (availability)`);
                 t.truthy(response.pi, `Platform requires an id (pi)`);
                 t.truthy(response.pi.match(uuidRegExMatch), `Platform id must be a UUID (pi)`);
                 t.truthy(response.mnmn, `Platform requires a manufacturer name (mnmn)`);

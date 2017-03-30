@@ -541,6 +541,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-wink-lightbulb',
             controlId: providerSchema['object_id']
         },
+        availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
         mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Light Bulb (Generic)"),
@@ -585,8 +586,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);

@@ -1,0 +1,71 @@
+{
+  "id": "http://schemas.microsoft.com/opent2t.platform#",
+  "$schema": "http://json-schema.org/draft-v4/schema#",
+  "description": "OpenT2T Platform",
+  "definitions": {
+
+    "opent2t.resource": {
+      "type": "object",
+      "allOf": [
+        {"$ref": "oic.core.json#/definitions/oic.core"},
+        {"$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+     "opent2t.entity": {
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/opent2t.resource"
+          }
+        }
+      },
+      "allOf": [
+          {"$ref": "oic.core.json#/definitions/oic.core"},
+          {"$ref": "oic.wk.d-schema.json#/definitions/oic.wk.d"}
+      ],
+      "required": ["resources", "di"]
+    },
+
+    "opent2t.platform": {
+      "type": "object",
+      "properties": {
+        "opent2t": {
+          "type": "object",
+          "properties": {
+            "schema": {
+              "type": "string"
+            },
+            "translator": {
+              "type": "string"
+            }
+          }
+        },
+        "availability": {
+          "type": "string",
+          "enum": ["online", "offline", "hidden", "deleted"]
+        },
+        "entities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/opent2t.entity"
+          }
+        }
+      },
+      "allOf": [
+          {"$ref": "oic.core.json#/definitions/oic.core"},
+          {"$ref": "oic.wk.p-schema.json#/definitions/oic.wk.p"}
+      ],
+      "required": ["entities", "pi"]
+    }
+  },
+
+  "type": "object",
+  "allOf": [
+    {"$ref": "#/definitions/opent2t.platform"},
+    {"$ref": "oic.wk.p-schema.json#/definitions/oic.wk.p"}
+  ]
+}

@@ -68,21 +68,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['oic.r.switch.binary'],
         if: ['oic.if.a', 'oic.if.baseline']
     };
-    
-    // Build the connectionStatus resource (read-only)
-    var connectionStatus = {
-        "href": "/connectionStatus",
-        "rt": ["oic.r.mode"],
-        "if": ["oic.if.s", "oic.if.baseline"]
-    }
 
     if (expand) {
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
-
-        connectionStatus.id = 'connectionStatus';
-        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -91,6 +80,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-insteon-binaryswitch',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID(providerSchema['DeviceID']),
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Insteon"),
         mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Binary Switch (Generic)"),
@@ -104,8 +94,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 rt: ['oic.d.smartplug'],
                 di: switchDeviceDi,
                 resources: [
-                    power,
-                    connectionStatus
+                    power
                 ]
             }
         ]
@@ -124,8 +113,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'n':
             result['DeviceName'] = resourceSchema.n;
             break;
-        case 'connectionStatus':
-            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
@@ -158,8 +145,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return  providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
@@ -200,10 +186,6 @@ class Translator {
 
     postDevicesPower(di, payload) {
         return this.postDeviceResource(di, 'power', payload);
-    }
-
-    getDevicesConnectionStatus(di) {
-        return this.getDeviceResource(di, "connectionStatus");
     }
 
     postSubscribe(subscriptionInfo) {

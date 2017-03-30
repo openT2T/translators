@@ -31,6 +31,9 @@ traits:
         if:
           enum: ["oic.if.s", "oic.if.baseline"]
 
+resourceTypes:
+  - !include org.opent2t.availability.yaml
+
 /:
   displayName: Platform
   get:
@@ -46,6 +49,7 @@ traits:
                   "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
                   "controlId": "123"
                 },
+                "availability": "online",
                 "pi": "8045C566-B44B-462F-A4AB-FA7FC968CE71",
                 "mnmn": "Contoso",
                 "n": "Bedside lamp",
@@ -83,6 +87,11 @@ traits:
                         "rt": ["oic.r.colour.chroma"],
                         "if": ["oic.if.a", "oic.if.baseline"]
                       },
+                      {
+                        "href": "/availability",
+                        "rt": ["oic.r.mode"],
+                        "if": ["oic.if.a", "oic.if.baseline"]
+                      }
                     ]
                   }
                 ]
@@ -99,10 +108,11 @@ traits:
             example: |
               {
                 "opent2t": {
-                  "schema": "opent2t.p.outlet",
+                  "schema": "org.opent2t.sample.lamp.superpopular",
                   "translator": "opent2t-translator-com-opent2t-p-lamp@0.1.1",
                   "controlId": "123"
                 },
+                "availability": "online",
                 "pi": "8045C566-B44B-462F-A4AB-FA7FC968CE71",
                 "mnmn": "Contoso",
                 "n": "Bedside lamp",
@@ -322,7 +332,7 @@ traits:
                   "csc":         [0.41,0.51],
                   "ct":          467
                 }
-
+                
 #
 # Notification subscription URIs
 #
@@ -379,3 +389,9 @@ traits:
         body:
           application/json:
           example: {}
+
+/?$availability: |
+  description: This resource shows device availability
+  displayName: Availability
+  is: [ interface-sensor ]
+  type: {availabilityType}

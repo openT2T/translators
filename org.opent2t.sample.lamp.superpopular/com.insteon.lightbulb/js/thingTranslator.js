@@ -78,13 +78,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
-    // Build the connectionStatus resource (read-only)
-    var connectionStatus = {
-        "href": "/connectionStatus",
-        "rt": ["oic.r.mode"],
-        "if": ["oic.if.s", "oic.if.baseline"]
-    }
-
     // Include the values is expand is specified
     if (expand) {  
         power.id = 'power';
@@ -93,10 +86,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['Level'];
         dim.range = [0, 100];
-
-        connectionStatus.id = 'connectionStatus';
-        connectionStatus.supportedModes = ['online', 'offline', 'hidden', 'deleted'],
-        connectionStatus.modes = [providerSchema['Reachable'] ? 'online' : 'offline'];
     }
 
     return {
@@ -105,6 +94,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-insteon-lightbulb',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID(providerSchema['DeviceID']),
         mnmn: defaultValueIfEmpty(providerSchema['Manufacturer'], 'Insteon'),
         mnmo: defaultValueIfEmpty(providerSchema['ProductType'], 'Light Bulb (Generic)'),
@@ -119,8 +109,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 dmv: 'res.1.1.0',
                 resources: [
                     power,
-                    dim,
-                    connectionStatus
+                    dim
                 ]
             }
         ]
@@ -148,7 +137,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-        case 'connectionStatus':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
@@ -190,8 +178,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
@@ -266,10 +253,6 @@ class Translator {
         return this.postDeviceResource(di, "colourChroma", payload);
     }
     
-    getDevicesConnectionStatus(di) {
-        return this.getDeviceResource(di, "connectionStatus");
-    }
-
     postSubscribe(subscriptionInfo) {
         return this.insteonHub.postSubscribe(subscriptionInfo);
     }
