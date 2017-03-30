@@ -187,7 +187,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: ( providerSchema['DeviceID'] + 'opent2t.d.thermostat'),
+                di: generateGUID( providerSchema['DeviceID'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
