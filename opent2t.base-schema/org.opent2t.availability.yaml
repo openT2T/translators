@@ -1,0 +1,19 @@
+availabilityType:
+  get:
+    description: |
+        Get the device availability.
+    body:
+        application/json:
+    schema: !include opent2t.platform-schema.json
+    example: |
+    {
+        "opent2t": {
+            "schema": "org.opent2t.sample.something.superpopular",
+            "translator": "opent2t-translator-com-opent2t-p-something@0.1.1",
+            "controlId": 123
+        },
+        "availability": "online",
+        "pi": "2AFFBDC2-12B5-49CB-BE40-2C0D8CE4CC8C",
+        "rt": ["org.opent2t.sample.something.superpopular"],
+        "entities": []
+    }

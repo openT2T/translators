@@ -31,6 +31,7 @@ traits:
           enum: ["oic.if.s", "oic.if.baseline"]
 
 resourceTypes:
+  - !include org.opent2t.availability.yaml
   - temperatureType:
       get:
         queryParameters:
@@ -254,7 +255,11 @@ resourceTypes:
      displayName: Fan Mode
      is: [ interface-actuator ]
      type:  { modeType: {modes : '["auto"]', supportedmodes : '["auto", "on"]', desiredmode : '["on"]' } }
-
+     
+  /awayMode:
+    displayName: Away Mode
+    is: [ interface-sensor ]
+    type: { modeType: {modes : '["offline"]', supportedmodes : ' ["online", "offline", "hidden", "deleted"]' } }
 
 
 #
@@ -272,8 +277,10 @@ resourceTypes:
               {
                 "opent2t": {
                   "schema": "org.opent2t.sample.thermostat.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1"
+                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1",
+                  "controlId": 123
                 },
+                "availability": "online",
                 "pi": "05E69E6E-CD88-40B0-8CF8-B887EB480AA4",
                 "mnmn": "Contoso",
                 "n": "Hallway thermostat",
@@ -383,8 +390,10 @@ resourceTypes:
               {
                 "opent2t": {
                   "schema": "org.opent2t.sample.thermostat.superpopular",
-                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1"
+                  "translator": "opent2t-translator-com-opent2t-p-thermostat@0.1.1",
+                  "controlId": 123
                 },
+                "availability": "online",
                 "pi": "05E69E6E-CD88-40B0-8CF8-B887EB480AA4",
                 "mnmn": "Contoso",
                 "n": "Hallway thermostat",
@@ -565,3 +574,9 @@ resourceTypes:
         body:
           application/json:
           example: {}
+
+/?$availability: |
+  description: This resource shows device availability
+  displayName: Availability
+  is: [ interface-sensor ]
+  type: {availabilityType}
