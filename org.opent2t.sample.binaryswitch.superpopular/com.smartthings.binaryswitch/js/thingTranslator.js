@@ -13,7 +13,7 @@ var crypto = require('crypto');
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
 }
 
 function validateArgumentType(arg, argName, expectedType) {
