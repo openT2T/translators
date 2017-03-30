@@ -81,6 +81,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id'],
             endpointUri: providerSchema['endpointUri']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Binary Switch (Generic)"),
@@ -107,6 +108,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     if ('power' === resourceId) {
         result['switch'] = resourceSchema.value ? 'on' : 'off';
+    } else {
+        throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -136,8 +139,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);

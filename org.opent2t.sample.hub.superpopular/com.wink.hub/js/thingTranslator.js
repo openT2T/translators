@@ -212,6 +212,9 @@ class Translator {
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
+                    }).catch((err) => {
+                        // Being logged in HubController already
+                        return Promise.reject(err);
                     }));
             }
         });

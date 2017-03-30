@@ -27,7 +27,7 @@
         "SetAwayMode" :
             [
                 {
-                    "awayMode" : "Away"
+                    "awayMode" : "away"
                 }
             ],
         "SetTargetTemperature" :

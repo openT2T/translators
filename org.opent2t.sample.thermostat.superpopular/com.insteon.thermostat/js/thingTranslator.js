@@ -169,18 +169,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         value: providerSchema['fan'] !== undefined
     });
 
-    // Build the connectionStatus resource (read-only)
-    var connectionStatus = createResource('oic.r.mode', 'oic.if.s', 'connectionStatus', expand, {
-        supportedModes: ['online', 'offline', 'hidden', 'deleted'],
-        modes: [providerSchema['Reachable'] ? 'online' : 'offline']
-    });
-
     var PlatformSchema =  {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-insteon-thermostat',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID( providerSchema['DeviceID'] ),
         mnmn: defaultValueIfEmpty(providerSchema['Manufacturer'], 'Insteon'),
         mnmo: defaultValueIfEmpty(providerSchema['ProductType'], 'Thermostat (Generic)'),
@@ -200,8 +195,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                     targetTemperatureLow,
                     humidity,
                     hvacMode,
-                    hasFan,
-                    connectionStatus
+                    hasFan
                 ]
             }
         ]
@@ -248,7 +242,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'fanTimerTimeout':
         case 'awayMode':
         case 'ecoMode':
-        case 'connectionStatus':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
@@ -428,11 +421,7 @@ class Translator {
     postDevicesFanMode(di, payload) {
         return this.postDeviceResource(di, 'fanMode', payload);
     }
-
-    getDevicesConnectionStatus(di) {
-        return this.getDeviceResource(di, "connectionStatus");
-    }
-
+    
     postSubscribe(subscriptionInfo) {
         return this.insteonHub._subscribe(subscriptionInfo);
     }

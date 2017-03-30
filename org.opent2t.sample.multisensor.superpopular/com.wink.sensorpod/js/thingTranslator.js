@@ -349,8 +349,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand, this.ConsoleLogger);
-        }
-        else {
+        } else {
             return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand, this.ConsoleLogger);

@@ -38,8 +38,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return this.providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.contosothingsHub.getDeviceDetailsAsync(deviceType, this.deviceId)
                 .then((response) => {
                     return this.providerSchemaToPlatformSchema(response, expand);
@@ -99,6 +98,7 @@ class Translator {
                 translator: 'opent2t-translator-com-contosothings-binaryswitch',
                 controlId: this.deviceId
             },
+            availability: 'online',
             pi: providerSchema["Id"],
             mnmn: "ContosoThings",
             mnmo: "ctSwitch1",

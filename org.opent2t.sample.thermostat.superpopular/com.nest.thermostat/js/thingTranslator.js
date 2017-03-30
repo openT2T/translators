@@ -176,7 +176,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     var fanTimerActive = createResource('oic.r.sensor', 'oic.if.a', 'fanTimerActive', expand, {
         value: providerSchema['fan_timer_active']
     });
-
+ 
     return {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
@@ -184,6 +184,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['device_id'],
             structureId: providerSchema['structure_id']
         },
+        availability: providerSchema['is_online'] ? 'online' : 'offline',
         pi: generateGUID(providerSchema['device_id']),
         mnmn: 'Nest',
         mnmo: 'Thermostat',

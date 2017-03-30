@@ -161,6 +161,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id'],
             endpointUri: providerSchema['endpointUri']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Thermostat (Generic)"),

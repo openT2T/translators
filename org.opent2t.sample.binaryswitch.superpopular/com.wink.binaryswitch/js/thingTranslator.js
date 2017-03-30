@@ -63,8 +63,7 @@ class StateReader {
     get(state) {
         if (this.desired_state[state] !== undefined) {
             return this.desired_state[state];
-        }
-        else {
+        } else {
             return this.last_reading[state];
         }
     }
@@ -104,6 +103,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-wink-binaryswitch',
             controlId: providerSchema.binary_switch_id
         },
+        availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
         mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Binary Switch (Generic)"),
@@ -133,6 +133,8 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 
     if ('power' === resourceId) {
         desired_state['powered'] = resourceSchema.value;
+    } else {
+        throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -162,8 +164,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return  providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response.data, expand);

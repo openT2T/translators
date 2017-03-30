@@ -155,26 +155,23 @@ class Translator {
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
-                    }).bind(this) //Pass in the context via bind() to use instance variables
-                    .catch((err) => {
+                    }).catch((err) => {
                         this.ConsoleLogger.warn('warning: OpenT2T.createTranslatorAsync error - ', err);
                         return Promise.resolve(undefined);
-                    }).bind(this)); //Pass in the context via bind() to use instance variables
+                    }));
             }
         });
 
         return Promise.all(platformPromises)
             .then((platforms) => {
-
                 var toReturn = {};
                 toReturn.schema = "org.opent2t.sample.hub.superpopular";
                 toReturn.platforms = [];
-                for (var i = 0; i < platforms.length; i++) {
+                for (var i = 0; i < platforms.length ; i++) {
                     if (platforms[i] !== undefined) {
                         toReturn.platforms.push(platforms[i]);
                     }
                 }
-
                 return toReturn;
             });
     }

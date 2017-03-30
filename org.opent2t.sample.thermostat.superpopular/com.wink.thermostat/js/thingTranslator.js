@@ -62,8 +62,7 @@ class StateReader {
     get(state) {
         if (this.desired_state[state] !== undefined) {
             return this.desired_state[state];
-        }
-        else {
+        } else {
             return this.last_reading[state];
         }
     }
@@ -191,6 +190,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-wink-thermostat',
             controlId: providerSchema.thermostat_id
         },
+        availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
         mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Thermostat (Generic)"),
