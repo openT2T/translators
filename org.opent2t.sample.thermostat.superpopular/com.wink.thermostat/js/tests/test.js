@@ -54,7 +54,7 @@ test.serial('Notifications - Subscribe', t => {
 
         var port = require('url').parse(config.callback_url).port || 80;
 
-        ConsoleLogger.verbose("Using port ", port);
+        ConsoleLogger.verbose(`Using port: ${port}`);
 
         // Create a simple server that will hand off requests to the appropriate translators.
         var server = http.createServer((request, response) => {
@@ -88,7 +88,7 @@ test.serial('Notifications - Subscribe', t => {
                     // chunk is immediate, and needs no promise.
                     request.on("end", () => {
                         var translatedData = translator.getThermostatResURI(JSON.parse(body));
-                        console.log(translatedData);
+                        ConsoleLogger.verbose(translatedData);
                         deferred.resolve("Recieved the expected notification");
                         t.not(translatedData, null);
                     });
@@ -111,7 +111,7 @@ test.serial('Notifications - Subscribe', t => {
         ConsoleLogger.verbose("Subscription part 1");
 
         translator.postSubscribeThermostatResURI(callbackUrlParams).then((response) => {
-            ConsoleLogger.verbose("Subscription expires at %d", response.expiration);
+            ConsoleLogger.verbose(`Subscription expires at ${response.expiration}`);
 
             // Validation of the subscription will not happen unless it's already expired.
             translator.getSubscriptions().then((subscriptions) => {

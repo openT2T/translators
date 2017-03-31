@@ -365,7 +365,7 @@ class Translator {
                 //      3. POST subscription request to /groups/${group_id}/subscription
                 // For now, just subscribe to device updates found at the following url.
 
-                return Promise.resolve('users/me/wink_devices/subscriptions');
+                return Promise.resolve('/users/me/wink_devices/subscriptions');
             }
     }
     /**
@@ -498,8 +498,7 @@ class Translator {
             })
             .catch((err) => {                
                 this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
-                request.reject(err);
-                return;
+                return Promise.reject(err);
             }).bind(this); //Pass in the context via bind() to use instance variables
             
     }
