@@ -109,7 +109,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = providerSchema['attributes'].coolingSetpoint;
     var min = providerSchema['attributes'].heatingSetpoint;
-    var temperatureUnits = providerSchema['attributes'].deviceTemperatureUnit;
+    var temperatureUnits = providerSchema['attributes'].temperatureScale;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['attributes'].temperature,

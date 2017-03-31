@@ -7,6 +7,7 @@ var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var Firebase = require("firebase");
 var OpenT2TLogger = require('opent2t').Logger;
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete 
 
 /**
 * This translator class implements the "Hub" interface.
@@ -81,6 +82,12 @@ class Translator {
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {
         var platformPromises = [];
+        var toReturn = {
+            schema: "org.opent2t.sample.hub.superpopular",
+            platforms: [],
+            errors: []
+        };
+
 
         if(providerSchemas.thermostats !== undefined){
 
@@ -111,28 +118,27 @@ class Translator {
                             deviceSchema.away = result;
                             return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
                                 .then((platformResponse) => {
-                                    return platformResponse;
+                                    return Promise.resolve(platformResponse);
                                 });
                         });
                     }).catch((err) => {
-                        // Being logged in HubController already
                         return Promise.reject(err);
                     }));
             });
         }
 
-        return Promise.all(platformPromises)
-                .then((platforms) => {
-                    var toReturn = {};
-                    toReturn.schema = "org.opent2t.sample.hub.superpopular";
-                    toReturn.platforms = [];
-                    for (var i = 0; i < platforms.length; i++) {
-                        if (platforms[i] !== undefined) {
-                            toReturn.platforms.push(platforms[i]);
-                        }
-                    }
-                    return toReturn;
-                });
+        // Return a promise for all platform translations
+        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
+        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
+        return Promise.all(platformPromises.map(promiseReflect))
+            .then((values) => {
+                // Resolved promises will be succesfully translated platforms
+                toReturn.platforms = values.filter(v => v.status == 'resolved').map(p => { return p.data; });
+                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
+                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
+                }));
+                return toReturn;
+            });
     }
 
     /**

@@ -4,7 +4,11 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TLogger = require('opent2t').Logger;
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
+
 /**
 * This translator class implements the "Hub" interface.
 */
@@ -48,12 +52,15 @@ class Translator {
                    .then((hubResults) => {
                        // merge all platforms from hubs.
                        var allPlatforms = [];
+                       var allErrors = [];
                        hubResults.forEach((hub) => {
                            allPlatforms = allPlatforms.concat(hub.platforms);
+                           allErrors = allErrors.concat(hub.errors);
                        });
                        return {
                            schema: "org.opent2t.sample.hub.superpopular",
-                           platforms: allPlatforms
+                           platforms: allPlatforms,
+                           errors: allErrors
                        };
                    });
             });
@@ -126,6 +133,11 @@ class Translator {
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand, endpointUri) {
         var platformPromises = [];
+        var toReturn = {
+            schema: "org.opent2t.sample.hub.superpopular",
+            platforms: [],
+            errors: []
+        };
 
         // Ensure that we have an array of provider schemas, even if a single object was given.
         var devices = [].concat(providerSchemas);
@@ -153,25 +165,27 @@ class Translator {
                         // We already have this data, so no need to make an unnecesary request over the wire.
                         return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                             .then((platformResponse) => {
-                                return platformResponse;
+                                return Promise.resolve(platformResponse);
                             });
                     }).catch((err) => {
-                        this.ConsoleLogger.warn('warning: OpenT2T.createTranslatorAsync error - ', err);
-                        return Promise.resolve(undefined);
+                        return Promise.reject(err);
                     }));
+            } else {
+                // Platforms without translators should be recorded as errors, but can be safely ignored.
+                toReturn.errors.push(new OpenT2TError(404, `${OpenT2TConstants.UnknownPlatform}: ${smartThingsDevice.deviceType}`));
             }
         });
 
-        return Promise.all(platformPromises)
-            .then((platforms) => {
-                var toReturn = {};
-                toReturn.schema = "org.opent2t.sample.hub.superpopular";
-                toReturn.platforms = [];
-                for (var i = 0; i < platforms.length ; i++) {
-                    if (platforms[i] !== undefined) {
-                        toReturn.platforms.push(platforms[i]);
-                    }
-                }
+        // Return a promise for all platform translations
+        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
+        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
+        return Promise.all(platformPromises.map(promiseReflect))
+            .then((values) => {
+                // Resolved promises will be succesfully translated platforms
+                toReturn.platforms = values.filter(v => v.status == 'resolved').map(p => { return p.data; });
+                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
+                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
+                }));
                 return toReturn;
             });
     }
