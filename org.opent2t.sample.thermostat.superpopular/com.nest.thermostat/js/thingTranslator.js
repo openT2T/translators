@@ -5,7 +5,6 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var NestConstants = require('./constants');
 
 var crypto = require('crypto');
-var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -282,9 +281,9 @@ const thermostatDeviceDi = "f7074ee7-4fd8-4885-8997-487b8f3d14eb";
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.info('Nest Thermostat initializing...');
+    constructor(deviceInfo, logger) {
+        this.logger = logger;
+        this.logger.info('Nest Thermostat initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
@@ -292,7 +291,7 @@ class Translator {
         this.nestHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        this.ConsoleLogger.info('Nest Thermostat initializing...Done');
+        this.logger.info('Nest Thermostat initializing...Done');
     }
 
     /**

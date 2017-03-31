@@ -9,7 +9,6 @@ var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-var OpenT2TLogger = require('opent2t').Logger;
 var Crypto = require('crypto');
 var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
 
@@ -31,14 +30,15 @@ function getDictionaryItemCaseInsensitive(obj, propertyName) {
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens, logLevel = "info") {
+    constructor(authTokens, logger) {
         this._authTokens = authTokens;
 
         this._baseUrl = "https://api.wink.com";
         this._devicesPath = '/users/me/wink_devices';
         this._oAuthPath = '/oauth2/token';
         this._name = "Wink Hub";
-        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
+        this.logger = logger; 
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -203,12 +203,12 @@ class Translator {
                 deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
 
                 // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
                     .then((translator) => {
 
                         // Use get to translate the Wink formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
-                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
+                        return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
@@ -471,7 +471,7 @@ class Translator {
                 return JSON.parse(body);
             })
             .catch((err) => {                
-                this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
+                this.logger.error(`Request failed to: ${options.method} - ${options.url}`); 
                 return Promise.reject(err);
             }).bind(this); //Pass in the context via bind() to use instance variables
             

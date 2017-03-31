@@ -10,19 +10,19 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var InsteonConstants = require('./constants');
 /* eslint no-unused-vars: "warn" */
 var sleep = require('es6-sleep').promise;
-var OpenT2TLogger = require('opent2t').Logger;
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens, logLevel = "info") {
+    constructor(authTokens, logger) {
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.logger = logger;
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -105,11 +105,11 @@ class Translator {
                                         }
                                         
                                         // Create a translator for this device and get the platform information, possibly expanded
-                                        return OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                                        return this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                                             .then((translator) => {
                                                 // Use get to translate the Insteon formatted device that we already got in the previous request.
                                                 // We already have this data, so no need to make an unnecesary request over the wire.
-                                                return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
+                                                return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                                                     .then((platformResponse) => {
                                                         return platformResponse;
                                                     });

@@ -22,11 +22,16 @@ const lightDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
 // This translator class implements the 'opent2t.p.outlet' interface.
 class Translator {
 
-    constructor(deviceInfo) {
+    constructor(deviceInfo, logger) {
+        this.logger = logger;
+        this.logger.verbose('Contoso Binary Switch initializing...');
+
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.deviceId = deviceInfo.deviceInfo.opent2t.controlId;
         this.contosothingsHub = deviceInfo.hub;
+
+        this.logger.verbose('Contoso Binary Switch initializing...Done');
     }
 
     get(expand, payload) {

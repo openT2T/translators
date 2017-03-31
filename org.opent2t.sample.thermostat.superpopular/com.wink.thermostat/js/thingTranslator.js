@@ -1,7 +1,6 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -279,9 +278,9 @@ var deviceIds = {
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.info('Initializing device.');
+    constructor(deviceInfo, logger) {
+        this.logger = logger;
+        this.logger.info('Initializing device.');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
@@ -289,7 +288,7 @@ class Translator {
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        this.ConsoleLogger.info('Wink Thermostat Translator initialized.');
+        this.logger.info('Wink Thermostat Translator initialized.');
     }
 
     /**

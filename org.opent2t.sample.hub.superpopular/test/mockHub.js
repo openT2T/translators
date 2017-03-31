@@ -11,7 +11,9 @@ var t = undefined;
 
 class MockHub {
 
-    constructor(deviceData, modifier, verifier) {
+    constructor(logger, deviceData, modifier, verifier) {
+        this.logger = logger;
+        this.opent2t = new OpenT2T(logger);
         deviceState = deviceData.base_state;
         testData = deviceData.test_data;
         stateModifier = modifier;
@@ -41,8 +43,8 @@ class MockHub {
         var deviceInfo = {};
         deviceInfo.deviceInfo = { opent2t : { controlId : controlId } };
         deviceInfo.hub = this.hub;
-        return function () {
-            return OpenT2T.createTranslatorAsync(translatorPath, 'thingTranslator', deviceInfo);
+        return () => {
+            return this.opent2t.createTranslatorAsync(translatorPath, 'thingTranslator', deviceInfo);
         };
     }
 

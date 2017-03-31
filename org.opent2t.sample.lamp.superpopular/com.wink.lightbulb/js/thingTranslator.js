@@ -1,7 +1,6 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-var OpenT2TLogger = require('opent2t').Logger;
 
 var colorConvert = require('color-convert');
 
@@ -566,9 +565,9 @@ const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
-        this.ConsoleLogger.info('Wink Lightbulb initializing...');
+    constructor(deviceInfo, logger) {
+        this.logger = logger; 
+        this.logger.info('Wink Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
@@ -576,7 +575,7 @@ class Translator {
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'light_bulbs';
 
-        this.ConsoleLogger.info('Wink Lightbulb initializing...Done');
+        this.logger.info('Wink Lightbulb initializing...Done');
     }
 
     /**
