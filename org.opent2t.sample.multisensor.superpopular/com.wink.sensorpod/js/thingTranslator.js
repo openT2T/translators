@@ -1,8 +1,19 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
+
+/**
+ * Generate a GUID for given an ID.
+ *
+ * TODO: This method should be moved to a shared location for all translators
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
 
 /**
  * Validates an argument matches the expected type.
@@ -97,11 +108,11 @@ function defaultValueIfEmpty(property, defaultValue) {
     }
 }
 
-function createEntity(name, resourceType, resources) {
+function createEntity(name, resourceType, resources, controlId) {
     return {
         n: name,
         rt: [resourceType],
-        di: deviceIds[resourceType],
+        di: generateGUID(controlId + resourceType),
         icv: 'core.1.1.0',
         dmv: 'res.1.1.0',
         resources: resources
@@ -137,7 +148,7 @@ function getLastChangedResource(stateReader, property, expand, logger) {
     let lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_changed_at'));
 
     if (!lastChangedTime) {
-        logger.warn(`Failed to retrieve '_changed_at time for property ${property}`);
+        logger.warn(`Failed to retrieve '_changed_at time' for property ${property}`);
         logger.warn(`Attempting to retrieve '_updated_at' for property ${property} instead`);
         lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_updated_at'));
     
@@ -158,6 +169,7 @@ function getLastChangedResource(stateReader, property, expand, logger) {
 function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
+    var controlId = providerSchema['object_id'];
     var name = providerSchema['name'];
     var entities = [];
 
@@ -169,7 +181,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.brightnesschange', [
             brightnesschange,
             getLastChangedResource(stateReader, 'brightness', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('opened')) {
@@ -180,7 +193,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.contact', [
             contact,
             getLastChangedResource(stateReader, 'opened', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('humidity')) {
@@ -191,7 +205,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.humidity', [
             humidity,
             getLastChangedResource(stateReader, 'humidity', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('locked')) {
@@ -202,7 +217,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.locked', [
             locked,
             getLastChangedResource(stateReader, 'locked', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('loudness')) {
@@ -213,7 +229,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.loudnesschange', [
             loudnesschange,
             getLastChangedResource(stateReader, 'loudness', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('motion')) {
@@ -224,7 +241,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.motion', [
             motion,
             getLastChangedResource(stateReader, 'motion', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('occupied')) {
@@ -235,7 +253,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.presence', [
             presence,
             getLastChangedResource(stateReader, 'occupied', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('temperature')) {
@@ -247,7 +266,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.temperature', [
             temperature,
             getLastChangedResource(stateReader, 'temperature', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('vibration')) {
@@ -258,7 +278,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.vibrationchange', [
             vibrationchange,
             getLastChangedResource(stateReader, 'vibration', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('liquid_detected')) {
@@ -269,7 +290,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.sensor.water', [
             water,
             getLastChangedResource(stateReader, 'liquid_detected', expand, logger)
-        ]));
+        ],
+        controlId));
     }
 
     if (stateReader.containsKey('battery')) {
@@ -279,7 +301,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
 
         entities.push(createEntity(name, 'opent2t.d.battery', [
             battery
-        ]));
+        ],
+        controlId));
     }
 
     return {
@@ -295,32 +318,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         rt: ['org.opent2t.sample.multisensor.superpopular'],
         entities: entities
     };
-}
-
-// Each device in the platform has is own unique static identifier
-const deviceIds = {
-    'opent2t.d.sensor.acceleration': 'A547EDCF-DB00-4FE3-81A8-867879718471',
-    'opent2t.d.sensor.airquality': 'CD55D8C0-A485-484D-842C-7F3D692FCAA4',
-    'opent2t.d.sensor.atmosphericpressure': '2A6517F8-261D-4FB1-8B0C-BEC531443175',
-    'opent2t.d.sensor.brightnesschange': 'F18D060B-B672-497C-A66B-44D690EC6825',
-    'opent2t.d.sensor.carbondioxide': 'B533FF0D-0B2D-499D-83E0-57DA256DD720',
-    'opent2t.d.sensor.carbonmonoxide': '153F3969-139C-4D48-AA85-2977DCFF7957',
-    'opent2t.d.sensor.contact': 'A125DBD1-1AA7-4F87-BB5A-7149272F3225',
-    'opent2t.d.sensor.combustiblegas': '3C36C983-3508-4B9A-9C97-4933A8C2D531',
-    'opent2t.d.sensor.glassbreak': '1699836C-EBB2-4F59-BFB0-EA9163B0C2CD',
-    'opent2t.d.sensor.humidity': '61033A42-B81A-4C94-B6F3-23C2B3766B13',
-    'opent2t.d.sensor.illuminance': 'EB3FCB5F-65DC-4228-9125-B97222522E11',
-    'opent2t.d.sensor.locked': '563434A2-801F-4A95-8411-4043054C76ED',
-    'opent2t.d.sensor.loudnesschange': '4389B317-9CF4-4DAD-BC18-C061090B88BA',
-    'opent2t.d.sensor.motion': 'DC0EE2A1-B8B2-45FC-A14E-56F8544DBCE8',
-    'opent2t.d.sensor.presence': 'A9FD1BD1-7CCB-4C8F-9270-4F30AEC33886',
-    'opent2t.d.sensor.temperature': '08A956B2-9ED0-413D-9741-75D71A3F168C',
-    'opent2t.d.sensor.uvradiation': '7CF338CB-A0EF-43C9-A2D7-6DFAF8196069',
-    'opent2t.d.sensor.vibrationchange': 'EFB10535-44D4-44A7-AB54-AE1B4BC02AB0',
-    'opent2t.d.sensor.smoke': 'E978737B-1AFD-4B44-BA6D-193D87C5FD1A',
-    'opent2t.d.sensor.touch': '3A04BBFD-8CDF-48B5-9511-42425BB2DBE1',
-    'opent2t.d.sensor.water': '00FC03C5-81D7-48A1-A2E8-3919A9A3D33F',
-    'opent2t.d.battery': 'CD873FF4-79BB-47BD-865A-2D1357601E6A'
 }
 
 // This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.

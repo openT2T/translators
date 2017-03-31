@@ -3,7 +3,6 @@
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var NestConstants = require('./constants');
-
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -47,7 +46,7 @@ function findResource(schema, di, resourceId) {
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Nest' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
 }
 
 var deviceHvacModeToTranslatorHvacModeMap = {
@@ -196,7 +195,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: thermostatDeviceDi,
+                di: generateGUID(providerSchema['device_id'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -276,8 +275,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-const thermostatDeviceDi = "f7074ee7-4fd8-4885-8997-487b8f3d14eb";
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
@@ -325,7 +322,7 @@ class Translator {
      * Finds a resource on a platform by the id
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === thermostatDeviceDi)
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat'))
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 

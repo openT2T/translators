@@ -45,7 +45,7 @@ function findResource(schema, di, resourceId) {
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
 }
 
 /**
@@ -91,7 +91,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
-                di: switchDeviceDi,
+                di: generateGUID( providerSchema['DeviceID'] + 'oic.d.smartplug' ),
                 resources: [
                     power
                 ]
@@ -118,8 +118,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     }
     return result;
 }
-
-const switchDeviceDi = "f9604075-1a64-498b-ae9b-7436a63721ba";
 
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
@@ -166,7 +164,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === switchDeviceDi) {
+        if (di === generateGUID( this.controlId + 'oic.d.smartplug' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)

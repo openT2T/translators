@@ -23,8 +23,12 @@ test.serial('GetPlatforms', t => {
             return opent2t.invokeMethodAsync(translator, 'org.opent2t.sample.hub.superpopular', 'getPlatforms', [true])
                 .then((hub) => {
 
-                    logger.verbose("Hub:");
-                    logger.verbose(JSON.stringify(hub, null, 2));
+                    console.log("Hub schema:");
+                    console.log(JSON.stringify(hub.schema, null, 2));
+                    console.log("Hub Platforms:");
+                    console.log(JSON.stringify(hub.platforms, null, 2));
+                    console.log("Hub Errors:");
+                    console.log(hub.errors);
 
                     // TEST: something was returned
                     t.truthy(hub);
