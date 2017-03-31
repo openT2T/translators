@@ -22,7 +22,7 @@ class Translator {
      * Get the hub definition and devices
      */
     get(expand, payload) {
-         return this.getPlatforms(expand, payload);
+        return this.getPlatforms(expand, payload);
     }
 
     /**
@@ -34,28 +34,28 @@ class Translator {
         } else {
             return this._getEndpoints().then((endpoints) => {
                 if (endpoints.length === 0) return undefined;
-                    
+
                 var endpointPromises = [];
-                
+
                 endpoints.forEach((endpointUri) => {
-                    endpointPromises.push(this._makeRequest(endpointUri, this._devicesPath, 'GET') 
+                    endpointPromises.push(this._makeRequest(endpointUri, this._devicesPath, 'GET')
                         .then((devices) => {
                             return this._providerSchemaToPlatformSchema(devices, expand, endpointUri);
                         }));
                 });
-                
+
                 return Promise.all(endpointPromises)
-                   .then((hubResults) => {
-                       // merge all platforms from hubs.
-                       var allPlatforms = [];
-                       hubResults.forEach((hub) => {
-                           allPlatforms = allPlatforms.concat(hub.platforms);
-                       });
-                       return {
-                           schema: "org.opent2t.sample.hub.superpopular",
-                           platforms: allPlatforms
-                       };
-                   });
+                    .then((hubResults) => {
+                        // merge all platforms from hubs.
+                        var allPlatforms = [];
+                        hubResults.forEach((hub) => {
+                            allPlatforms = allPlatforms.concat(hub.platforms);
+                        });
+                        return {
+                            schema: "org.opent2t.sample.hub.superpopular",
+                            platforms: allPlatforms
+                        };
+                    });
             });
         }
     }
@@ -265,7 +265,7 @@ class Translator {
                     }
                 } else {
                     return JSON.parse(body);
-                }                
+                }
             }.bind(this));
     }
 }
