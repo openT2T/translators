@@ -23,7 +23,7 @@ const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logger) {
+    constructor(logger, deviceInfo) {
         this.logger = logger;
         this.logger.verbose('Wink Lamp initializing...');
 

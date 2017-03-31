@@ -28,7 +28,7 @@ var deviceType = 'binary_switches';
 // This translator class implements the 'opent2t.p.outlet' interface.
 class Translator {
 
-    constructor(deviceInfo, logger) {
+    constructor(logger, deviceInfo) {
         this.logger = logger;
         this.logger.verbose('Contoso Binary Switch initializing...');
 

@@ -282,7 +282,7 @@ function validateResourceGet(resourceId) {
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(deviceInfo, logger) {
+    constructor(logger, deviceInfo) {
         this.logger = logger;
         this.logger.info('Initializing device.');
 

@@ -16,7 +16,7 @@ var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait f
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens, logger) {
+    constructor(logger, authTokens) {
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._devicesPath = 'devices';

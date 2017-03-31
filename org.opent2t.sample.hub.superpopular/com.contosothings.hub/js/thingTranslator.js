@@ -8,7 +8,7 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(deviceInfo, logger) {
+    constructor(logger, deviceInfo) {
         this._hubId = deviceInfo[0].hubId;
         this._contosoPassword = deviceInfo[1].contosoPassword;
 

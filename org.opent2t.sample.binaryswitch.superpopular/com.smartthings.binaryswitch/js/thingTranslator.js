@@ -117,7 +117,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logger) {
+    constructor(logger, deviceInfo) {
         this.logger = logger;
 
         this.logger.info('SmartThings Binary Switch initializing...');
