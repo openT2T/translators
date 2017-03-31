@@ -1,7 +1,7 @@
 {   "base_state" :
     {   
         "ambient" : 25,
-        "DeviceID" : "Mock Device",
+        "DeviceID" : "Mock Device ID",
         "DeviceName" : "Mock Device",
         "unit" : "c",
         "cool_point" : 28,

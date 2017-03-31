@@ -1,5 +1,14 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
+var crypto = require('crypto');
+
+/**
+ * Generate a GUID for a given ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Contoso' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
 
 /**
  * Validates an argument matches the expected type.
@@ -15,9 +24,6 @@ function validateArgumentType(arg, argName, expectedType) {
 }
 
 var deviceType = 'binary_switches';
-
-// Each device in the platform has its own static identifier
-const lightDeviceDi = 'F85B0738-6EC0-4A8B-A95A-503B6F2CA0D8';
 
 // This translator class implements the 'opent2t.p.outlet' interface.
 class Translator {
@@ -51,7 +57,7 @@ class Translator {
     }
 
     postDeviceResource(di, resourceId, payload) {
-        if (di === lightDeviceDi) {
+        if (di === generateGUID( this.deviceId + 'oic.d.smartplug' )) {
             var putPayload = this.resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.contosothingsHub.putDeviceDetailsAsync(deviceType, this.deviceId, putPayload)
@@ -102,7 +108,7 @@ class Translator {
                 {
                     n: providerSchema['Name'],
                     rt: ['oic.d.smartplug'],
-                    di: lightDeviceDi,
+                    di: generateGUID( this.deviceId + 'oic.d.smartplug' ),
                     icv: 'core.1.1.0',
                     dmv: 'res.1.1.0',
                     resources: [

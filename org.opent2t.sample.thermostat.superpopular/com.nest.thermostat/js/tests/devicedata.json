@@ -1,14 +1,5 @@
 {   "base_state" :
-    {   "attributes" :
-        {
-            "switch" : "on",
-            "temperature" : 50
-        },
-        "locationMode" :
-        {
-            "supported" : ["home", "away"],
-            "mode" : "away"
-        },
+    {   
         "is_online": true,
         "temperature_scale" : "c",
         "ambient_temperature_c" : 25,

@@ -2,9 +2,18 @@
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var OpenT2TLogger = require('opent2t').Logger;
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
+
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
@@ -193,7 +202,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: deviceIds['opent2t.d.thermostat'],
+                di: generateGUID(providerSchema.thermostat_id + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -271,11 +280,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-var deviceIds = {
-    'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
-    'opent2t.d.thermostat': 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
-}
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
@@ -323,7 +327,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === deviceIds['opent2t.d.thermostat']) {
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
