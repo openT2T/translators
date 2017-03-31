@@ -14,6 +14,7 @@ class Translator {
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
+        this._subcriptionPath = '/subscription';        
         this._name = "SmartThings Hub"; // TODO: Can be pulled from OpenT2T global constants.
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
@@ -108,8 +109,10 @@ class Translator {
      * and on the hub translator (this) for verification.
      */
     _subscribe(subscriptionInfo) {
-        var requestPath = '/subscription/' + subscriptionInfo.controlId;
-        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', '');
+        var requestPath = this._subcriptionPath + '/' + subscriptionInfo.controlId;
+        var jsonPayload = { subcriptionURL: subscriptionInfo.callbackUrl};
+        var payloadString = JSON.stringify(jsonPayload);
+        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', payloadString);
     }
 
     /**
@@ -117,7 +120,7 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        var requestPath = '/subscription/' + subscriptionInfo.controlId;
+        var requestPath = this._subcriptionPath + '/' + subscriptionInfo.controlId;
         return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'DELETE');
     }
 
@@ -155,11 +158,10 @@ class Translator {
                             .then((platformResponse) => {
                                 return platformResponse;
                             });
-                    }).bind(this) //Pass in the context via bind() to use instance variables
-                    .catch((err) => {
+                    }).catch((err) => {
                         this.ConsoleLogger.warn('warning: OpenT2T.createTranslatorAsync error - ', err);
                         return Promise.resolve(undefined);
-                    }).bind(this)); //Pass in the context via bind() to use instance variables
+                    }));
             }
         });
 
