@@ -324,7 +324,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
 class Translator {
 
     constructor(logger, deviceInfo) {
-
+        this.name = "opent2t-translator-com-wink-sensorpod";
         this.logger = logger;
         this.logger.info('Initializing device.');
 

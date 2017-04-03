@@ -250,6 +250,7 @@ const deviceIds = {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-smartthings-sensorpod";
         this.logger = logger;
         this.logger.info('Initializing device.');
 

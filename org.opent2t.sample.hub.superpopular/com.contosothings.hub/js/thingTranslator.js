@@ -9,6 +9,7 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 */
 class Translator {
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-contosothings-hub";
         this._hubId = deviceInfo[0].hubId;
         this._contosoPassword = deviceInfo[1].contosoPassword;
 

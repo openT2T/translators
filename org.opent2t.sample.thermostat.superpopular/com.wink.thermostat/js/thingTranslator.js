@@ -283,6 +283,7 @@ function validateResourceGet(resourceId) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-wink-thermostat";
         this.logger = logger;
         this.logger.info('Initializing device.');
 

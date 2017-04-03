@@ -318,6 +318,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 class Translator {
         
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-smartthings-lightbulb";
        this.logger = logger;
         this.logger.info('SmartThings Lightbulb initializing...');
 

@@ -573,6 +573,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-wink-lightbulb";
         this.logger = logger; 
         this.logger.info('Wink Lightbulb initializing...');
 

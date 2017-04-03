@@ -29,6 +29,7 @@ var deviceType = 'binary_switches';
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-contosothings-binaryswitch";
         this.logger = logger;
         this.logger.verbose('Contoso Binary Switch initializing...');
 

@@ -157,6 +157,7 @@ function validateResourceGet(resourceId) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-insteon-lightbulb";
         this.logger = logger;
         this.logger.info('Insteon Lightbulb initializing...');
 

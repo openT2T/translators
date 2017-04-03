@@ -267,6 +267,7 @@ function validateResourceGet(resourceId) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-insteon-thermostat";
         this.logger = logger; 
         this.logger.info('Insteon Thermostat initializing...');
 

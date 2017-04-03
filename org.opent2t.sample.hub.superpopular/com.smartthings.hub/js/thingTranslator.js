@@ -13,6 +13,7 @@ var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait f
 */
 class Translator {
     constructor(logger, authTokens) {
+        this.name = "opent2t-translator-com-smartthings-hub";
         this._authTokens = authTokens;
         this._baseUrl = '';
         this._devicesPath = '/devices';

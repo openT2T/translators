@@ -24,6 +24,7 @@ const lightDeviceDi = 'F8CFB903-58BB-4753-97E0-72BD7DBC7933';
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-contosothings-lightbulb";
         this.logger = logger;
         this.logger.verbose('Wink Lamp initializing...');
 

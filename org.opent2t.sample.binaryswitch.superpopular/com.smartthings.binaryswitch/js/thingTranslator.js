@@ -118,6 +118,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-smartthings-binaryswitch";
         this.logger = logger;
 
         this.logger.info('SmartThings Binary Switch initializing...');

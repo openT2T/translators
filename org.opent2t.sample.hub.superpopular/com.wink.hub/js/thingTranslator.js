@@ -31,6 +31,7 @@ function getDictionaryItemCaseInsensitive(obj, propertyName) {
 */
 class Translator {
     constructor(logger, authTokens) {
+        this.name = "opent2t-translator-com-wink-hub";
         this._authTokens = authTokens;
 
         this._baseUrl = "https://api.wink.com";

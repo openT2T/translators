@@ -143,6 +143,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-wink-binaryswitch";
         this.logger = logger;
         this.logger.verbose('Wink Binary Switch initializing...');
 

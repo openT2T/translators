@@ -123,6 +123,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 class Translator {
 
     constructor(logger, deviceInfo) {
+        this.name = "opent2t-translator-com-insteon-binaryswitch";
         this.logger = logger;
 
         this.logger.info('Insteon Binary Switch initializing...');

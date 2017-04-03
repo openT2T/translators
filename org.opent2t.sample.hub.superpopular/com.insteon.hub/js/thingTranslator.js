@@ -17,6 +17,7 @@ var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait f
 */
 class Translator {
     constructor(logger, authTokens) {
+        this.name = "opent2t-translator-com-insteon-hub";
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
         this._devicesPath = 'devices';
