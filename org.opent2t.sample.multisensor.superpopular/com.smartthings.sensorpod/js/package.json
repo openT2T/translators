@@ -1,0 +1,32 @@
+{
+    "name": "opent2t-translator-com-smartthings-sensorpod",
+    "version": "0.2.0",
+    "description": "SmartThings Sensorpod",
+    "homepage": "http://opentranslatorstothings.org",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opent2t/translators.git"
+    },
+    "main": "thingTranslator.js",
+    "license": "MIT",
+    "scripts": {
+        "test": "ava tests/test.js",
+        "unittest": "ava tests/unitTests.js"
+    },
+    "ava": {
+        "files": [
+            "tests/*.js"
+        ]
+    },
+    "dependencies": {
+        "opent2t-translator-com-smartthings-hub": "^0.2.4",
+        "opent2t": "^1.0.3"
+    },
+    "devDependencies": {
+        "optimist": "*",
+        "ava": "^0.18.2",
+        "es6-sleep": "*",
+        "opent2t-device-smartthingshub": "file:../../../org.opent2t.sample.hub.superpopular/com.smartthings.hub/test",
+        "opent2t-device-multisensor": "file:../../test"
+    }
+}
