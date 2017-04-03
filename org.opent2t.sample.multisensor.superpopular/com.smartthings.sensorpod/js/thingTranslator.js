@@ -1,6 +1,5 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
-var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -250,9 +249,9 @@ const deviceIds = {
 // This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.info('Initializing device.');
+    constructor(logger, deviceInfo) {
+        this.logger = logger;
+        this.logger.info('Initializing device.');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
@@ -260,7 +259,7 @@ class Translator {
         this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartthingsHub = deviceInfo.hub;
 
-        this.ConsoleLogger.info('SmartThings Sensorpod Translator initialized.');
+        this.logger.info('SmartThings Sensorpod Translator initialized.');
     }
 
     /**
