@@ -9,16 +9,6 @@ definition(
     iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
     oauth: true)
 
-definition(
-	name: "OpenT2T SmartApp Test",
-	namespace: "opent2t",
-	author: "OpenT2T",
-	description: "Test app to test end to end SmartThings scenarios via OpenT2T",
-	category: "SmartThings Labs",
-	iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-	iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-	iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
-
 /** --------------------+---------------+-----------------------+------------------------------------
  *  Device Type         | Attribute Name| Commands              | Attribute Values
  *  --------------------+---------------+-----------------------+------------------------------------
@@ -48,16 +38,16 @@ definition(
 //Device Inputs
 preferences {
 	section("Allow <PLACEHOLDER: Your App Name> to control these things...") {
-		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false
-		input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false
- 		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false
-		input "cameras", "capability.videoCapture", title: "Which Cameras?",  multiple: true, required: false
-		input "motionSensors", "capability.motionSensor", title: "Which Motion Sensors?", multiple: true, required: false
-		input "presenceSensors", "capability.presenceSensor", title: "Which Presence Sensors", multiple: true, required: false
-		input "switches", "capability.switch", title: "Which Switches and Lights?", multiple: true, required: false
-		input "thermostats", "capability.thermostat", title: "Which Thermostat?", multiple: true, required: false
-		input "waterSensors", "capability.waterSensor", title: "Which Water Leak Sensors?", multiple: true, required: false
-    }
+		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false, hideWhenEmpty: true
+		input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false, hideWhenEmpty: true
+ 		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false, hideWhenEmpty: true
+		input "cameras", "capability.videoCapture", title: "Which Cameras?",  multiple: true, required: false, hideWhenEmpty: true
+		input "motionSensors", "capability.motionSensor", title: "Which Motion Sensors?", multiple: true, required: false, hideWhenEmpty: true
+		input "presenceSensors", "capability.presenceSensor", title: "Which Presence Sensors", multiple: true, required: false, hideWhenEmpty: true
+		input "switches", "capability.switch", title: "Which Switches and Lights?", multiple: true, required: false, hideWhenEmpty: true
+		input "thermostats", "capability.thermostat", title: "Which Thermostat?", multiple: true, required: false, hideWhenEmpty: true
+		input "waterSensors", "capability.waterSensor", title: "Which Water Leak Sensors?", multiple: true, required: false, hideWhenEmpty: true
+	}
 }
 
 def getInputs() {
@@ -76,16 +66,6 @@ def getInputs() {
 
 //API external Endpoints
 mappings {
-	path("/subscriptionURL/:url") {
-		action: [
-			PUT: "updateEndpointURL"
-		]
-	}
-	path("/connectionId/:connId") {
-		action: [
-			PUT: "updateConnectionId"
-		]
-	}
 	path("/devices") {
 		action: [
 			GET: "getDevices"
@@ -101,7 +81,7 @@ mappings {
 		  PUT: "updateDevice"
 		]
 	}
-	 path("/subscription/:id") {
+	 path("/subscription") {
 		action: [
 		  POST: "registerDeviceChange",
 		  DELETE: "unregisterDeviceChange"
@@ -110,19 +90,25 @@ mappings {
 }
 
 def installed() {
-	log.debug "Installed with settings: ${settings}"
+	log.debug "Installing with settings: ${settings}"
 	initialize()
 }
 
 def updated() {
-	log.debug "Updated with settings: ${settings}"
+	log.debug "Updating with settings: ${settings}"
+	log.debug "subscriptionMap state: ${state.subscriptionMap}"
+	if(state.subscriptionMap == null){
+		state.subscriptionMap = [:]
+		log.debug "subscriptionMap created."
+	}
 	unsubscribe()
 	registerSubscriptions()
 }
 
 def initialize() {
-	state.connectionId = ""
-	state.endpointURL = "<PLACEHOLDER: Your HTTP endpoint to receive udpate notification>"
+	log.debug "Initializing with settings: ${settings}"
+	state.subscriptionMap = [:]
+	log.debug "subscriptionMap created."
 	registerSubscriptions()
 }
 
@@ -137,105 +123,126 @@ def registerChangeHandler(myList) {
 		def theAtts = myDevice.supportedAttributes
 		theAtts.each {att ->
 			subscribe(myDevice, att.name, eventHandler)
-			log.info "Registering ${myDevice.displayName}.${att.name}"
+			log.info "Subscribing for ${myDevice.displayName}.${att.name}"
 		}
 	}
 }
 
 //Endpoints function: Subscribe to events from a specific device
 def registerDeviceChange() {
-	def myDevice = findDevice(params.id)
+	def subcriptionEndpt = params.subscriptionURL
+	def deviceId = params.deviceId
+	def myDevice = findDevice(deviceId)
+	if( myDevice == null ){
+		httpError(404, "Cannot find device with device ID ${deviceId}.")
+	}
+    
 	def theAtts = myDevice.supportedAttributes
 	try {
 		theAtts.each {att ->
 			subscribe(myDevice, att.name, eventHandler)
-			log.info "Registering ${myDevice.displayName}.${att.name}"
 		}
-		return ["succeed"]
+        	log.info "Subscribing for ${myDevice.displayName}"
+        
+        	if(subcriptionEndpt != null){
+			if(state.subscriptionMap[deviceId] == null){
+				state.subscriptionMap.put(deviceId, [subcriptionEndpt]);
+				log.info "Added subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
+			}else if (!state.subscriptionMap[deviceId].contains(subcriptionEndpt)){
+				state.subscriptionMap[deviceId] << subcriptionEndpt
+				log.info "Added subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
+			}
+        	}
 	} catch (e) {
 		httpError(500, "something went wrong: $e")
 	}
+
+	log.info "Current subscription map is ${state.subscriptionMap}"
+	return ["succeed"]
 }
 
 //Endpoints function: Unsubscribe to events from a specific device
 def unregisterDeviceChange() {
-	def myDevice = findDevice(params.id)
+	def subcriptionEndpt = params.subscriptionURL
+	def deviceId = params.deviceId
+	def myDevice = findDevice(deviceId)
+    
+	if( myDevice == null ){
+		httpError(404, "Cannot find device with device ID ${deviceId}.")
+	}
+    
 	try {
-		unsubscribe(myDevice)
-		log.info "Unregistering ${myDevice.displayName}"
-		return ["succeed"]
+		if(subcriptionEndpt != null && subcriptionEndpt != "undefined"){
+			if (state.subscriptionMap[deviceId]?.contains(subcriptionEndpt)){
+				if(state.subscriptionMap[deviceId].size() == 1){
+					state.subscriptionMap.remove(deviceId)
+				} else {
+					state.subscriptionMap[deviceId].remove(subcriptionEndpt)
+				}
+				log.info "Removed subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
+			}
+        	} else {
+			unsubscribe(myDevice)
+			state.subscriptionMap.remove(deviceId)
+			log.info "Unsubscriping for ${myDevice.displayName}"
+		}
 	} catch (e) {
 		httpError(500, "something went wrong: $e")
 	}
+
+	log.info "Current subscription map is ${state.subscriptionMap}" 
 }
 
 //When events are triggered, send HTTP post to web socket servers
 def eventHandler(evt) {
-	def evt_device_id = evt.deviceId
-	def evt_device_value = evt.value
-	def evt_name = evt.name
 	def evt_device = evt.device
 	def evt_deviceType = getDeviceType(evt_device);
 	def deviceInfo
     
-    if(evt_deviceType == "thermostat")
-	{
-		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.getStatus(), deviceType:evt_deviceType, manufacturer:evt_device.getManufacturerName(), model:evt_device.getModelName(), attributes: deviceAttributeList(evt_device), locationMode: getLocationModeInfo()] 
-	}
-	else
-	{
-		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.getStatus(), deviceType:evt_deviceType, manufacturer:evt_device.getManufacturerName(), model:evt_device.getModelName(), attributes: deviceAttributeList(evt_device)]
+	if(evt_deviceType == "thermostat") {
+		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType), locationMode: getLocationModeInfo()]
+	} else {
+		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType)]
 	}
     
-	def params = [
-		uri: "${state.endpointURL}/${state.connectionId}",
-		body: [ deviceInfo ]
-	]
-	try {
+	def params = [ body: [ deviceInfo ] ]
+    
+	if(evt.data != null){
+		def evtData = parseJson(evt.data)
+		log.info "Received event for ${evt_device.displayName}, data: ${evtData},  description: ${evt.descriptionText}"
+	}
+    
+	//send event to all subcriptions urls
+	log.debug "Current subscription urls for ${evt_device.displayName} is ${state.subscriptionMap[evt_device.id]}"
+	state.subscriptionMap[evt_device.id].each {
+		params.uri = "${it}"
 		log.trace "POST URI: ${params.uri}"
 		log.trace "Payload: ${params.body}"
-		httpPostJson(params) { resp ->
-			resp.headers.each {
-				log.debug "${it.name} : ${it.value}"
+		try{
+			httpPostJson(params) { resp ->
+				log.trace "response status code: ${resp.status}"
+				log.trace "response data: ${resp.data}"
 			}
-			log.trace "response status code: ${resp.status}"
-			log.trace "response data: ${resp.data}"
+		} catch (e) {
+			log.error "something went wrong: $e"
 		}
-	} catch (e) {
-		log.debug "something went wrong: $e"
 	}
-}
-
-//Endpoints function: update subcription endpoint url [state.endpoint]
-void updateEndpointURL() {
-	state.endpointURL = params.url
-	log.info "Updated EndpointURL to ${state.endpointURL}"
-}
-
-//Endpoints function: update global variable [state.connectionId]
-void updateConnectionId() {
-	def connId = params.connId
-	state.connectionId = connId
-	log.info "Updated ConnectionID to ${state.connectionId}"
 }
 
 //Endpoints function: return all device data in json format
 def getDevices() {
 	def deviceData = [] 
-    inputs?.each {
+	inputs?.each {
 		def deviceType = getDeviceType(it)
-		if(deviceType == "thermostat")
-		{
-			deviceData << [name: it.displayName, id: it.id, status:it.getStatus(), deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it), locationMode: getLocationModeInfo()] 
-		}
-		else
-		{
-			deviceData << [name: it.displayName, id: it.id, status:it.getStatus(), deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
+		if(deviceType == "thermostat") {
+			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType), locationMode: getLocationModeInfo()]
+		} else {
+			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType)]
 		} 
-    }
+	}
  
 	log.debug "getDevices, return: ${deviceData}"
-	return deviceData 
+	return deviceData
 }
 
 //Endpoints function: get device data
@@ -243,14 +250,12 @@ def getDevice() {
 	def it = findDevice(params.id)
 	def deviceType = getDeviceType(it)
 	def device
-	if(deviceType == "thermostat")
-	{
-		device = [name: it.displayName, id: it.id, status:it.getStatus(), deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it), locationMode: getLocationModeInfo()] 
+	if(deviceType == "thermostat") {
+		device = [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it,deviceType), locationMode: getLocationModeInfo()]
+	} else {
+		device = [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType)]
 	}
-	else
-	{
-		device = [name: it.displayName, id: it.id, status:it.getStatus(), deviceType:deviceType, manufacturer:it.getManufacturerName(), model:it.getModelName(), attributes: deviceAttributeList(it)]
-	}   
+
 	log.debug "getDevice, return: ${device}"
 	return device
 }
@@ -290,7 +295,7 @@ void updateDevice() {
 				log.error "updateDevice, Device not found"
 				httpError(404, "Device not found")
 			} else if (!device.hasCommand(command)) {
-				log.error "updateDevice, Device does not have the command"			
+				log.error "updateDevice, Device does not have the command"
 				httpError(404, "Device does not have such command")
 			} else {
 				if (command == "setColor") {
@@ -326,50 +331,45 @@ private getDeviceType(device) {
 	log.debug "capabilities: [${device}, ${capabilities}]"
 	log.debug "supported commands: [${device}, ${device.supportedCommands}]"
     
-    //Loop through the device capability list to determine the device type.
+	//Loop through the device capability list to determine the device type.
 	capabilities.each {capability ->
 		switch(capability.name.toLowerCase())
 		{
 			case "switch":
-            	deviceType = "switch"
+				deviceType = "switch"
 
-                //If the device also contains "Switch Level" capability, identify it as a "light" device.
-                if (capabilities.any{it.name.toLowerCase() == "switch level"}){
+				//If the device also contains "Switch Level" capability, identify it as a "light" device.
+				if (capabilities.any{it.name.toLowerCase() == "switch level"}){
                 	
 					//If the device also contains "Power Meter" capability, identify it as a "dimmerSwitch" device.
 					if (capabilities.any{it.name.toLowerCase() == "power meter"}){
-                		deviceType = "dimmerSwitch"
+						deviceType = "dimmerSwitch"
 						return deviceType
-                	} else {
+					} else {
 						deviceType = "light"
 						return deviceType
 					}
-                }
+				}
 				break
-			case "contact sensor":
-				deviceType = "contactSensor"
-                return deviceType
 			case "garageDoorControl":
 				deviceType = "garageDoor"
-                return deviceType
+				return deviceType
 			case "lock":
 				deviceType = "lock"
-                return deviceType
+				return deviceType
 			case "video camera":
 				deviceType = "camera"
-                return deviceType
-			case "motion sensor":
-				deviceType = "motionSensor"
-                return deviceType
-			case "presence sensor":
-				deviceType = "presenceSensor"
-                return deviceType
+				return deviceType
 			case "thermostat":
 				deviceType = "thermostat"
-                return deviceType
+				return deviceType    
+			case "acceleration sensor":
+			case "contact sensor":
+			case "motion sensor":
+			case "presence sensor":
 			case "water sensor":
-				deviceType = "waterSensor"
-                return deviceType
+				deviceType = "genericSensor"
+				return deviceType
 			default:
 				break
 		}
@@ -383,14 +383,33 @@ private findDevice(deviceId) {
 }
  
 //Return a list of device attributes
-private deviceAttributeList(device) {
-	device.supportedAttributes.collectEntries { attribute->
-		try {
-			[ (attribute.name): device.currentValue(attribute.name) ]
+private deviceAttributeList(device, deviceType) {
+	def attributeList = [:]
+	def allAttributes = device.supportedAttributes
+	allAttributes.each { attribute ->
+        	try {
+			def currentState = device.currentState(attribute.name)
+            		if(currentState != null ){
+                		switch(attribute.name){
+                    		case 'temperature':
+                        		attributeList.putAll([ (attribute.name): currentState.value, 'temperatureScale':location.temperatureScale ])
+                        		break;
+	                    	default:
+        	                	attributeList.putAll([(attribute.name): currentState.value ])
+                	        	break;
+                		}
+                		if( deviceType == "genericSensor" ){
+                    			def key = attribute.name + "_lastUpdated"
+                			attributeList.putAll([ (key): currentState.isoDate ])
+                		}
+	            	} else {
+            			attributeList.putAll([ (attribute.name): null ]);
+            		}
 		} catch(e) {
-			[ (attribute.name): null ]
+			attributeList.putAll([ (attribute.name): null ]);
 		}
 	}
+    return attributeList
 }
 
 //Map device command and value. 

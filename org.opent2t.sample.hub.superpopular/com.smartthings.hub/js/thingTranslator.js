@@ -87,7 +87,7 @@ class Translator {
         var putPayloadString = JSON.stringify(putPayload);
         return this._makeRequest(endpointUri, this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
             .then((result) => {
-                if (result === "succeed") {
+                if (result === ["succeed"]) {
                     return this.getDeviceDetailsAsync(endpointUri, deviceId);
                 }
                 return undefined;
@@ -109,10 +109,9 @@ class Translator {
      * and on the hub translator (this) for verification.
      */
     _subscribe(subscriptionInfo) {
-        var requestPath = this._subcriptionPath + '/' + subscriptionInfo.controlId;
-        var jsonPayload = { subcriptionURL: subscriptionInfo.callbackUrl};
-        var payloadString = JSON.stringify(jsonPayload);
-        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', payloadString);
+        var requestPath = this._subcriptionPath + '?deviceId=' + subscriptionInfo.controlId 
+                                            + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
+        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', "");
     }
 
     /**
@@ -120,7 +119,8 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        var requestPath = this._subcriptionPath + '/' + subscriptionInfo.controlId;
+        var requestPath = this._subcriptionPath + '?deviceId=' + subscriptionInfo.controlId 
+                                            + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
         return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'DELETE');
     }
 
@@ -254,11 +254,12 @@ class Translator {
         return request(options)
             .then(function (body) {
 
+                //Since PUT and DELETE does not return with "success" status in its response payload,
+                //we assume 0-length body is success. Otherwise a error would thrown.
+                //http://docs.smartthings.com/en/latest/smartapp-web-services-developers-guide/smartapp.html#defaults 
                 if (method === 'PUT' || method === 'DELETE') {
-                    // TODO: Why is this check below in the first place? 
-                    // It seems very weird to check 0 length body
                     if (body.length === 0) {
-                        return "succeed";
+                        return ["succeed"];
                     } else {
                         let errorMsg = "Non-zero length body for PUT/DELETE call to SmartThings";
                         this.ConsoleLogger.warn(errorMsg);
