@@ -20,7 +20,7 @@ var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait f
  */
 function getDictionaryItemCaseInsensitive(obj, propertyName) {
     var upperName = propertyName.toUpperCase();
-    for(var name in obj) {
+    for (var name in obj) {
         if (upperName === name.toUpperCase()) {
             return obj[name];
         }
@@ -38,7 +38,7 @@ class Translator {
         this._devicesPath = '/users/me/wink_devices';
         this._oAuthPath = '/oauth2/token';
         this._name = "Wink Hub";
-        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
+        this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
 
     /**
@@ -82,14 +82,20 @@ class Translator {
                 }
             }
 
-            // Return the verified payload
-            return this._providerSchemaToPlatformSchema(payloadAsObject, expand);
+            // Payload may be a device graph update, in Wink's case, the body payload will contain an array of "objects"
+            // {object_id: "...", object_type: "..."} but will not include state.  Without state, we can't even make non expanded platform schemas
+            // as there is no way to know what resources would be supported where they are optional (a light_bulb object_type optionally supports access
+            // colourRGB resource).
+            // In the case of a device graph update, fall through to the _makeRequest/_providerSchemaToPlatformSchema combo below.
+            if (!payloadAsObject.hasOwnProperty('objects')) {
+                // Return the verified payload
+                return this._providerSchemaToPlatformSchema(payloadAsObject, expand);
+            }
         }
-        else {
-            return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-                return this._providerSchemaToPlatformSchema(response.data, expand);
-            });
-        }
+
+        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
+            return this._providerSchemaToPlatformSchema(response.data, expand);
+        });
     }
 
     /**
@@ -127,13 +133,12 @@ class Translator {
     /**
      * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
-    refreshAuthToken(authInfo) {  
-        if (!authInfo){
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput); 
+    refreshAuthToken(authInfo) {
+        if (!authInfo) {
+            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
         }
 
-        if (authInfo.length !== 2)
-        {
+        if (authInfo.length !== 2) {
             // We expect the original authInfo object used in the onboarding flow
             // not defining a brand new type for the Refresh() contract and re-using
             // what is defined for Onboarding()
@@ -148,9 +153,8 @@ class Translator {
             'refresh_token': this._authTokens['refresh'].token,
         });
 
-        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body)=>
-        {
-            
+        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body) => {
+
             // _makeRequest() already returns a JSON representation of the POST response body
             // return the auth properties out in our own response back
 
@@ -159,7 +163,7 @@ class Translator {
             // so am assuming the caller of this API will expect nulls
 
             var expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds);
-            
+
             this._authTokens['refresh'].token = body.refresh_token;
             this._authTokens['refresh'].expiration = expiration
 
@@ -192,7 +196,7 @@ class Translator {
 
             // Get the opent2t schema and translator for the wink device
             var opent2tInfo = this._getOpent2tInfo(winkDevice);
-            
+
             if (!opent2tInfo) {
                 // Platforms without translators should be recorded as errors, but can be safely ignored.
                 toReturn.errors.push(new OpenT2TError(404, `${OpenT2TConstants.UnknownPlatform}: ${winkDevice.model_name}`));
@@ -203,7 +207,7 @@ class Translator {
                 deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
 
                 // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                     .then((translator) => {
 
                         // Use get to translate the Wink formatted device that we already got in the previous request.
@@ -231,6 +235,16 @@ class Translator {
                 }));
                 return toReturn;
             });
+    }
+
+    /**
+     * Gets the subscription modes supported by this provider and translator
+     */
+    getSubscribe() {
+        // Wink also supports streaming (via PubNub), but it is currently NotImplemented by this translator.
+        return {
+            supportedModes: ['postbackUrl', 'polling']
+        }
     }
 
     /**
@@ -273,8 +287,8 @@ class Translator {
             // Verify a subscription request by constructing the appropriate response
 
             var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
-        
-            switch(params.query['hub.mode']) {
+
+            switch (params.query['hub.mode']) {
                 case "denied":
                     // The subscription cannot be completed, access was denied.
                     // This is likely due to a bad access token.
@@ -301,47 +315,60 @@ class Translator {
         else if (subscriptionInfo.callbackUrl) {
             // If a callbackUrl is provided without a verification request, then it is a new subscription or a refresh.
 
-            var requestPath = "";
+            // Get the subscription request path for this subscription type.
+            return this._getCallbackSubscriptionRequestPath(subscriptionInfo).then((requestPath) => {
+                // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
+                // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
+                // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
 
-            if (subscriptionInfo.deviceType && subscriptionInfo.deviceId) {
-                // Platform level subscription
-                requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions';
-            }
-            else {
-                // Provider/Hub level subscription
-                // Subscribing to Wink as a provider (to receive notification of device add/delete etc.) will likely be
-                // possible in the future.  This should just require a different request path, but for now it's an error
-                throw new OpenT2TError(400, OpenT2TConstants.MustSubscribeToDevice);
-            }
+                // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
+                // with another call to this function.
 
-            // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
-            // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
-            // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
+                var postPayload = {
+                    callback: subscriptionInfo.callbackUrl
+                }
 
-            // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
-            // with another call to this function.
+                // Secret provided for computing HMAC verification of the payload
+                // this is optional to Wink
+                if (subscriptionInfo.key) {
+                    postPayload.secret = subscriptionInfo.key;
+                }
 
-            var postPayload = {
-                callback: subscriptionInfo.callbackUrl
-            }
+                var postPayloadString = JSON.stringify(postPayload);
 
-            // Secret provided for computing HMAC verification of the payload
-            // this is optional to Wink
-            if (subscriptionInfo.key) {
-                postPayload.secret = subscriptionInfo.key;
-            }
-
-            var postPayloadString = JSON.stringify(postPayload);
-
-            return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
-                // Return the expiration time for the subscription
-                return {
-                    expiration: response.data.expires_at
-                };
-            })
-        } 
+                return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
+                    // Return the expiration time for the subscription
+                    return {
+                        expiration: response.data.expires_at
+                    };
+                })
+            });
+        }
     }
 
+    /**
+     * Gets the request path for the subscription depending on whether it should subscribe to a single platform or to 
+     * device graph updates on the Wink account.
+     */
+    _getCallbackSubscriptionRequestPath(subscriptionInfo) {
+        if (subscriptionInfo.deviceType && subscriptionInfo.deviceId) {
+            // Platform level subscription
+            return Promise.resolve(`/${subscriptionInfo.deviceType}/${subscriptionInfo.deviceId}/subscriptions`);
+        }
+        else {
+            // Subscribe to device graph updates.
+            // Wink provides a .all groupd at /groups/.all which can be subscribed to for both device graph updates
+            // and ALL platform updates.  Since platform updates can be subscribed to individually, we'll use a different
+            // subscription URL for Wink device changes.
+            // If in the future, support for subscribing to all platforms at once is needed, here is how it will need to be done:
+            //      1. GET to /groups/.all
+            //      2. Retrieve the group_id from the result to get the ID associated with the .all group
+            //      3. POST subscription request to /groups/${group_id}/subscription
+            // For now, just subscribe to device updates found at the following url.
+
+            return Promise.resolve('/users/me/wink_devices/subscriptions');
+        }
+    }
     /**
      * Unsubscribes from an existing Wink pubsubhubbub feed.  The subscription id for a
      * topic is not cached, so this results in 2 web calls:
@@ -357,7 +384,7 @@ class Translator {
      * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to
      * @returns {Object} Expiration of the subscription (expired)
      */
-     _unsubscribe(subscriptionInfo) {
+    _unsubscribe(subscriptionInfo) {
         var subscriptionsToDelete = [];
         // Find the subscription ID for this callback URL
         return this._getSubscriptions(subscriptionInfo.deviceType, subscriptionInfo.deviceId).then((subscriptions) => {
@@ -404,19 +431,19 @@ class Translator {
     */
     _getOpent2tInfo(winkDevice) {
         if (winkDevice.thermostat_id) {
-            return { 
+            return {
                 "schema": 'org.opent2t.sample.thermostat.superpopular',
                 "translator": "opent2t-translator-com-wink-thermostat"
             };
         }
         else if (winkDevice.binary_switch_id) {
-            return { 
+            return {
                 "schema": 'org.opent2t.sample.binaryswitch.superpopular',
                 "translator": "opent2t-translator-com-wink-binaryswitch"
             };
         }
         else if (winkDevice.light_bulb_id) {
-            return { 
+            return {
                 "schema": 'org.opent2t.sample.lamp.superpopular',
                 "translator": "opent2t-translator-com-wink-lightbulb"
             };
@@ -427,16 +454,16 @@ class Translator {
                 "translator": "opent2t-translator-com-wink-sensorpod"
             };
         }
-        
+
         return undefined;
     }
-    
+
     /**
      * Internal helper method which makes the actual request to the wink service
      */
     _makeRequest(path, method, content, includeBearerHeader) {
-       
-        includeBearerHeader = (includeBearerHeader !== undefined) ?  includeBearerHeader : true;
+
+        includeBearerHeader = (includeBearerHeader !== undefined) ? includeBearerHeader : true;
 
         // build request URI
         var requestUri = this._baseUrl + path;
@@ -470,11 +497,11 @@ class Translator {
             .then(function (body) {
                 return JSON.parse(body);
             })
-            .catch((err) => {                
-                this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`); 
+            .catch((err) => {
+                this.ConsoleLogger.error(`Request failed to: ${options.method} - ${options.url}`);
                 return Promise.reject(err);
             }).bind(this); //Pass in the context via bind() to use instance variables
-            
+
     }
 
     /**

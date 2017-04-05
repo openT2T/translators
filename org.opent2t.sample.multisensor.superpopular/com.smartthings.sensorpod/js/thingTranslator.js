@@ -1,20 +1,9 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TLogger = require('opent2t').Logger;
-var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
-
-/**
- * Generate a GUID for given an ID.
- *
- * TODO: This method should be moved to a shared location for all translators
- */
-function generateGUID(stringID) {
-    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
-    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
-}
 
 /**
  * Validates an argument matches the expected type.
@@ -39,7 +28,7 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new OpenT2TError(404, `Entity: ${di} for resourceId:  ${resourceId} not found.`);
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
     }
 
     var resource = entity.resources.find((r) => {
@@ -47,73 +36,28 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!resource) {
-        throw new OpenT2TError(404, `Resource with resourceID: ${resourceId} not found.`);
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
     }
     
     return resource;
 }
 
 /**
- * Wink does not always populate every desired_state property, but last_reading doesn't necessarily
- * update as soon as we send our PUT request. Instead of relying just on one state or the other,
- * we use this StateReader class to read from desired_state if it is there, and fall back to last_reading
- * if it is not.
- */
-class StateReader {
-    constructor(desired_state, last_reading) {
-        this.desired_state = desired_state;
-        this.last_reading = last_reading;
-    }
-
-    get(state) {
-        if (this.desired_state[state] !== undefined) {
-            return this.desired_state[state];
-        }
-        else {
-            return this.last_reading[state];
-        }
-    }
-
-    containsKey(state) {
-        return (state in this.desired_state ||
-                state in this.last_reading); 
-    }
-}
-
-function convertDeviceDateToTranslatorDate(unixTimestamp) {
-    // Only convert if input is valid numeric value
-    if (unixTimestamp && !isNaN(unixTimestamp)) { 
-        // Date takes a number of milliseconds, so convert seconds to milliseconds
-        var datetime = new Date(unixTimestamp * 1000);
-        return datetime.toISOString();
-    }
-
-    // for all other invalid input return undefined
-    return undefined;
-}
-
-function convertDeviceBatteryToTranslatorBattery(batteryValue) {
-    return Math.round(batteryValue * 100);
-}
-
-/**
- * Returns a default value if the specified property is null, undefined, or an empty string only
+ * Returns a default value if the specified property is null, undefined, or an empty string
  */
 function defaultValueIfEmpty(property, defaultValue) {
-    if (property === undefined || 
-        property === null || 
-        property === "") {
+    if (property === undefined || property === null || property === "") {
         return defaultValue;
     } else {
         return property;
     }
 }
 
-function createEntity(name, resourceType, resources, controlId) {
+function createEntity(name, resourceType, resources) {
     return {
         n: name,
         rt: [resourceType],
-        di: generateGUID(controlId + resourceType),
+        di: deviceIds[resourceType],
         icv: 'core.1.1.0',
         dmv: 'res.1.1.0',
         resources: resources
@@ -135,211 +79,188 @@ function createResource(resourceType, accessLevel, id, expand, state) {
     return resource;
 }
 
-/**
- * Retrieves the _changed_at value for the given property as date value if available.
- * If not, it will try to retrieve the the _updated_at value.
- * If that is also not available it will return undefined.
- * @param {*} stateReader 
- * @param {*} property 
- * @param {*} expand 
- * @param {*} logger 
- */
-function getLastChangedResource(stateReader, property, expand, logger) {
-    
-    if (!logger) {
-        logger = new OpenT2TLogger("info");
-    }
-    
-    let lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_changed_at'));
-
-    if (!lastChangedTime) {
-        logger.warn(`Failed to retrieve '_changed_at time' for property ${property}`);
-        logger.warn(`Attempting to retrieve '_updated_at' for property ${property} instead`);
-        lastChangedTime = convertDeviceDateToTranslatorDate(stateReader.get(property + '_updated_at'));
-    
-        if (!lastChangedTime) {
-            logger.warn(`Failed to retrieve neither '_updated_at_' nor '_changed_at_' for ${property}`);
-        }
-    }
-    
-    logger.info(`Returning value '${lastChangedTime}' for lastChangedResource- ${property}`);
+function getLastChangedResource(expand, timeStamp) {
     return createResource('opent2t.r.timestamp', 'oic.if.s', 'lastchanged', expand, {
-        timestamp: lastChangedTime
+        timestamp: timeStamp
     });
 }
 
 /**
- * Converts a representation of a platform from the Wink API into an OCF representation.
+ * Converts a representation of a platform from the SmartThings API into an OCF representation.
  */
-function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
-    var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
-
-    var controlId = providerSchema['object_id'];
+function providerSchemaToPlatformSchema(providerSchema, expand) {
+    var attributes = providerSchema.attributes;
+    
     var name = providerSchema['name'];
     var entities = [];
 
-    if (stateReader.containsKey('brightness')) {
-        var brightnesschange = createResource('oic.r.sensor', 'oic.if.s', 'brightnesschange', expand, {
-            value: stateReader.get('brightness')
-        });
-
-        entities.push(createEntity(name, 'opent2t.d.sensor.brightnesschange', [
-            brightnesschange,
-            getLastChangedResource(stateReader, 'brightness', expand, logger)
-        ],
-        controlId));
-    }
-
-    if (stateReader.containsKey('opened')) {
+    if ('contact' in attributes) {
         var contact = createResource('oic.r.sensor.contact', 'oic.if.s', 'contact', expand, {
-            value: stateReader.get('opened')
+            value: attributes['contact'] === 'open'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.contact', [
             contact,
-            getLastChangedResource(stateReader, 'opened', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['contact_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('humidity')) {
-        var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
-            humidity: Math.round(100 * stateReader.get('humidity'))
-        });
-
-        entities.push(createEntity(name, 'opent2t.d.sensor.humidity', [
-            humidity,
-            getLastChangedResource(stateReader, 'humidity', expand, logger)
-        ],
-        controlId));
-    }
-
-    if (stateReader.containsKey('locked')) {
+    if ('lock' in attributes) {
         var locked = createResource('oic.r.sensor', 'oic.if.s', 'locked', expand, {
-            value: stateReader.get('locked')
+            value: attributes['lock'] === 'locked'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.locked', [
             locked,
-            getLastChangedResource(stateReader, 'locked', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['lock_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('loudness')) {
+    if ('humidity' in attributes) {
+        var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
+            humidity: attributes['humidity']
+        });
+
+        entities.push(createEntity(name, 'opent2t.d.sensor.humidity', [
+            humidity,
+            getLastChangedResource(expand, attributes['humidity_lastUpdated'])
+        ]));
+    }
+
+    if ('sound' in attributes) {
         var loudnesschange = createResource('oic.r.sensor', 'oic.if.s', 'loudnesschange', expand, {
-            value: stateReader.get('loudness')
+            value: attributes['sound'] === 'detected'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.loudnesschange', [
             loudnesschange,
-            getLastChangedResource(stateReader, 'loudness', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['sound_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('motion')) {
+    if ('motion' in attributes) {
         var motion = createResource('oic.r.sensor.motion', 'oic.if.s', 'motion', expand, {
-            value: stateReader.get('motion')
+            value: attributes['motion'] === 'active'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.motion', [
             motion,
-            getLastChangedResource(stateReader, 'motion', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['motion_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('occupied')) {
+    if ('presence' in attributes) {
         var presence = createResource('oic.r.sensor.presence', 'oic.if.s', 'presence', expand, {
-            value: stateReader.get('occupied')
+            value: attributes['presence'] === 'present'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.presence', [
             presence,
-            getLastChangedResource(stateReader, 'occupied', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['presence_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('temperature')) {
+    if ('temperature' in attributes) {
         var temperature = createResource('oic.r.temperature', 'oic.if.s', 'temperature', expand, {
-            temperature: stateReader.get('temperature'),
-            units: "C"
+            temperature: attributes['temperature'],
+            units: attributes['temperatureScale'].toLowerCase()
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.temperature', [
             temperature,
-            getLastChangedResource(stateReader, 'temperature', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['temperature_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('vibration')) {
+    if ('acceleration' in attributes) {
         var vibrationchange = createResource('oic.r.sensor', 'oic.if.s', 'vibrationchange', expand, {
-            value: stateReader.get('vibration')
+            value: attributes['acceleration'] === 'active'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.vibrationchange', [
             vibrationchange,
-            getLastChangedResource(stateReader, 'vibration', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['acceleration_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('liquid_detected')) {
+    if ('water' in attributes) {
         var water = createResource('oic.r.sensor.water', 'oic.if.s', 'water', expand, {
-            value: stateReader.get('liquid_detected')
+            value: attributes['liquid_detected'] === 'wet'
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.water', [
             water,
-            getLastChangedResource(stateReader, 'liquid_detected', expand, logger)
-        ],
-        controlId));
+            getLastChangedResource(expand, attributes['water_lastUpdated'])
+        ]));
     }
 
-    if (stateReader.containsKey('battery')) {
+
+    if ('battery' in attributes) {
         var battery = createResource('oic.r.energy.battery', 'oic.if.s', 'battery', expand, {
-            charge: convertDeviceBatteryToTranslatorBattery(stateReader.get('battery'))
+            charge: attributes['battery']
         });
 
         entities.push(createEntity(name, 'opent2t.d.battery', [
             battery
-        ],
-        controlId));
+        ]));
     }
 
     return {
         opent2t: {
             schema: 'org.opent2t.sample.multisensor.superpopular',
-            translator: 'opent2t-translator-com-wink-sensorpod',
-            controlId: providerSchema['object_id']
+            translator: 'opent2t-translator-com-smartthings-sensorpod',
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
         },
-        pi: providerSchema['uuid'],
-        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
-        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Sensor (Generic)"),
+        pi: providerSchema['id'],
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Sensor (Generic)"),
         n: providerSchema['name'],
         rt: ['org.opent2t.sample.multisensor.superpopular'],
         entities: entities
     };
 }
 
+// Each device in the platform has is own unique static identifier
+const deviceIds = {
+    'opent2t.d.sensor.acceleration': 'F86B44C9-C2B3-4BE4-AAAA-CABEF061DB3F',
+    'opent2t.d.sensor.airquality': '2F64C336-79DB-42DC-9567-E139C8484C78',
+    'opent2t.d.sensor.atmosphericpressure': '393C4D30-9413-4621-9B35-FEA3A2306B6C',
+    'opent2t.d.sensor.brightnesschange': '8CC43FB7-1442-4FA0-9020-8A56F4D5BEEE',
+    'opent2t.d.sensor.carbondioxide': '69ECE9A9-A0F3-4FAD-AB23-A77BF0EAE23D',
+    'opent2t.d.sensor.carbonmonoxide': '58EA654B-4269-4CB7-9BE2-D04F9B8E7931',
+    'opent2t.d.sensor.contact': '67D227BD-376A-4DA8-BAB5-90E95B977EE0',
+    'opent2t.d.sensor.combustiblegas': 'C27A2C67-01FF-4D8A-ADA0-ED2686D21247',
+    'opent2t.d.sensor.glassbreak': '6D455474-93B1-4F02-84FD-E5D090C2E6DB',
+    'opent2t.d.sensor.humidity': 'B8F8AAF3-6688-44D0-8EE7-7FD525672475',
+    'opent2t.d.sensor.illuminance': '2678A774-A65C-4701-B8CE-2B6B5CADDEE8',
+    'opent2t.d.sensor.locked': 'B9B3E572-0FB7-4F9D-A8B1-BF90DB120FBB',
+    'opent2t.d.sensor.loudnesschange': 'BC47CB27-C234-46D7-B03F-8CDC1D52F5B3',
+    'opent2t.d.sensor.motion': '63E5A41E-7283-4BA6-A3A8-21AE3C18C17F',
+    'opent2t.d.sensor.presence': 'F0FDF054-C8FF-44CD-AE1D-BD129AB4FF99',
+    'opent2t.d.sensor.temperature': 'E7FA6B8B-4B8B-4172-840A-00414BA5055E',
+    'opent2t.d.sensor.uvradiation': '8E15BE1A-68CF-46BF-B625-7C1CBD4AF968',
+    'opent2t.d.sensor.vibrationchange': 'D38E580A-C4E2-45C5-A316-5A685553B868',
+    'opent2t.d.sensor.smoke': '0CAA68B9-A7D3-46E1-8C99-3606F1BA41AE',
+    'opent2t.d.sensor.touch': 'CD5AB9DA-EB5C-4483-9610-6C20961246BC',
+    'opent2t.d.sensor.water': '6726E344-8471-4A99-90D4-403EFD961936',
+    'opent2t.d.battery': '06C47089-1049-46CF-BB64-74F7E7C4F501'
+}
+
 // This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.
 class Translator {
 
     constructor(deviceInfo, logLevel = "info") {
-
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
         this.ConsoleLogger.info('Initializing device.');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
-        this.winkHub = deviceInfo.hub;
-        this.deviceType = 'sensor_pods';
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
+        this.smartthingsHub = deviceInfo.hub;
 
-        this.ConsoleLogger.info('Wink Sensorpod Translator initialized.');
+        this.ConsoleLogger.info('SmartThings Sensorpod Translator initialized.');
     }
 
     /**
@@ -348,13 +269,14 @@ class Translator {
      */
     get(expand, payload) {
         if (payload) {
-            return providerSchemaToPlatformSchema(payload, expand, this.ConsoleLogger);
-        } else {
-            return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
+            return providerSchemaToPlatformSchema(payload, expand);
+        }
+        else {
+            return this.smartthingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
-                    return providerSchemaToPlatformSchema(response.data, expand, this.ConsoleLogger);
+                    return providerSchemaToPlatformSchema(response, expand);
                 });
-            }
+        }
     }
 
     /**
@@ -469,14 +391,14 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
-        subscriptionInfo.deviceType = this.deviceType;
-        return this.winkHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartthingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
-        subscriptionInfo.deviceType = this.deviceType;
-        return this.winkHub._unsubscribe(subscriptionInfo);
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartthingsHub._unsubscribe(subscriptionInfo);
     }
 }
 

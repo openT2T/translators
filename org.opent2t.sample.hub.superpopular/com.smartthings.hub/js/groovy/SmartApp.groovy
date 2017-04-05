@@ -111,7 +111,6 @@ def initialize() {
 	log.debug "subscriptionMap created."
 	registerSubscriptions()
 }
-
 //Subscribe events for all devices
 def registerSubscriptions() {
 	registerChangeHandler(inputs)
@@ -197,7 +196,7 @@ def unregisterDeviceChange() {
 def eventHandler(evt) {
 	def evt_device = evt.device
 	def evt_deviceType = getDeviceType(evt_device);
-	def deviceInfo
+    def deviceInfo
     
 	if(evt_deviceType == "thermostat") {
 		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType), locationMode: getLocationModeInfo()]

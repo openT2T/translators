@@ -3,7 +3,6 @@
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var InsteonConstants = require('./constants');
-
 var crypto = require('crypto');
 var OpenT2TLogger = require('opent2t').Logger;
 
@@ -48,7 +47,7 @@ function findResource(schema, di, resourceId) {
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
 }
 
 var deviceHvacModeToTranslatorHvacModeMap = {
@@ -188,7 +187,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: thermostatDeviceDi,
+                di: generateGUID( providerSchema['DeviceID'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -265,8 +264,6 @@ function validateResourceGet(resourceId) {
     }
 }
 
-const thermostatDeviceDi = "6d3b1cbc-2532-44ba-80f5-a41b60213c04";
-
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
@@ -312,7 +309,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === thermostatDeviceDi) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.thermostat' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)

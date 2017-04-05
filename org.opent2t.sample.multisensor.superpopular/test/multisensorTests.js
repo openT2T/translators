@@ -235,15 +235,19 @@ function runMultisensorTests(settings) {
             return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesLastchanged', [deviceIds['opent2t.d.sensor.motion']])
                 .then((response) => {
                     t.is(response.rt[0], 'opent2t.r.timestamp');
-                    let testChangedAt = testSettings.inputLastReading["motion_changed_at"];
-                    let testUpdatedAt = testSettings.inputLastReading["motion_updated_at"];
-                    if ((!testChangedAt || isNaN(testChangedAt))
-                        && (!testUpdatedAt || isNaN(testUpdatedAt))) { 
-                        t.true(response.timestamp === undefined, "Expected undefined value for motion-lastchanged");
-                    }
-                    else {
+                    if(testSettings.inputLastReading !== undefined) { //Wink-Only
+                        let testChangedAt = testSettings.inputLastReading["motion_changed_at"];
+                        let testUpdatedAt = testSettings.inputLastReading["motion_updated_at"];
+                        if ((!testChangedAt || isNaN(testChangedAt))
+                            && (!testUpdatedAt || isNaN(testUpdatedAt))) { 
+                            t.true(response.timestamp === undefined, "Expected undefined value for motion-lastchanged");
+                        } else {
+                            t.true(response.timestamp !== undefined, "Expected a valid datetime value for motion-lastchanged");
+                        }
+                    } else {    //Other Providers
                         t.true(response.timestamp !== undefined, "Expected a valid datetime value for motion-lastchanged");
                     }
+
                     t.true(response.id === 'lastchanged');
                 });
             });

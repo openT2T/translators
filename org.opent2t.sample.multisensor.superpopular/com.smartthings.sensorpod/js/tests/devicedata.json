@@ -1,0 +1,39 @@
+{   "base_state" :
+    {   "attributes" :
+        {
+            "acceleration": "inactive",
+            "acceleration_lastUpdated": "2017-03-15T05:47:01.990Z",
+            "battery": "67",
+            "battery_lastUpdated": "2017-03-14T20:07:50.481Z",
+            "contact": "closed",
+            "contact_lastUpdated": "2017-03-15T05:31:12.305Z",
+            "lock": "locked",
+            "lock_lastUpdated": "2017-03-14T05:32:45.325Z",
+            "motion": "inactive",
+            "motion_lastUpdated": "2017-03-15T03:12:30.415Z",
+            "presence": "present",
+            "presence_lastUpdated": "2017-03-14T02:20:31.465Z",
+            "temperature": "73",
+            "temperatureScale": "F",
+            "temperature_lastUpdated": "2017-03-15T03:54:59.836Z",
+            "sound": "detected",
+            "sound_lastUpdated": "2016-10-25T09:04:49.858Z",
+            "water": "dry",
+            "water_lastUpdated": "2016-10-25T10:06:36.756Z",
+            "checkInterval": "7260",
+            "checkInterval_lastUpdated": "2016-12-12T22:14:59.462Z",
+            "status": "closed",
+            "status_lastUpdated": "2017-03-15T05:31:12.325Z"
+        },
+        "id" : "c07d4da8-18f2-4e93-9259-e96fdc8fb636",
+        "manufacturer" : "Mock Manufacturer",
+        "model" : "Mock Model",
+        "name" : "Mock Name",
+        "deviceType" : "genericSensor",
+        "status" : "ONLINE",
+        "endpointUri": "https://sample.endpoint.com/123"
+    },
+    "test_data" :
+    {
+    }
+}
