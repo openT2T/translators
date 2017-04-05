@@ -94,7 +94,7 @@ class Translator {
         var putPayloadString = JSON.stringify(putPayload);
         return this._makeRequest(endpointUri, this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
             .then((result) => {
-                if (result === ["succeed"]) {
+                if (result[0] === 'succeed') {
                     return this.getDeviceDetailsAsync(endpointUri, deviceId);
                 }
                 return undefined;
