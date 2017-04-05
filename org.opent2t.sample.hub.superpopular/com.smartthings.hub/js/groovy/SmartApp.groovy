@@ -143,7 +143,7 @@ def registerDeviceChange() {
 		}
         	log.info "Subscribing for ${myDevice.displayName}"
         
-        	if(subcriptionEndpt != null){
+		if(subcriptionEndpt != null){
 			if(state.subscriptionMap[deviceId] == null){
 				state.subscriptionMap.put(deviceId, [subcriptionEndpt]);
 				log.info "Added subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
@@ -151,7 +151,7 @@ def registerDeviceChange() {
 				state.subscriptionMap[deviceId] << subcriptionEndpt
 				log.info "Added subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
 			}
-        	}
+		}
 	} catch (e) {
 		httpError(500, "something went wrong: $e")
 	}
@@ -180,7 +180,7 @@ def unregisterDeviceChange() {
 				}
 				log.info "Removed subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
 			}
-        	} else {
+		} else {
 			unsubscribe(myDevice)
 			state.subscriptionMap.remove(deviceId)
 			log.info "Unsubscriping for ${myDevice.displayName}"
@@ -237,7 +237,7 @@ def getDevices() {
 			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType), locationMode: getLocationModeInfo()]
 		} else {
 			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType)]
-		} 
+		}
 	}
  
 	log.debug "getDevices, return: ${deviceData}"
@@ -386,24 +386,24 @@ private deviceAttributeList(device, deviceType) {
 	def attributeList = [:]
 	def allAttributes = device.supportedAttributes
 	allAttributes.each { attribute ->
-        	try {
+    	try {
 			def currentState = device.currentState(attribute.name)
-            		if(currentState != null ){
-                		switch(attribute.name){
-                    		case 'temperature':
-                        		attributeList.putAll([ (attribute.name): currentState.value, 'temperatureScale':location.temperatureScale ])
-                        		break;
-	                    	default:
-        	                	attributeList.putAll([(attribute.name): currentState.value ])
-                	        	break;
-                		}
-                		if( deviceType == "genericSensor" ){
-                    			def key = attribute.name + "_lastUpdated"
-                			attributeList.putAll([ (key): currentState.isoDate ])
-                		}
-	            	} else {
-            			attributeList.putAll([ (attribute.name): null ]);
-            		}
+			if(currentState != null ){
+				switch(attribute.name){
+					case 'temperature':
+						attributeList.putAll([ (attribute.name): currentState.value, 'temperatureScale':location.temperatureScale ])
+						break;
+					default:
+						attributeList.putAll([(attribute.name): currentState.value ])
+						break;
+				}
+				if( deviceType == "genericSensor" ){
+						def key = attribute.name + "_lastUpdated"
+						attributeList.putAll([ (key): currentState.isoDate ])
+				}
+			} else {
+				attributeList.putAll([ (attribute.name): null ]);
+			}
 		} catch(e) {
 			attributeList.putAll([ (attribute.name): null ]);
 		}
