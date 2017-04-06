@@ -167,7 +167,7 @@ class Translator {
             var refreshExpiration = Math.floor(new Date().getTime() / 1000) + 31557600;
 
             this._authTokens['refresh'].token = body.refresh_token;
-            this._authTokens['refresh'].expiration = refreshExpiration
+            this._authTokens['refresh'].expiration = refreshExpiration;
 
             this._authTokens['access'].token = body.access_token;
             this._authTokens['access'].expiration = expiration;
