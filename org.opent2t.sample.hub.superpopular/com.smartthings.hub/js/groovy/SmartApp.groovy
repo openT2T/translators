@@ -81,10 +81,16 @@ mappings {
 		  PUT: "updateDevice"
 		]
 	}
-	 path("/subscription") {
+	path("/deviceSubscription") {
 		action: [
 		  POST: "registerDeviceChange",
 		  DELETE: "unregisterDeviceChange"
+		]
+	}
+    path("/locationSubscription") {
+		action: [
+		  POST: "registerDeviceGraph",
+		  DELETE: "unregisterDeviceGraph"
 		]
 	}
 }
@@ -96,23 +102,31 @@ def installed() {
 
 def updated() {
 	log.debug "Updating with settings: ${settings}"
-	log.debug "subscriptionMap state: ${state.subscriptionMap}"
-	if(state.subscriptionMap == null){
-		state.subscriptionMap = [:]
-		log.debug "subscriptionMap created."
+	if(state.deviceSubscriptionMap == null){
+		state.deviceSubscriptionMap = [:]
+		log.debug "deviceSubscriptionMap created."
+	}
+    if( state.locationSubscriptionMap == null){
+		 state.locationSubscriptionMap = [:]
+		log.debug "locationSubscriptionMap created."
 	}
 	unsubscribe()
-	registerSubscriptions()
+	registerAllDeviceSubscriptions()
 }
 
 def initialize() {
 	log.debug "Initializing with settings: ${settings}"
-	state.subscriptionMap = [:]
-	log.debug "subscriptionMap created."
-	registerSubscriptions()
+	state.deviceSubscriptionMap = [:]
+	log.debug "deviceSubscriptionMap created."
+	registerAllDeviceSubscriptions()
+    state.locationSubscriptionMap = [:]
+	log.debug "locationSubscriptionMap created."
 }
+
+/*** Subscription Functions  ***/
+
 //Subscribe events for all devices
-def registerSubscriptions() {
+def registerAllDeviceSubscriptions() {
 	registerChangeHandler(inputs)
 }
 
@@ -121,15 +135,15 @@ def registerChangeHandler(myList) {
 	myList.each { myDevice ->
 		def theAtts = myDevice.supportedAttributes
 		theAtts.each {att ->
-			subscribe(myDevice, att.name, eventHandler)
-			log.info "Subscribing for ${myDevice.displayName}.${att.name}"
+			subscribe(myDevice, att.name, deviceEventHandler)
+			log.info "Registering for ${myDevice.displayName}.${att.name}"
 		}
 	}
 }
 
 //Endpoints function: Subscribe to events from a specific device
 def registerDeviceChange() {
-	def subcriptionEndpt = params.subscriptionURL
+	def subscriptionEndpt = params.subscriptionURL
 	def deviceId = params.deviceId
 	def myDevice = findDevice(deviceId)
 	if( myDevice == null ){
@@ -139,30 +153,30 @@ def registerDeviceChange() {
 	def theAtts = myDevice.supportedAttributes
 	try {
 		theAtts.each {att ->
-			subscribe(myDevice, att.name, eventHandler)
+			subscribe(myDevice, att.name, deviceEventHandler)
 		}
-        	log.info "Subscribing for ${myDevice.displayName}"
-        
-		if(subcriptionEndpt != null){
-			if(state.subscriptionMap[deviceId] == null){
-				state.subscriptionMap.put(deviceId, [subcriptionEndpt]);
-				log.info "Added subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
-			}else if (!state.subscriptionMap[deviceId].contains(subcriptionEndpt)){
-				state.subscriptionMap[deviceId] << subcriptionEndpt
-				log.info "Added subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
+        log.info "Subscribing for ${myDevice.displayName}"
+
+        if(subscriptionEndpt != null){
+			if(state.deviceSubscriptionMap[deviceId] == null){
+				state.deviceSubscriptionMap.put(deviceId, [subscriptionEndpt])
+				log.info "Added subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
+			}else if (!state.deviceSubscriptionMap[deviceId].contains(subscriptionEndpt)){
+				state.deviceSubscriptionMap[deviceId] << subscriptionEndpt
+				log.info "Added subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
 			}
-		}
+        }
 	} catch (e) {
 		httpError(500, "something went wrong: $e")
 	}
 
-	log.info "Current subscription map is ${state.subscriptionMap}"
+	log.info "Current subscription map is ${state.deviceSubscriptionMap}"
 	return ["succeed"]
 }
 
 //Endpoints function: Unsubscribe to events from a specific device
 def unregisterDeviceChange() {
-	def subcriptionEndpt = params.subscriptionURL
+	def subscriptionEndpt = params.subscriptionURL
 	def deviceId = params.deviceId
 	def myDevice = findDevice(deviceId)
     
@@ -171,49 +185,89 @@ def unregisterDeviceChange() {
 	}
     
 	try {
-		if(subcriptionEndpt != null && subcriptionEndpt != "undefined"){
-			if (state.subscriptionMap[deviceId]?.contains(subcriptionEndpt)){
-				if(state.subscriptionMap[deviceId].size() == 1){
-					state.subscriptionMap.remove(deviceId)
+		if(subscriptionEndpt != null && subscriptionEndpt != "undefined"){
+			if (state.deviceSubscriptionMap[deviceId]?.contains(subscriptionEndpt)){
+				if(state.deviceSubscriptionMap[deviceId].size() == 1){
+					state.deviceSubscriptionMap.remove(deviceId)
 				} else {
-					state.subscriptionMap[deviceId].remove(subcriptionEndpt)
+					state.deviceSubscriptionMap[deviceId].remove(subscriptionEndpt)
 				}
-				log.info "Removed subcription URL: ${subcriptionEndpt} for ${myDevice.displayName}"
+				log.info "Removed subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
 			}
-		} else {
-			unsubscribe(myDevice)
-			state.subscriptionMap.remove(deviceId)
+        } else {
+			state.deviceSubscriptionMap.remove(deviceId)
 			log.info "Unsubscriping for ${myDevice.displayName}"
 		}
 	} catch (e) {
 		httpError(500, "something went wrong: $e")
 	}
 
-	log.info "Current subscription map is ${state.subscriptionMap}" 
+	log.info "Current subscription map is ${state.deviceSubscriptionMap}" 
+}
+
+//Endpoints function: Subscribe to device additiona/removal updated in a location
+def registerDeviceGraph() {
+	def subscriptionEndpt = params.subscriptionURL
+
+    if (subscriptionEndpt != null && subscriptionEndpt != "undefined"){
+        subscribe(location, "DeviceCreated", locationEventHandler, [filterEvents: false])
+        subscribe(location, "DeviceUpdated", locationEventHandler, [filterEvents: false])
+        subscribe(location, "DeviceDeleted", locationEventHandler, [filterEvents: false])
+
+    	if(state.locationSubscriptionMap[location.id] == null){
+            state.locationSubscriptionMap.put(location.id, [subscriptionEndpt])
+            log.info "Added subscription URL: ${subscriptionEndpt} for Location ${location.name}"
+        }else if (!state.locationSubscriptionMap[location.id].contains(subscriptionEndpt)){
+            state.locationSubscriptionMap[location.id] << subscriptionEndpt
+            log.info "Added subscription URL: ${subscriptionEndpt} for Location ${location.name}"
+        }
+        log.info "Current location subscription map is ${state.locationSubscriptionMap}"
+        return ["succeed"]
+    } else {
+        httpError(400, "missing input parameter: subscriptionURL")
+    }
+}
+
+//Endpoints function: Unsubscribe to events from a specific device
+def unregisterDeviceGraph() {
+	def subscriptionEndpt = params.subscriptionURL
+    
+	try {
+		if(subscriptionEndpt != null && subscriptionEndpt != "undefined"){
+			if (state.locationSubscriptionMap[location.id]?.contains(subscriptionEndpt)){
+				if(state.locationSubscriptionMap[location.id].size() == 1){
+					state.locationSubscriptionMap.remove(location.id)
+				} else {
+					state.locationSubscriptionMap[location.id].remove(subscriptionEndpt)
+				}
+				log.info "Removed subscription URL: ${subscriptionEndpt} for Location ${location.name}"
+			}
+        }else{
+        	httpError(400, "missing input parameter: subscriptionURL")
+        }
+	} catch (e) {
+		httpError(500, "something went wrong: $e")
+	}
+
+	log.info "Current location subscription map is ${state.locationSubscriptionMap}" 
 }
 
 //When events are triggered, send HTTP post to web socket servers
-def eventHandler(evt) {
+def deviceEventHandler(evt) {
 	def evt_device = evt.device
-	def evt_deviceType = getDeviceType(evt_device);
-    def deviceInfo
+	def evt_deviceType = getDeviceType(evt_device)
+	def deviceInfo
     
-	if(evt_deviceType == "thermostat") {
-		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType), locationMode: getLocationModeInfo()]
-	} else {
-		deviceInfo = [name: evt_device.displayName, id: evt_device.id, status:evt_device.status, deviceType:evt_deviceType, manufacturer:evt_device.manufacturerName, model:evt_device.modelName, attributes: deviceAttributeList(evt_device, evt_deviceType)]
-	}
-    
-	def params = [ body: [ deviceInfo ] ]
+	def params = [ body: [deviceName: evt_device.displayName, deviceId: evt_device.id,  locationId: location.id] ]
     
 	if(evt.data != null){
 		def evtData = parseJson(evt.data)
 		log.info "Received event for ${evt_device.displayName}, data: ${evtData},  description: ${evt.descriptionText}"
 	}
     
-	//send event to all subcriptions urls
-	log.debug "Current subscription urls for ${evt_device.displayName} is ${state.subscriptionMap[evt_device.id]}"
-	state.subscriptionMap[evt_device.id].each {
+	//send event to all subscriptions urls
+	log.debug "Current subscription urls for ${evt_device.displayName} is ${state.deviceSubscriptionMap[evt_device.id]}"
+	state.deviceSubscriptionMap[evt_device.id].each {
 		params.uri = "${it}"
 		log.trace "POST URI: ${params.uri}"
 		log.trace "Payload: ${params.body}"
@@ -228,6 +282,38 @@ def eventHandler(evt) {
 	}
 }
 
+def locationEventHandler(evt) {
+	log.info "Received event for location ${location.name}/${location.id}, Event: ${evt.name}, description: ${evt.descriptionText}, apiServerUrl: ${apiServerUrl("")}"
+    switch(evt.name){
+    	case "DeviceCreated":
+        case "DeviceDeleted":
+        	def evt_device = evt.device
+            def evt_deviceType = getDeviceType(evt_device)
+        	log.info "DeviceName: ${evt_device.displayName}, DeviceID: ${evt_device.id}, deviceType: ${evt_deviceType}"
+            
+            def params = [ body: [ eventType:evt.name, deviceId: evt_device.id, locationId: location.id ] ]
+            
+            state.locationSubscriptionMap[location.id].each {
+                params.uri = "${it}"
+                log.trace "POST URI: ${params.uri}"
+                log.trace "Payload: ${params.body}"
+                try{
+                    httpPostJson(params) { resp ->
+                        log.trace "response status code: ${resp.status}"
+                        log.trace "response data: ${resp.data}"
+                    }
+                } catch (e) {
+                    log.error "something went wrong: $e"
+                }
+            }
+    	case "DeviceUpdated":
+        default:
+        break
+    }
+}
+
+/*** Device Query/Update Functions  ***/
+
 //Endpoints function: return all device data in json format
 def getDevices() {
 	def deviceData = [] 
@@ -237,7 +323,7 @@ def getDevices() {
 			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType), locationMode: getLocationModeInfo()]
 		} else {
 			deviceData << [name: it.displayName, id: it.id, status:it.status, deviceType:deviceType, manufacturer:it.manufacturerName, model:it.modelName, attributes: deviceAttributeList(it, deviceType)]
-		}
+		} 
 	}
  
 	log.debug "getDevices, return: ${deviceData}"
@@ -340,15 +426,15 @@ private getDeviceType(device) {
 				//If the device also contains "Switch Level" capability, identify it as a "light" device.
 				if (capabilities.any{it.name.toLowerCase() == "switch level"}){
                 	
-					//If the device also contains "Power Meter" capability, identify it as a "dimmerSwitch" device.
-					if (capabilities.any{it.name.toLowerCase() == "power meter"}){
-						deviceType = "dimmerSwitch"
-						return deviceType
-					} else {
-						deviceType = "light"
-						return deviceType
-					}
-				}
+                    //If the device also contains "Power Meter" capability, identify it as a "dimmerSwitch" device.
+                    if (capabilities.any{it.name.toLowerCase() == "power meter"}){
+                        deviceType = "dimmerSwitch"
+                        return deviceType
+                    } else {
+                        deviceType = "light"
+                        return deviceType
+                    }
+                }
 				break
 			case "garageDoorControl":
 				deviceType = "garageDoor"
@@ -386,24 +472,24 @@ private deviceAttributeList(device, deviceType) {
 	def attributeList = [:]
 	def allAttributes = device.supportedAttributes
 	allAttributes.each { attribute ->
-    	try {
+        	try {
 			def currentState = device.currentState(attribute.name)
-			if(currentState != null ){
-				switch(attribute.name){
-					case 'temperature':
-						attributeList.putAll([ (attribute.name): currentState.value, 'temperatureScale':location.temperatureScale ])
-						break;
-					default:
-						attributeList.putAll([(attribute.name): currentState.value ])
-						break;
-				}
-				if( deviceType == "genericSensor" ){
-						def key = attribute.name + "_lastUpdated"
-						attributeList.putAll([ (key): currentState.isoDate ])
-				}
-			} else {
-				attributeList.putAll([ (attribute.name): null ]);
-			}
+            		if(currentState != null ){
+                		switch(attribute.name){
+                    		case 'temperature':
+                        		attributeList.putAll([ (attribute.name): currentState.value, 'temperatureScale':location.temperatureScale ])
+                        		break;
+	                    	default:
+        	                	attributeList.putAll([(attribute.name): currentState.value ])
+                	        	break;
+                		}
+                		if( deviceType == "genericSensor" ){
+                    			def key = attribute.name + "_lastUpdated"
+                			attributeList.putAll([ (key): currentState.isoDate ])
+                		}
+	            	} else {
+            			attributeList.putAll([ (attribute.name): null ]);
+            		}
 		} catch(e) {
 			attributeList.putAll([ (attribute.name): null ]);
 		}
