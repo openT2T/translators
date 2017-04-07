@@ -572,10 +572,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(logger, deviceInfo) {
+    constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-wink-lightbulb";
-        this.logger = logger; 
-        this.logger.info('Wink Lightbulb initializing...');
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        

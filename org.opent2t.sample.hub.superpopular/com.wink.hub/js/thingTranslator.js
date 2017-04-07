@@ -30,7 +30,7 @@ function getDictionaryItemCaseInsensitive(obj, propertyName) {
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(logger, authTokens) {
+    constructor(authTokens, logger) {
         this.name = "opent2t-translator-com-wink-hub";
         this._authTokens = authTokens;
 

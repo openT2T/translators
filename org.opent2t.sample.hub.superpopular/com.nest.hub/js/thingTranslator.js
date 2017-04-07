@@ -12,7 +12,7 @@ var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait f
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(logger, authTokens) {
+    constructor(authTokens,logger) {
         this.name = "opent2t-translator-com-nest-hub";
         this._authTokens = authTokens;
         this._baseUrl = "https://developer-api.nest.com";

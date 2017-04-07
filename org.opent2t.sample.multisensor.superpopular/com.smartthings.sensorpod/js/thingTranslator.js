@@ -249,10 +249,9 @@ const deviceIds = {
 // This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.
 class Translator {
 
-    constructor(logger, deviceInfo) {
+    constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-smartthings-sensorpod";
         this.logger = logger;
-        this.logger.info('Initializing device.');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        

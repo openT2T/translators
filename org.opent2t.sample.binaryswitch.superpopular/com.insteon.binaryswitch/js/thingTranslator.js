@@ -122,11 +122,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(logger, deviceInfo) {
+    constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-insteon-binaryswitch";
         this.logger = logger;
-
-        this.logger.info('Insteon Binary Switch initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         

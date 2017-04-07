@@ -156,10 +156,9 @@ function validateResourceGet(resourceId) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(logger, deviceInfo) {
+    constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-insteon-lightbulb";
         this.logger = logger;
-        this.logger.info('Insteon Lightbulb initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 

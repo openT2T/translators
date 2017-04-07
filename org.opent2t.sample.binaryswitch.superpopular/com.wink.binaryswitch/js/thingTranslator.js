@@ -142,10 +142,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(logger, deviceInfo) {
+    constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-wink-binaryswitch";
         this.logger = logger;
-        this.logger.verbose('Wink Binary Switch initializing...');
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
@@ -153,7 +152,7 @@ class Translator {
         this.deviceType = 'binary_switches';
         this.winkHub = deviceInfo.hub;
 
-        this.logger.verbose('Wink Binary Switch initializing...Done');
+        this.logger.info('Wink Binary Switch initializing...Done');
     }
 
 

@@ -266,10 +266,9 @@ function validateResourceGet(resourceId) {
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(logger, deviceInfo) {
+    constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-insteon-thermostat";
-        this.logger = logger; 
-        this.logger.info('Insteon Thermostat initializing...');
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
