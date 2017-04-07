@@ -164,9 +164,11 @@ class Translator {
             // so am assuming the caller of this API will expect nulls
 
             var expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds);
+            // default to one year in seconds
+            var refreshExpiration = Math.floor(new Date().getTime() / 1000) + 31557600;
 
             this._authTokens['refresh'].token = body.refresh_token;
-            this._authTokens['refresh'].expiration = expiration
+            this._authTokens['refresh'].expiration = refreshExpiration;
 
             this._authTokens['access'].token = body.access_token;
             this._authTokens['access'].expiration = expiration;
