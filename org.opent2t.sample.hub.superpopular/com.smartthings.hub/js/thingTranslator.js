@@ -18,6 +18,8 @@ class Translator {
         this._baseUrl = '';
         this._devicesPath = '/devices';
         this._updatePath = '/update';
+        this._deviceChangeSubscriptionPath = '/deviceSubscription';
+        this._deviceGraphSubscriptionPath = '/locationSubscription';        
         this._name = "SmartThings Hub"; // TODO: Can be pulled from OpenT2T global constants.
         this.ConsoleLogger = new OpenT2TLogger(logLevel);
     }
@@ -30,40 +32,46 @@ class Translator {
     }
 
     /**
-     * Get the list of devices discovered through the hub.
+      * Get the list of devices discovered through the hub.
+     * 
+     * @param {bool} expand - True to include the current state of the resources.
+     * @param {Buffer} payload - POST content for a subscribed notification
      */
     getPlatforms(expand, payload) {
-        if (payload != undefined) {
-            return this._providerSchemaToPlatformSchema(payload, expand, undefined);
-        } else {
+        if (payload === undefined) {
             return this._getEndpoints().then((endpoints) => {
-                if (endpoints.length === 0) return undefined;
-                    
-                var endpointPromises = [];
-                
-                endpoints.forEach((endpointUri) => {
-                    endpointPromises.push(this._makeRequest(endpointUri, this._devicesPath, 'GET') 
-                        .then((devices) => {
-                            return this._providerSchemaToPlatformSchema(devices, expand, endpointUri);
-                        }));
-                });
-                
-                return Promise.all(endpointPromises)
-                   .then((hubResults) => {
-                       // merge all platforms from hubs.
-                       var allPlatforms = [];
-                       var allErrors = [];
-                       hubResults.forEach((hub) => {
-                           allPlatforms = allPlatforms.concat(hub.platforms);
-                           allErrors = allErrors.concat(hub.errors);
-                       });
-                       return {
-                           schema: "org.opent2t.sample.hub.superpopular",
-                           platforms: allPlatforms,
-                           errors: allErrors
-                       };
-                   });
+                return this._getPlatformsByEndpointList(expand, endpoints);
             });
+        } else {
+
+            console.log("Subscription Payload: " + JSON.stringify(payload, null, 2));
+            if(payload.eventType){
+                //SmartThings device graph event: device added/removed
+                return this._getEndpointByLocationId(payload.locationId).then((endpoints) => {
+                    return this._getPlatformsByEndpointList(expand, endpoints);
+                });
+            }else{
+                //SmartThings device change event
+                return this._getEndpointByLocationId(payload.locationId).then((endpoints) => {
+                    if (endpoints.length === 0) return undefined;
+                    
+                    //Check that the ST endpoint is valid (actually has access to devices)
+                    var endpointPromises = [];
+                    endpoints.forEach((endpointUri) => {
+                        endpointPromises.push(this.getDeviceDetailsAsync(endpointUri, payload.deviceId)
+                            .then((device) => {
+                                return this._providerSchemaToPlatformSchema(device, expand, endpointUri);
+                            }).catch((err) => {
+                                return Promise.resolve(undefined);
+                            }));
+                    });
+
+                    return Promise.all(endpointPromises).then((responses) => {
+                            var result = responses.filter(r => r !== undefined);
+                            return result[0];
+                        });
+                });
+            }
         }
     }
 
@@ -93,7 +101,7 @@ class Translator {
         var putPayloadString = JSON.stringify(putPayload);
         return this._makeRequest(endpointUri, this._updatePath + '/' + deviceId, 'PUT', putPayloadString)
             .then((result) => {
-                if (result === "succeed") {
+                if (result[0] === 'succeed') {
                     return this.getDeviceDetailsAsync(endpointUri, deviceId);
                 }
                 return undefined;
@@ -107,6 +115,16 @@ class Translator {
     refreshAuthToken(authInfo) {
         return this._authTokens;
     }
+
+    /**
+     * Gets the subscription modes supported by this provider and translator
+     */
+    getSubscribe() {
+        return {
+            supportedModes: ['postbackUrl', 'polling']
+        }
+    }
+
     /* eslint no-unused-vars: "warn" */
 
     /**
@@ -115,8 +133,17 @@ class Translator {
      * and on the hub translator (this) for verification.
      */
     _subscribe(subscriptionInfo) {
-        var requestPath = '/subscription/' + subscriptionInfo.controlId;
-        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', '');
+        if (subscriptionInfo.callbackUrl){
+            var requestPath = "";
+            if(subscriptionInfo.controlId){
+                requestPath = this._deviceChangeSubscriptionPath + '?deviceId=' + subscriptionInfo.controlId 
+                                                + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
+            } else {
+                //subscribe to device graph
+                requestPath = this._deviceGraphSubscriptionPath + '?subscriptionURL=' + subscriptionInfo.callbackUrl;
+            }
+            return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', "");
+        }
     }
 
     /**
@@ -124,8 +151,43 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        var requestPath = '/subscription/' + subscriptionInfo.controlId;
+        var requestPath = this._deviceChangeSubscriptionPath + '?deviceId=' + subscriptionInfo.controlId 
+                                            + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
         return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'DELETE');
+    }
+
+
+    /**
+     * Get all platforms from a list of SmartThings endpoints
+     */
+    _getPlatformsByEndpointList(expand, endpoints) {
+
+        if (endpoints.length === 0) return undefined;
+ 
+        var endpointPromises = [];
+        
+        endpoints.forEach((endpointUri) => {
+            endpointPromises.push(this._makeRequest(endpointUri, this._devicesPath, 'GET') 
+                .then((devices) => {
+                    return this._providerSchemaToPlatformSchema(devices, expand, endpointUri);
+                }));
+        });
+        
+        return Promise.all(endpointPromises)
+            .then((hubResults) => {
+                // merge all platforms from hubs.
+                var allPlatforms = [];
+                var allErrors = [];
+                hubResults.forEach((hub) => {
+                    allPlatforms = allPlatforms.concat(hub.platforms);
+                    allErrors = allErrors.concat(hub.errors);
+                });
+                return {
+                    schema: "org.opent2t.sample.hub.superpopular",
+                    platforms: allPlatforms,
+                    errors: allErrors
+                };
+            });
     }
 
     /**
@@ -232,10 +294,19 @@ class Translator {
         var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this._authTokens['access'].client_id + '?access_token=' + this._authTokens['access'].token;
 
         return this._makeRequest("", endpointUrl, 'GET').then((responses) => {
-            var endpoints = [];
-            responses.forEach((response) => {
-                endpoints.push(response.uri);
-            });
+            var endpoints = responses.map(p => { return p.uri; });
+            return Promise.resolve(endpoints);
+        });
+    }
+    
+    /**
+     * Get all endpointUri URIs of the location 
+     */
+    _getEndpointByLocationId(locationId) {
+        var endpointUrl = 'https://graph.api.smartthings.com/api/smartapps/endpoints/' + this._authTokens['access'].client_id + '?access_token=' + this._authTokens['access'].token;
+
+        return this._makeRequest("", endpointUrl, 'GET').then((responses) => {
+            var endpoints = responses.filter(r => r.location.id === locationId).map(p => { return p.uri; });
             return Promise.resolve(endpoints);
         });
     }
@@ -274,11 +345,12 @@ class Translator {
         return request(options)
             .then(function (body) {
 
+                //Since PUT and DELETE does not return with "success" status in its response payload,
+                //we assume 0-length body is success. Otherwise a error would thrown.
+                //http://docs.smartthings.com/en/latest/smartapp-web-services-developers-guide/smartapp.html#defaults 
                 if (method === 'PUT' || method === 'DELETE') {
-                    // TODO: Why is this check below in the first place? 
-                    // It seems very weird to check 0 length body
                     if (body.length === 0) {
-                        return "succeed";
+                        return ["succeed"];
                     } else {
                         let errorMsg = "Non-zero length body for PUT/DELETE call to SmartThings";
                         this.ConsoleLogger.warn(errorMsg);
