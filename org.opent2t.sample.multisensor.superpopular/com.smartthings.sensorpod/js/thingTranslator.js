@@ -1,9 +1,18 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TLogger = require('opent2t').Logger;
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
+
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
 
 /**
  * Validates an argument matches the expected type.
@@ -53,11 +62,11 @@ function defaultValueIfEmpty(property, defaultValue) {
     }
 }
 
-function createEntity(name, resourceType, resources) {
+function createEntity(name, resourceType, resources, controlId) {
     return {
         n: name,
         rt: [resourceType],
-        di: deviceIds[resourceType],
+        di: generateGUID(controlId + resourceType),
         icv: 'core.1.1.0',
         dmv: 'res.1.1.0',
         resources: resources
@@ -91,6 +100,7 @@ function getLastChangedResource(expand, timeStamp) {
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var attributes = providerSchema.attributes;
     
+    var controlId= providerSchema['id'];
     var name = providerSchema['name'];
     var entities = [];
 
@@ -102,7 +112,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.contact', [
             contact,
             getLastChangedResource(expand, attributes['contact_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('lock' in attributes) {
@@ -113,7 +124,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.locked', [
             locked,
             getLastChangedResource(expand, attributes['lock_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('humidity' in attributes) {
@@ -124,7 +136,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.humidity', [
             humidity,
             getLastChangedResource(expand, attributes['humidity_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('sound' in attributes) {
@@ -135,7 +148,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.loudnesschange', [
             loudnesschange,
             getLastChangedResource(expand, attributes['sound_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('motion' in attributes) {
@@ -146,7 +160,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.motion', [
             motion,
             getLastChangedResource(expand, attributes['motion_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('presence' in attributes) {
@@ -157,7 +172,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.presence', [
             presence,
             getLastChangedResource(expand, attributes['presence_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('temperature' in attributes) {
@@ -169,7 +185,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.temperature', [
             temperature,
             getLastChangedResource(expand, attributes['temperature_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('acceleration' in attributes) {
@@ -180,7 +197,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.vibrationchange', [
             vibrationchange,
             getLastChangedResource(expand, attributes['acceleration_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
     if ('water' in attributes) {
@@ -191,7 +209,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         entities.push(createEntity(name, 'opent2t.d.sensor.water', [
             water,
             getLastChangedResource(expand, attributes['water_lastUpdated'])
-        ]));
+        ],
+        controlId));
     }
 
 
@@ -202,7 +221,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         entities.push(createEntity(name, 'opent2t.d.battery', [
             battery
-        ]));
+        ],
+        controlId));
     }
 
     return {
@@ -212,6 +232,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             controlId: providerSchema['id'],
             endpointUri: providerSchema['endpointUri']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Sensor (Generic)"),
@@ -219,32 +240,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['org.opent2t.sample.multisensor.superpopular'],
         entities: entities
     };
-}
-
-// Each device in the platform has is own unique static identifier
-const deviceIds = {
-    'opent2t.d.sensor.acceleration': 'F86B44C9-C2B3-4BE4-AAAA-CABEF061DB3F',
-    'opent2t.d.sensor.airquality': '2F64C336-79DB-42DC-9567-E139C8484C78',
-    'opent2t.d.sensor.atmosphericpressure': '393C4D30-9413-4621-9B35-FEA3A2306B6C',
-    'opent2t.d.sensor.brightnesschange': '8CC43FB7-1442-4FA0-9020-8A56F4D5BEEE',
-    'opent2t.d.sensor.carbondioxide': '69ECE9A9-A0F3-4FAD-AB23-A77BF0EAE23D',
-    'opent2t.d.sensor.carbonmonoxide': '58EA654B-4269-4CB7-9BE2-D04F9B8E7931',
-    'opent2t.d.sensor.contact': '67D227BD-376A-4DA8-BAB5-90E95B977EE0',
-    'opent2t.d.sensor.combustiblegas': 'C27A2C67-01FF-4D8A-ADA0-ED2686D21247',
-    'opent2t.d.sensor.glassbreak': '6D455474-93B1-4F02-84FD-E5D090C2E6DB',
-    'opent2t.d.sensor.humidity': 'B8F8AAF3-6688-44D0-8EE7-7FD525672475',
-    'opent2t.d.sensor.illuminance': '2678A774-A65C-4701-B8CE-2B6B5CADDEE8',
-    'opent2t.d.sensor.locked': 'B9B3E572-0FB7-4F9D-A8B1-BF90DB120FBB',
-    'opent2t.d.sensor.loudnesschange': 'BC47CB27-C234-46D7-B03F-8CDC1D52F5B3',
-    'opent2t.d.sensor.motion': '63E5A41E-7283-4BA6-A3A8-21AE3C18C17F',
-    'opent2t.d.sensor.presence': 'F0FDF054-C8FF-44CD-AE1D-BD129AB4FF99',
-    'opent2t.d.sensor.temperature': 'E7FA6B8B-4B8B-4172-840A-00414BA5055E',
-    'opent2t.d.sensor.uvradiation': '8E15BE1A-68CF-46BF-B625-7C1CBD4AF968',
-    'opent2t.d.sensor.vibrationchange': 'D38E580A-C4E2-45C5-A316-5A685553B868',
-    'opent2t.d.sensor.smoke': '0CAA68B9-A7D3-46E1-8C99-3606F1BA41AE',
-    'opent2t.d.sensor.touch': 'CD5AB9DA-EB5C-4483-9610-6C20961246BC',
-    'opent2t.d.sensor.water': '6726E344-8471-4A99-90D4-403EFD961936',
-    'opent2t.d.battery': '06C47089-1049-46CF-BB64-74F7E7C4F501'
 }
 
 // This translator class implements the 'org.opent2t.sample.multisensor.superpopular' interface.
