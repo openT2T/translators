@@ -8,6 +8,12 @@
     "url": "https://github.com/opent2t/translators.git"
   },
   "main": "thingTranslator.js",
+  "files": [
+    "thingTranslator.js",
+    "package.json",
+    "constants.js",
+    "manifest.xml"
+  ],
   "license": "MIT",
   "scripts": {
     "test": "ava tests/test.js",
