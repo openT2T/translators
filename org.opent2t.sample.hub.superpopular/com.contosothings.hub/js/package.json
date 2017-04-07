@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-contosothings-hub",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "ContosoThings Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
@@ -15,7 +15,7 @@
   "dependencies": {
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
-    "opent2t": "^1.0.4"
+    "opent2t": "^1.1.0"
   },
   "devDependencies": {
     "ava": "^0.18.2"

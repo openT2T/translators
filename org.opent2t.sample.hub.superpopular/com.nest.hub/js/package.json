@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-nest-hub",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "description": "Nest Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
@@ -19,7 +19,7 @@
   "homepage": "https://github.com/openT2T/translators#readme",
   "dependencies": {
     "firebase": "2.4.2",
-    "opent2t": "^1.0.4",
+    "opent2t": "^1.1.0",
     "opent2t-onboarding-org-opent2t-onboarding-nest": "^0.2.3",
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
