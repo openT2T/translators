@@ -10,7 +10,7 @@
   "main": "multisensorTests.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "^1.0.3",
+    "opent2t": "^1.1.0",
     "opent2t-testcase-helpers": "file:../../Helpers/testcase-helpers/js"
   }
 }

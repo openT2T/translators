@@ -2,7 +2,6 @@
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var crypto = require('crypto');
-var OpenT2TLogger = require('opent2t').Logger;
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
@@ -157,16 +156,16 @@ function validateResourceGet(resourceId) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.info('Insteon Lightbulb initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-insteon-lightbulb";
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        this.ConsoleLogger.info('Insteon Lightbulb initializing...Done');
+        this.logger.info('Insteon Lightbulb initializing...Done');
     }
 
     /**

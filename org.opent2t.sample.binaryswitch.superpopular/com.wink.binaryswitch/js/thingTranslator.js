@@ -1,7 +1,6 @@
 'use strict';
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-var OpenT2TLogger = require('opent2t').Logger;
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -143,9 +142,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo, logLevel = "info") {
-        this.ConsoleLogger = new OpenT2TLogger(logLevel); 
-        this.ConsoleLogger.verbose('Wink Binary Switch initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-wink-binaryswitch";
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
@@ -153,7 +152,7 @@ class Translator {
         this.deviceType = 'binary_switches';
         this.winkHub = deviceInfo.hub;
 
-        this.ConsoleLogger.verbose('Wink Binary Switch initializing...Done');
+        this.logger.info('Wink Binary Switch initializing...Done');
     }
 
 

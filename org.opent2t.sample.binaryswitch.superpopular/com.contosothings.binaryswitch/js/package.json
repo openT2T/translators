@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-contosothings-binaryswitch",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "ContosoThings Binary Switch",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
@@ -19,8 +19,8 @@
     ]
   },
   "dependencies": {
-    "opent2t": "^1.0.4",
-    "opent2t-translator-com-contosothings-hub": "^0.0.1"
+    "opent2t": "^1.1.0",
+    "opent2t-translator-com-contosothings-hub": "^0.1.0"
   },
   "devDependencies": {
     "ava": "^0.18.2",

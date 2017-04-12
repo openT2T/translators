@@ -6,14 +6,14 @@ var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var OpenT2TError = require('opent2t').OpenT2TError;
-var OpenT2TLogger = require('opent2t').Logger;
 var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens, logLevel = "info") {
+    constructor(authTokens, logger) {
+        this.name = "opent2t-translator-com-smartthings-hub";
         this._authTokens = authTokens;
         this._baseUrl = '';
         this._devicesPath = '/devices';
@@ -21,7 +21,8 @@ class Translator {
         this._deviceChangeSubscriptionPath = '/deviceSubscription';
         this._deviceGraphSubscriptionPath = '/locationSubscription';        
         this._name = "SmartThings Hub"; // TODO: Can be pulled from OpenT2T global constants.
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.logger = logger; 
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -217,7 +218,7 @@ class Translator {
                 deviceInfo.opent2t.endpointURI = endpointUri;
 
                 // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                     .then((translator) => {
 
                         var deviceData = smartThingsDevice;
@@ -225,7 +226,7 @@ class Translator {
 
                         // Use get to translate the SmartThings formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
-                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
+                        return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                             .then((platformResponse) => {
                                 return Promise.resolve(platformResponse);
                             });

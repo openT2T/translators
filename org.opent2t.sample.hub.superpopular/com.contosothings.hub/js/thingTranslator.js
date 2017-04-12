@@ -8,7 +8,8 @@ var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(deviceInfo) {
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-contosothings-hub";
         this._hubId = deviceInfo[0].hubId;
         this._contosoPassword = deviceInfo[1].contosoPassword;
 
@@ -16,6 +17,8 @@ class Translator {
         this._devicesPath = '/api/hubsApi/' + this._hubId;
 
         this._name = "ContosoThings Hub";
+        this.logger = logger; 
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -45,12 +48,12 @@ class Translator {
                     deviceInfo.opent2t.controlId = ctDevice.Id;
                     
                     // Create a translator for this device and get the platform information, possibly expanded
-                    platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
+                    platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
                                     .then((translator) => {
 
                                         // Use get to translate the contosothings formatted device that we already got in the previous request.
                                         // We already have this data, so no need to make an unnecesary request over the wire.
-                                        return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, ctDevice])
+                                        return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, ctDevice])
                                             .then((platformResponse) => {
                                                 return platformResponse; 
                                             });

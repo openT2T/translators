@@ -19,8 +19,8 @@ function verifyPayload(modification, t, args) {
 }
 
 class MockContosoThingsHub extends MockHub {
-    constructor(initialState) {
-        super(initialState, modifyDeviceState, verifyPayload);
+    constructor(logger, initialState) {
+        super(logger, initialState, modifyDeviceState, verifyPayload);
     }
 }
 

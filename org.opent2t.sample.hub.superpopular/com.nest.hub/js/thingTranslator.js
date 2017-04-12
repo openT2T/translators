@@ -6,14 +6,14 @@ var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var Firebase = require("firebase");
-var OpenT2TLogger = require('opent2t').Logger;
 var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete 
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens, logLevel = "info") {
+    constructor(authTokens,logger) {
+        this.name = "opent2t-translator-com-nest-hub";
         this._authTokens = authTokens;
         this._baseUrl = "https://developer-api.nest.com";
         this._devicesPath = 'devices/';
@@ -21,7 +21,8 @@ class Translator {
         this._name = "Nest Hub";
         this._firebaseRef = new Firebase(this._baseUrl);
         this._firebaseRef.authWithCustomToken(this._authTokens['access'].token);
-        this.ConsoleLogger = new OpenT2TLogger(logLevel);
+        this.logger = logger; 
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -109,14 +110,14 @@ class Translator {
                 deviceInfo.opent2t.structureId = nestThermostat['structure_id'];
 
                 // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                     .then((translator) => {
                         // Use get to translate the Nest formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
                         var deviceSchema = providerSchemas.thermostats[nestThermostatId];
                         return this._getAwayMode(nestThermostat['structure_id']).then((result) => {
                             deviceSchema.away = result;
-                            return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
+                            return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
                                 .then((platformResponse) => {
                                     return Promise.resolve(platformResponse);
                                 });
