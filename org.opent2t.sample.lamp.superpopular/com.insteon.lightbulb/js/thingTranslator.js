@@ -1,4 +1,6 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -6,10 +8,10 @@ var crypto = require('crypto');
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -24,14 +26,16 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('Entity - '+ di +' not found.');
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource;
 }
 
@@ -40,7 +44,7 @@ function findResource(schema, di, resourceId) {
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
 }
 
 /**
@@ -58,6 +62,7 @@ function defaultValueIfEmpty(property, defaultValue) {
  * Converts a representation of a platform from the Insteon API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
+
     // Build the oic.r.switch.binary resource
     var power = {
         "href": "/power",
@@ -73,7 +78,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     }
 
     // Include the values is expand is specified
-    if (expand) {
+    if (expand) {  
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
 
@@ -88,6 +93,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-insteon-lightbulb',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID(providerSchema['DeviceID']),
         mnmn: defaultValueIfEmpty(providerSchema['Manufacturer'], 'Insteon'),
         mnmo: defaultValueIfEmpty(providerSchema['ProductType'], 'Light Bulb (Generic)'),
@@ -97,7 +103,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             {
                 n: providerSchema['DeviceName'],
                 rt: ['opent2t.d.light'],
-                di: lightbulbDeviceDi,
+                di: generateGUID( providerSchema['DeviceID'] + 'opent2t.d.light' ),
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: [
@@ -106,7 +112,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 ]
             }
         ]
-    }; 
+    };
 }
 
 /***
@@ -130,10 +136,10 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
             // Error case
-            throw new Error("Invalid resourceId");
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
     return result;
 }
@@ -143,24 +149,23 @@ function validateResourceGet(resourceId) {
         case 'colourMode':
         case 'colourRgb':
         case 'colourChroma':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
-
-const lightbulbDeviceDi = "882b5bb8-5522-4c77-b09a-e761842eb1e2";
 
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Insteon Lightbulb initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-insteon-lightbulb";
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        console.log('Insteon Lightbulb initializing...Done');
+        this.logger.info('Insteon Lightbulb initializing...Done');
     }
 
     /**
@@ -170,8 +175,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
@@ -195,7 +199,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === lightbulbDeviceDi) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
@@ -203,6 +207,8 @@ class Translator {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
                 });
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 
@@ -243,7 +249,7 @@ class Translator {
     postDevicesColourChroma(di, payload) {
         return this.postDeviceResource(di, "colourChroma", payload);
     }
-
+    
     postSubscribe(subscriptionInfo) {
         return this.insteonHub.postSubscribe(subscriptionInfo);
     }

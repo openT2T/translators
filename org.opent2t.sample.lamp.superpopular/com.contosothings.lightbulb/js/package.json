@@ -1,0 +1,30 @@
+{
+    "name": "opent2t-translator-com-contosothings-lightbulb",
+    "version": "0.1.0",
+    "description": "ContosoThings Light Bulb",
+    "homepage": "http://opentranslatorstothings.org",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opent2t/translators.git"
+    },
+    "main": "thingTranslator.js",
+    "license": "MIT",
+    "scripts": {
+        "test": "ava tests/test.js",
+        "unittest": "ava tests/unitTests.js"
+    },
+    "ava": {
+        "files": [
+            "tests/*.js"
+        ]
+    },
+    "dependencies": {
+        "opent2t": "^1.1.0",
+        "opent2t-translator-com-contosothings-hub": "^0.1.0"
+    },
+    "devDependencies": {
+        "ava": "^0.18.2",
+        "opent2t-device-mockcontosothingshub": "file:../../../org.opent2t.sample.hub.superpopular/com.contosothings.hub/test",
+        "opent2t-device-lamp": "file:../../test"
+    }
+}

@@ -1,14 +1,25 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +33,18 @@ function findResource(schema, di, resourceId) {
         return d.di === di;
     });
 
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
+    }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('NotFound');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+    }
+    
     return resource;
 }
 
@@ -45,8 +61,7 @@ class StateReader {
     get(state) {
         if (this.desired_state[state] !== undefined) {
             return this.desired_state[state];
-        }
-        else {
+        } else {
             return this.last_reading[state];
         }
     }
@@ -125,7 +140,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = stateReader.get('max_set_point');
     var min = stateReader.get('min_set_point');
-    var temperatureUnits = stateReader.get('units').temperature;
+
+    // according to Wink docs the temperature is always returned as C 
+    var temperatureUnits = "c";
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: stateReader.get('temperature'),
@@ -172,6 +189,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-wink-thermostat',
             controlId: providerSchema.thermostat_id
         },
+        availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
         mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Thermostat (Generic)"),
@@ -183,7 +201,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: deviceIds['opent2t.d.thermostat'],
+                di: generateGUID(providerSchema.thermostat_id + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -240,9 +258,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
     }
 
     return result;
@@ -257,20 +275,16 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanMode':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
-}
-
-var deviceIds = {
-    'oic.d.thermostat': 'B610F482-19A4-4EC4-ADB3-3517C7969183',
-    'opent2t.d.thermostat': 'D5D37EB6-F428-41FA-AC5D-918F084A4C93'
 }
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Initializing device.');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-wink-thermostat";
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
@@ -278,7 +292,7 @@ class Translator {
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
-        console.log('Wink Thermostat Translator initialized.');
+        this.logger.info('Wink Thermostat Translator initialized.');
     }
 
     /**
@@ -312,7 +326,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === deviceIds['opent2t.d.thermostat']) {
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
@@ -322,7 +336,7 @@ class Translator {
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 

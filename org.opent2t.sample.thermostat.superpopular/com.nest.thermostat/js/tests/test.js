@@ -37,8 +37,9 @@ runThermostatTests(settings);
 test.serial('Notifications - Subscribe', t => {
     console.log("Subscripting...");
 
+    var subcriptionInfo = {};
     return createTranslator().then(translator => {
-        return translator.postSubscribe().then((response) => {
+        return translator.postSubscribe(subcriptionInfo).then((response) => {
             t.is(response[0], 'succeed');
 
             var targetTemperatureHigh = { 'temperature': 85 };
@@ -49,7 +50,7 @@ test.serial('Notifications - Subscribe', t => {
                 
                 // Unsubscribe and end the test
                 console.log("Unsubscribing...");
-                return translator.deleteSubscribe().then((response) => {
+                return translator.deleteSubscribe(subcriptionInfo).then((response) => {
                     t.is(response, 'succeed');
                 });
             });

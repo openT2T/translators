@@ -1,0 +1,15 @@
+{
+  "name": "opent2t-testcase-helpers",
+  "version": "0.1.1",
+  "description": "Shared testcase helpers",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "helpers.js",
+  "license": "MIT",
+  "dependencies": {
+    "opent2t": "^1.1.0"
+  }
+}

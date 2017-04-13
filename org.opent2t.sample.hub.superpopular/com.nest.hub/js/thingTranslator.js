@@ -3,13 +3,17 @@
 
 "use strict";
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var Firebase = require("firebase");
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete 
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens,logger) {
+        this.name = "opent2t-translator-com-nest-hub";
         this._authTokens = authTokens;
         this._baseUrl = "https://developer-api.nest.com";
         this._devicesPath = 'devices/';
@@ -17,6 +21,8 @@ class Translator {
         this._name = "Nest Hub";
         this._firebaseRef = new Firebase(this._baseUrl);
         this._firebaseRef.authWithCustomToken(this._authTokens['access'].token);
+        this.logger = logger; 
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -59,7 +65,7 @@ class Translator {
      */
     _subscribe(subscriptionInfo) {
         // Error case: waiting for design decision
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 
     /**
@@ -68,7 +74,7 @@ class Translator {
      */
     _unsubscribe(subscriptionInfo) {
         // Error case: waiting for design decision
-        throw new Error("Not implemented");
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
     /* eslint no-unused-vars: "warn" */
 
@@ -77,6 +83,12 @@ class Translator {
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {
         var platformPromises = [];
+        var toReturn = {
+            schema: "org.opent2t.sample.hub.superpopular",
+            platforms: [],
+            errors: []
+        };
+
 
         if(providerSchemas.thermostats !== undefined){
 
@@ -98,29 +110,36 @@ class Translator {
                 deviceInfo.opent2t.structureId = nestThermostat['structure_id'];
 
                 // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                     .then((translator) => {
                         // Use get to translate the Nest formatted device that we already got in the previous request.
                         // We already have this data, so no need to make an unnecesary request over the wire.
                         var deviceSchema = providerSchemas.thermostats[nestThermostatId];
                         return this._getAwayMode(nestThermostat['structure_id']).then((result) => {
                             deviceSchema.away = result;
-                            return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
+                            return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
                                 .then((platformResponse) => {
-                                    return platformResponse;
+                                    return Promise.resolve(platformResponse);
                                 });
                         });
+                    }).catch((err) => {
+                        return Promise.reject(err);
                     }));
             });
         }
 
-        return Promise.all(platformPromises)
-                .then((platforms) => {
-                    var toReturn = {};
-                    toReturn.schema = "opent2t.p.hub";
-                    toReturn.platforms = platforms;
-                    return toReturn;
-                });
+        // Return a promise for all platform translations
+        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
+        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
+        return Promise.all(platformPromises.map(promiseReflect))
+            .then((values) => {
+                // Resolved promises will be succesfully translated platforms
+                toReturn.platforms = values.filter(v => v.status == 'resolved').map(p => { return p.data; });
+                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
+                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
+                }));
+                return toReturn;
+            });
     }
 
     /**
@@ -167,8 +186,9 @@ class Translator {
             var startInd = str.indexOf('{');
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
-            throw new Error(errorMsg.error);
-        });
+            this.logger.error(`Ran into error in putDeviceDetailsAsync: ${errorMsg.error}`);
+            return Promise.reject(errorMsg.error);        
+        }.bind(this));
     }
     
     /**
@@ -197,8 +217,9 @@ class Translator {
             var startInd = str.indexOf('{');
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
-            throw new Error(errorMsg.error);
-        });
+            this.logger.error(`Ran into error in setAwayMode: ${errorMsg.error}`);
+            return Promise.reject(errorMsg.error);        
+        }.bind(this));
     }
 }
 

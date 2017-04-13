@@ -1,13 +1,15 @@
 {   "base_state" :
     {   
         "ambient" : 25,
-        "DeviceID" : "Mock Device",
+        "DeviceID" : "Mock Device ID",
+        "DeviceName" : "Mock Device",
         "unit" : "c",
         "cool_point" : 28,
         "heat_point" : 20,
         "mode" : "auto",
         "fan" : "auto",
-        "humidity" : "25%"
+        "humidity" : "25%",
+        "Reachable": true
     },
     "test_data" :
     {

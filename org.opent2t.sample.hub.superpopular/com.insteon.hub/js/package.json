@@ -1,14 +1,14 @@
 {
   "name": "opent2t-translator-com-insteon-hub",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Insteon Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
   "files": [
     "thingTranslator.js",
     "package.json",
-    "manifest.xml",
-    "common.js"
+    "constants.js",
+    "manifest.xml"
   ],
   "repository": {
     "type": "git",
@@ -21,12 +21,14 @@
   "dependencies": {
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
-    "opent2t": "^1.0.2",
-    "opent2t-onboarding-org-opent2t-onboarding-insteon": "^0.2.0",
+    "crypto": "^0.0.3", 
+    "promise-reflect": "^1.1.0",
+    "opent2t": "^1.1.0",
+    "opent2t-onboarding-org-opent2t-onboarding-insteon": "^0.3.0",
     "es6-sleep": "*"
   },
   "devDependencies": {
-    "ava": "^0.15.2"
+    "ava": "^0.18.2"
   },
   "scripts": {
     "test": "ava"

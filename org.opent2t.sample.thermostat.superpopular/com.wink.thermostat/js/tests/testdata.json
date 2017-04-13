@@ -1,16 +1,18 @@
 {  "expected_exceptions" :
     {
-        "GetHumidity" : "NotImplemented",
-        "GetAwayTemperatureHigh" : "NotImplemented",
-        "GetAwayTemperatureLow" : "NotImplemented",
-        "GetHeatingFuelSource" : "NotImplemented",
-        "GetFanTimerActive" : "NotImplemented",
-        "GetFanTimerTimeout" : "NotImplemented",
-        "GetFanMode" : "NotImplemented",
-        "SetTargetTemperature" : "NotImplemented",
-        "SetAwayTemperatureHigh" : "NotImplemented",
-        "SetAwayTemperatureLow" : "NotImplemented",
-        "SetFanTimerTimeout" : "NotImplemented",
-        "SetFanMode" : "NotImplemented"
+        "GetHumidity" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetHeatingFuelSource" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetTargetTemperature" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404},
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }

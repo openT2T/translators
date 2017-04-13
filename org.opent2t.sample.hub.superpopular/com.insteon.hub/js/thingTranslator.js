@@ -4,24 +4,27 @@
 "use strict";
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TError = require('opent2t').OpenT2TError;
+/* eslint no-unused-vars: "off" */
+var InsteonConstants = require('./constants');
+/* eslint no-unused-vars: "warn" */
 var sleep = require('es6-sleep').promise;
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete 
 
 /**
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens) {
+    constructor(authTokens, logger) {
+        this.name = "opent2t-translator-com-insteon-hub";
         this._authTokens = authTokens;
         this._baseUrl = 'https://connect.insteon.com/api/v2/';
-        this._subCatMap = {
-            lightBulbs: ['3A', '3B', '3C', '49', '4A', '4B', '4C', '4D', '4E', '4F', '51'],
-            binarySwitch: ['8', 'B', '1E', '1F', '2B', '2A', '2B', '2C', '2E', '2D', '2F',
-                '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '3A'],
-            thermostats: ['B']
-        };
         this._devicesPath = 'devices';
         this._commandPath = 'commands';
         this._name = "Insteon Hub";
+        this.logger = logger;
+        this.opent2t = new OpenT2T(logger);
     }
 
     /**
@@ -52,6 +55,11 @@ class Translator {
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {
         var platformPromises = [];
+        var toReturn = {
+            schema: "org.opent2t.sample.hub.superpopular",
+            platforms: [],
+            errors: []
+        }
 
         providerSchemas.forEach((insteonDevice) => {
             //query detail device data    
@@ -61,7 +69,7 @@ class Translator {
                     var deviceData = data;
 
                     // get the opent2t schema and translator for the insteon device
-                    var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                    var opent2tInfo = this._getOpent2tInfo(deviceData);
                     if (opent2tInfo !== undefined) // we support the device
                     {
                         // set the opent2t info for the wink device
@@ -77,10 +85,12 @@ class Translator {
 
                         return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                             .then((response) => {
-                                return this._getCommandResponse(response.id, 10) // get device status
+                                return this._getCommandResponse(response.id) // get device status
                                     .then((deviceStatus) => {
-
                                         if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
+                                            
+                                            deviceData['Reachable'] = true;
+
                                             switch (opent2tInfo.schema) {
                                                 case 'org.opent2t.sample.thermostat.superpopular':
                                                     for (var status in deviceStatus.response) {
@@ -96,62 +106,63 @@ class Translator {
                                                     }
                                                     break;
                                             }
-                                        } else {
-                                            console.log(deviceStatus);  //failed to get device status
+
+                                        } else if (deviceStatus.status === 'failed') {
+                                            deviceData['Reachable'] = false;
                                         }
                                         
                                         // Create a translator for this device and get the platform information, possibly expanded
-                                        return OpenT2T.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                                        return this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                                             .then((translator) => {
-
                                                 // Use get to translate the Insteon formatted device that we already got in the previous request.
                                                 // We already have this data, so no need to make an unnecesary request over the wire.
-                                                return OpenT2T.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
+                                                return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, deviceData])
                                                     .then((platformResponse) => {
-                                                        return platformResponse;
+                                                        return Promise.resolve(platformResponse);
                                                     });
+                                            }).catch((err) => {
+                                                // Being logged in HubController already
+                                                return Promise.resolve(undefined);
                                             });
                                         
+                                    }).catch((err) => { 
+                                        return Promise.reject(err);
                                     });
                             });
+                    } else {
+                        // Platforms without translators should be recorded as errors, but can be safely ignored.
+                        toReturn.errors.push(new OpenT2TError(404, `${OpenT2TConstants.UnknownPlatform}: ${insteonDevice.DeviceID}`));
                     }
-                    return Promise.resolve(undefined);
+                }).catch((err) => {
+                    return Promise.reject(err);
                 });
 
             platformPromises.push(promise);
         });
 
-        // Return a promise for all platform translations.
-        return Promise.all(platformPromises)
-            .then((platforms) => {
-                var toReturn = {};
-                toReturn.schema = "org.opent2t.sample.hub.superpopular";
-                toReturn.platforms = [];
-                for (var i = 0; i < platforms.length ; i++) {
-                    if (platforms[i] !== undefined) {
-                        toReturn.platforms.push(platforms[i]);
-                    }
-                }
+        // Return a promise for all platform translations
+        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
+        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
+        return Promise.all(platformPromises.map(promiseReflect))
+            .then((values) => {
+                // Resolved promises will be succesfully translated platforms
+                toReturn.platforms = values.filter(v => v.status == 'resolved' && v.data != undefined).map(p => { return p.data; });
+                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
+                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
+                }));
                 return toReturn;
             });
-
     }
 
     /**
      * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
      */
     refreshAuthToken(authInfo) {
-        var invalidAuthErrorMessage = "Invalid authInfo object.Please provide the existing authInfo object with clientId + user account credentials to allow the oAuth token to be refreshed";
-
-        if (authInfo == undefined || authInfo == null) {
-            throw new Error(invalidAuthErrorMessage);
-        }
-
-        if (authInfo.length !== 2) {
-            // We expect the original authInfo object used in the onboarding flow
-            // not defining a brand new type for the Refresh() contract and re-using
-            // what is defined for Onboarding()
-            throw new Error(invalidAuthErrorMessage);
+        // We expect the original authInfo object used in the onboarding flow
+        // not defining a brand new type for the Refresh() contract and re-using
+        // what is defined for Onboarding()
+        if (authInfo == undefined || authInfo == null || authInfo.length !== 2) {
+            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
         }
 
         var options = {
@@ -176,10 +187,6 @@ class Translator {
 
                 return this._authTokens;
                 
-            }).catch(function (err) {
-                console.log('Request failed to: ' + options.method + ' - ' + options.url);
-                console.log('Error            : ' + err.statusCode + ' - ' + err.response.statusMessage);
-                throw err;
             });
     }
 
@@ -199,7 +206,7 @@ class Translator {
             .then((data) => {
 
                 var deviceData = data;
-                var opent2tInfo = this._getOpent2tInfo(deviceData.DevCat, deviceData.SubCat.toString(16).toUpperCase());
+                var opent2tInfo = this._getOpent2tInfo(deviceData);
                 var postPaylaod = {
                     command: 'get_status',
                     device_id: deviceId
@@ -207,9 +214,12 @@ class Translator {
 
                 return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
                     .then((response) => {                       
-                        return this._getCommandResponse(response.id, 10) // get device status
-                            .then((deviceStatus) => {                              
+                        return this._getCommandResponse(response.id) // get device status
+                            .then((deviceStatus) => {  
                                 if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
+
+                                    deviceData['Reachable'] = true;
+
                                     switch (opent2tInfo.schema) {
                                         case 'org.opent2t.sample.thermostat.superpopular':
                                             for (var status in deviceStatus.response) {
@@ -225,8 +235,10 @@ class Translator {
                                             }
                                             break;
                                     }
+                                } else if (deviceStatus.status === 'failed') {
+                                    deviceData['Reachable'] = false;
                                 } else {
-                                    this._throwError(JSON.stringify(deviceStatus, null, 2));
+                                    throw new OpenT2TError(500, JSON.stringify(deviceStatus, null, 2));
                                 }
                                 return deviceData;
                             });
@@ -256,7 +268,7 @@ class Translator {
         if (Object.keys(statusChanges).length > 0) {
             var statePromise = this._makeRequest(this._commandPath, 'POST', JSON.stringify(statusChanges))
                 .then((response) => {
-                    return this._getCommandResponse(response.id, 10) // get command status
+                    return this._getCommandResponse(response.id) // get command status
                         .then((commandResult) => {
                             return Promise.resolve(commandResult);
                         });
@@ -326,48 +338,40 @@ class Translator {
                 }
             }
 
-            if (device.length === 0) return Promise.resolve(undefined);
+            if (device.length === 0) {
+                // TODO: This doesnt quite seem right; Will need to investigate
+                return Promise.resolve(undefined);
+            }
             device['DeviceID'] = deviceId;
             return Promise.resolve(device);
         });
-
     }
 
     /** 
      * Given the hub specific device, returns the opent2t schema and translator
      * devCat: Insteon device category
-     * subCat: Insteon device sub-category.
      * We can identify the device using those two value based on the table at
      * https://insteon.atlassian.net/wiki/display/IKB/Insteon+Device+Categories+and+Sub-Categories#InsteonDeviceCategoriesandSub-Categories-devcat-subcat
      */
-    _getOpent2tInfo(devCat, subCat) {
+    _getOpent2tInfo(deviceData) {
+
+        var devCat = deviceData.DevCat
         switch (devCat) {
             case 1:
-                if (this._subCatMap.lightBulbs.indexOf(subCat) >= 0)
-                {
-                    return {
-                        "schema": 'org.opent2t.sample.lamp.superpopular',
-                        "translator": "opent2t-translator-com-insteon-lightbulb"
-                    };
-                }
-                return undefined;
+                return {
+                    "schema": 'org.opent2t.sample.lamp.superpopular',
+                    "translator": "opent2t-translator-com-insteon-lightbulb"
+                };
             case 2:
-                if (this._subCatMap.binarySwitch.indexOf(subCat) >= 0)
-                {
-                    return {
-                        "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                        "translator": "opent2t-translator-com-insteon-binaryswitch"
-                    };
-                }
-                return undefined;
+                return {
+                    "schema": 'org.opent2t.sample.binaryswitch.superpopular',
+                    "translator": "opent2t-translator-com-insteon-binaryswitch"
+                };
             case 5:
-                if (this._subCatMap.thermostats.indexOf(subCat) >= 0) {
-                    return {
-                        "schema": 'org.opent2t.sample.thermostat.superpopular',
-                        "translator": "opent2t-translator-com-insteon-thermostat"
-                    };
-                }
-                return undefined;
+                return {
+                    "schema": 'org.opent2t.sample.thermostat.superpopular',
+                    "translator": "opent2t-translator-com-insteon-thermostat"
+                };
             default:
                 return undefined;
         }
@@ -394,35 +398,29 @@ class Translator {
      *  it suggested us to wait for 1 second for the call to complete its roundtrip from the client to the hub, to the 
      *  device and back to the client.
      */
-    _getCommandResponse(commandId, count) {
+    _getCommandResponse(commandId) {
         return sleep(1000).then(() => {
             return this._makeRequest(this._commandPath + '/' + commandId, 'GET')
                 .then( (response) => {
-                    if(response.status === 'pending')
-                    {
-                        if(count > 1){
-                            return this._getCommandResponse(commandId, --count);
-                        } else {
-                            this._throwError('Internal Error - Insteon command timeout.');
-                        }
-                    } else {
-                        return response;
+                    switch(response.status){
+                        case 'pending':
+                            return this._getCommandResponse(commandId);
+                        case 'failed':
+                        case 'succeeded':
+                            return Promise.resolve(response);
+                        default:
+                            if( response.command.device_id !== undefined){
+                                this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
+                            } else {
+                                this._throwError('Internal Error - Insteon command timeout.');
+                            }
                     }
                 })
-                .catch((err) => { console.log(err); });
-        });
-    }
-
-    /**
-     * Internal helper to throw a error with with a specific error message
-     */
-    _throwError(message){
-        var errMsg = {
-            statusCode: '500',
-            response: { statusMessage: message }
-        };
-        throw errMsg;
-    }
+                .catch((err) => { 
+                    Promise.reject(err); 
+                });
+            });
+        }
     
     /**
      * Internal helper method which makes the actual request to the insteon service
@@ -466,12 +464,6 @@ class Translator {
                 } else {
                     return JSON.parse(body);
                 }
-            })
-            .catch(function (err) {
-                console.log("Request failed to: " + options.method + " - " + options.url);
-                console.log("Error            : " + err.statusCode + " - " + err.response.statusMessage);
-                // todo auto refresh in specific cases, issue 74
-                throw err;
             });
     }
 }

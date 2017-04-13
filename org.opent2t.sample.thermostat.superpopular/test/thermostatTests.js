@@ -1,27 +1,16 @@
 'use strict';
 
 var OpenT2T = require('opent2t').OpenT2T;
-const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
+var helpers = require('opent2t-testcase-helpers');
+var runAllPlatformTests = require('opent2t-device-all/tests');
 var translator = undefined;
+const SchemaName = 'org.opent2t.sample.thermostat.superpopular';
 
 function runThermostatTests(settings) {
+    var opent2t = new OpenT2T(settings.logger);
     var test = settings.test;
     var deviceId = settings.deviceId;
-
-    function runTest(t, hasTestData, testMethod) {
-        let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
-
-        if(hasTestData && settings.setTestData) {
-            settings.setTestData(t.title, t);
-        }
-
-        if(expectedException !== undefined) {
-            t.throws(testMethod(), expectedException);
-        }
-        else {
-            return testMethod();
-        }
-    }
+    settings.schemaName = SchemaName;
 
     function verifyTemperatureData(t, response) {
         t.is(response.rt[0], 'oic.r.temperature');
@@ -29,10 +18,12 @@ function runThermostatTests(settings) {
         t.is(typeof(response.units), 'string', 'Verify units is a string, actual: ' + typeof(response.units));
     }
 
+    runAllPlatformTests(settings);
+
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
-			return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+			return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
                     deviceId = response.entities[0].di;
                 }
@@ -40,54 +31,27 @@ function runThermostatTests(settings) {
         });
     });
 
-    test.serial('Valid Thermostat Translator', t => {
-        t.is(typeof translator, 'object') && t.truthy(translator);
-    });
-
-    test.serial('GetPlatform', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
-            t.is(response.rt[0], SchemaName);
-            
-            var resource = response.entities[0].resources[0];
-            t.is(resource.href, '/ambientTemperature');
-            t.is(resource.rt[0], 'oic.r.temperature');
-            t.true(resource.temperature === undefined);
-        });
-    });
-
-    test.serial('GetPlatformExpanded', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', [true])
-            .then((response) => {
-                t.is(response.rt[0], SchemaName);
-
-                var resource = response.entities[0].resources[0];
-                t.is(resource.id, 'ambientTemperature');
-                t.is(resource.rt[0], 'oic.r.temperature');
-                t.true(resource.temperature !== undefined);
-        });
-    });
-
     test.serial('GetAmbientTemperature', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAmbientTemperature', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAmbientTemperature', [deviceId]).then((response) => {
                 verifyTemperatureData(t, response);
             });
         });
     });
 
     test.serial('GetTargetTemperature', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', [deviceId]).then((response) => {
                 verifyTemperatureData(t, response);
             });
         });
     });
 
     test.serial('SetTargetTemperature', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperature', [deviceId, { 'temperature': 30, 'units': 'c' }]).then(() => {
-                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', [deviceId]).then((targetTemperature) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', [deviceId]).then((initialTemperature) => {
+                return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperature', [deviceId, { 'temperature': 30, 'units': 'c' }]).then(() => {
+                    return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.temperature, initialTemperature.temperature)
                         t.truthy(Math.abs(targetTemperature.temperature - 30) < 0.75);
                     });
@@ -97,8 +61,8 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetHumidity', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesHumidity', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesHumidity', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.humidity');
                 t.is(typeof(response.humidity), 'number', 'Verify humidity is a number, actual: ' + typeof(response.humidity));
             });
@@ -106,18 +70,18 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetTargetTemperatureHigh', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((response) => {
                 verifyTemperatureData(t, response);
             });
         });
     });
 
     test.serial('SetTargetTemperatureHigh', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureHigh', [deviceId, { 'temperature': 7, 'units': 'c' }]).then(() => {
-                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((targetTemperature) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((initialTemperature) => {
+                return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureHigh', [deviceId, { 'temperature': 7, 'units': 'c' }]).then(() => {
+                    return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureHigh', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.temperature, initialTemperature.temperature)
                         t.truthy(Math.abs(targetTemperature.temperature - 7) < 0.75);
                     });
@@ -127,18 +91,18 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetTargetTemperatureLow', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((response) => {
                 verifyTemperatureData(t, response);
             });
         });
     });
 
     test.serial('SetTargetTemperatureLow', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureLow', [deviceId, { 'temperature': 19, 'units': 'c' }]).then(() => {
-                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((targetTemperature) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((initialTemperature) => {
+                return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesTargetTemperatureLow', [deviceId, { 'temperature': 19, 'units': 'c' }]).then(() => {
+                    return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperatureLow', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.temperature, initialTemperature.temperature)
                         t.truthy(Math.abs(targetTemperature.temperature - 19) < 0.75);
                     });
@@ -148,18 +112,18 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetAwayTemperatureHigh', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureHigh', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureHigh', [deviceId]).then((response) => {
                 verifyTemperatureData(t, response);
             });
         });
     });
 
     test.serial('SetAwayTemperatureHigh', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureHigh', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayTemperatureHigh', [deviceId, { 'temperature': 22, 'units': 'c' }]).then(() => {
-                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureHigh', [deviceId]).then((targetTemperature) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureHigh', [deviceId]).then((initialTemperature) => {
+                return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayTemperatureHigh', [deviceId, { 'temperature': 22, 'units': 'c' }]).then(() => {
+                    return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureHigh', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.temperature, initialTemperature.temperature)
                         t.truthy(Math.abs(targetTemperature.temperature - 22) < 0.75);
                     });
@@ -169,18 +133,18 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetAwayTemperatureLow', t => {
-        return runTest(t, false, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureLow', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureLow', [deviceId]).then((response) => {
                 verifyTemperatureData(t, response);
             });
         });
     });
 
     test.serial('SetAwayTemperatureLow', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureLow', [deviceId]).then((initialTemperature) => {
-                return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayTemperatureLow', [deviceId, { 'temperature': 19, 'units': 'c' }]).then(() => {
-                    return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureLow', [deviceId]).then((targetTemperature) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureLow', [deviceId]).then((initialTemperature) => {
+                return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayTemperatureLow', [deviceId, { 'temperature': 19, 'units': 'c' }]).then(() => {
+                    return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayTemperatureLow', [deviceId]).then((targetTemperature) => {
                         t.not(targetTemperature.temperature, initialTemperature.temperature)
                         t.truthy(Math.abs(targetTemperature.temperature - 19) < 0.75);
                     });
@@ -190,25 +154,24 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetAwayMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayMode', [deviceId]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
-                t.truthy(Object.prototype.toString.call(response.modes) === '[object Array]', 'Verify modes array returned');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAwayMode', [deviceId]).then((response) => {
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('SetAwayMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', [deviceId, {'modes': ['away']}]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', [deviceId, {'modes': ['away']}]).then((response) => {
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('GetEcoMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesEcoMode', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesEcoMode', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.sensor');
                 t.truthy(typeof(response.value) === 'boolean', 'Verify eco mode value is a boolean');
             });
@@ -216,25 +179,24 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetHvacMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesHvacMode', [deviceId]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
-                t.truthy(Object.prototype.toString.call(response.modes) === '[object Array]', 'Verify modes array returned');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesHvacMode', [deviceId]).then((response) => {
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('SetHvacMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesHvacMode', [deviceId, {'modes': ['auto']}]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesHvacMode', [deviceId, {'modes': ['auto']}]).then((response) => {
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('GetHeatingFuelSource', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesHeatingFuelSource', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesHeatingFuelSource', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'opent2t.r.heatingFuel');
                 t.truthy(typeof(response.fuelType) === 'string', 'Verify fuelType is a boolean');
             });
@@ -242,8 +204,8 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetHasFan', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesHasFan', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesHasFan', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.sensor');
                 t.truthy(typeof(response.value) === 'boolean', 'Verify eco mode value is a boolean');
             });
@@ -251,8 +213,8 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetFanActive', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesFanActive', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesFanActive', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.sensor');
                 t.truthy(typeof(response.value) === 'boolean', 'Verify eco mode value is a boolean');
             });
@@ -260,8 +222,8 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetFanTimerActive', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesFanTimerActive', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesFanTimerActive', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.sensor');
                 t.truthy(typeof(response.value) === 'boolean', 'Verify eco mode value is a boolean');
             });
@@ -269,8 +231,8 @@ function runThermostatTests(settings) {
     });
 
     test.serial('GetFanTimerTimeout', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesFanTimerTimeout', [deviceId]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesFanTimerTimeout', [deviceId]).then((response) => {
                 t.is(response.rt[0], 'oic.r.clock');
                 t.truthy(typeof(response.datetime) === 'string', 'Verify datetime is a string');
             });
@@ -278,36 +240,39 @@ function runThermostatTests(settings) {
     });
 
     test.serial('SetFanTimerTimeout', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesFanTimerTimeout', [deviceId, {'datetime': '2016-03-15T14:30Z'}]).then((response) => {
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesFanTimerTimeout', [deviceId, {'datetime': '2016-03-15T14:30Z'}]).then((response) => {
                 t.is(response.rt[0], 'oic.r.clock');
             });
         });
     });
 
     test.serial('GetFanMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesFanMode', [deviceId]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
-                t.truthy(Object.prototype.toString.call(response.modes) === '[object Array]', 'Verify modes array returned');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesFanMode', [deviceId]).then((response) => {
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('SetFanMode', t => {
-        return runTest(t, true, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesFanMode', [deviceId, {'modes': ['auto']}]).then((response) => {
-                t.is(response.rt[0], 'oic.r.mode');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesFanMode', [deviceId, {'modes': ['auto']}]).then((response) => {
+                helpers.verifyModesData(t, response);
             });
         });
     });
 
     test.serial('GetTargetTemperatureForNonexistentDevice_Fails', t => {
-        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000']), 'NotFound');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTargetTemperature', ['00000000-0000-0000-0000-000000000000']);
+        });
     });
 
     test.serial('SetAwayModeForNonexistentDevice_Fails', t => {
-        t.throws(OpenT2T.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}]), 'NotFound');
+        return helpers.runTest(settings, t, () => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesAwayMode', ['00000000-0000-0000-0000-000000000000', {'modes': ['away']}]);
+        });
     });
 }
 

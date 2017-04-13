@@ -1,14 +1,25 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +33,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di; 
     }); 
     
-    if (!entity) throw new Error('Entity - '+ di +' not found.');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+    }
     
     var resource = entity.resources.find((r) => { 
         return r.id === resourceId;  
     }); 
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.'); 
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource; 
 }
 
@@ -39,19 +54,21 @@ function findResource(schema, di, resourceId) {
 const ChangeTolerance = 0.0001;
 const MaxHue = 360.0;
 const MaxColor = 255;
-
-const lightDeviceDi = "c1e94444-792a-472b-9f91-dd4d96a24ee9"
+const OneMil = 1000000.0;
 
 /**
  * Convert HSV to RGB colours
- *   0 <= Hue <= 360
+ *   0 <= Hue < 360
  *   0 <= Saturation <= 1
  *   0 <= lumosity <= 1 
  */
 function HSVtoRGB(hue, saturation, lumosity) {
-    var hi = Math.floor(hue / 60) % 6;
+
+    var ajdHue = hue >= 360 ? hue - 1 : hue;
+
+    var hi = Math.floor(ajdHue / 60) % 6;
     var c = saturation * lumosity;
-    var x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+    var x = c * (1 - Math.abs(((ajdHue / 60) % 2) - 1));
     var m = lumosity - c;
 
     var result;
@@ -61,23 +78,23 @@ function HSVtoRGB(hue, saturation, lumosity) {
         case 0:
             result = [c, x, 0];
             break;
-        case 2 :
+        case 1 :
             result = [x, c, 0];
             break;
-        case 3:
+        case 2:
             result = [0, c, x];
             break;
-        case 4:
+        case 3:
             result = [0, x, c];
             break;
-        case 5:
+        case 4:
             result = [x, 0, c];
             break;
         default:
             result = [c, 0, x];
             break;
     }
-    return [(result[0] + m) * MaxColor, (result[1] + m) * MaxColor, (result[2] + m) * MaxColor]
+    return [Math.round((result[0] + m) * MaxColor), Math.round((result[1] + m) * MaxColor), Math.round((result[2] + m) * MaxColor)]
 }
 
 /**
@@ -142,6 +159,11 @@ function defaultValueIfEmpty(property, defaultValue) {
  * Converts a representation of a platform from the Wink API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
+    
+    var supportCT = providerSchema['attributes'].colorTemperature !== undefined;
+    var supportColour = ( providerSchema['attributes'].hue !== undefined
+        && providerSchema['attributes'].saturation !== undefined
+        && providerSchema['attributes'].level !== undefined ) ;
 
     // Build the power resource
     var power = {
@@ -177,7 +199,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "rt": ["oic.r.colour.chroma"],
         "if": ["oic.if.a", "oic.if.baseline"]
     }
-
+  
     // Include the values is expand is specified
     if (expand) {
         power.id = 'power';
@@ -186,27 +208,55 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['attributes'].level;
         dim.range = [0, 100];
+        
+        if (supportColour) {
+            colourMode.id = 'colourMode';
+            colourMode.modes = ['rgb'];
+            colourMode.supportedModes = ['rgb'];
 
-        colourMode.id = 'colourMode';
-        colourMode.modes = ['rgb'];
-        colourMode.supportedModes = ['rgb', 'chroma'];
+            colourRGB.id = 'colourRGB';
+            colourRGB.rgbValue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
+                                          providerSchema['attributes'].saturation / 100.0,
+                                          providerSchema['attributes'].level / 100.0);
+            colourRGB.range = [0, 255];
+        }
 
-        colourRGB.id = 'colourRGB';
-        colourRGB.rgbvalue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
-                                      providerSchema['attributes'].saturation / 100.0,
-                                      providerSchema['attributes'].level / 100.0);
-        colourRGB.range = [0, 255];
+        if (supportCT) {
+            colourChroma.id = 'colourChroma';
+            colourChroma.ct = Math.round( OneMil / providerSchema['attributes'].colorTemperature );
 
-        colourChroma.id = 'colourChroma';
-        colourChroma.ct = providerSchema['attributes'].colorTemperature;
+            if (supportColour) {
+                colourMode.supportedModes = ['rgb', 'chroma'];
+            } else {
+                colourMode.id = 'colourMode';
+                colourMode.modes = ['chroma'];
+                colourMode.supportedModes = ['chroma'];
+            }
+        }
+    }
+
+    var resources = [power, dim];
+
+    if (supportColour && supportCT) {
+        resources.push(colourMode);
+        resources.push(colourChroma);
+        resources.push(colourRGB);
+    } else if (supportColour) {
+        resources.push(colourMode);
+        resources.push(colourRGB);
+    } else if (supportCT) {
+        resources.push(colourMode);
+        resources.push(colourChroma);
     }
 
     return {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-smartthings-lightbulb',
-            controlId: providerSchema['id']
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Light Bulb (Generic)"),
@@ -216,16 +266,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             {
                 n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
-                di: lightDeviceDi,
+                di: generateGUID( providerSchema['id'] + 'opent2t.d.light' ),
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
-                resources: [
-                    power,
-                    dim,
-                    colourMode,
-                    colourRGB,
-                    colourChroma
-                ]
+                resources: resources
             }
         ]
     };
@@ -247,8 +291,7 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             result['level'] = resourceSchema.dimmingSetting;
             break;
         case 'colourRGB':
-            var HSVColor = RGBtoHSV(resourceSchema.rgbvalue);
-            console.log(HSVColor);
+            var HSVColor = RGBtoHSV(resourceSchema.rgbValue);
             if (HSVColor !== undefined)
             {
                 result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
@@ -259,15 +302,14 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'colourChroma':
             if (resourceSchema.ct !== undefined)
             {
-                result['colorTemperature'] = resourceSchema.ct;
+                result['colorTemperature'] = Math.round( OneMil / resourceSchema.ct );
             } else {
-                throw new Error("Invalid resourceId");
+                throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
             }
             break
         default:
             // Error case
-            console.log("Invalid resourceId: " + resourceId)
-            throw new Error("Invalid resourceId");
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
     return result;
 }
@@ -275,15 +317,17 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
         
-    constructor(deviceInfo) {
-        console.log('SmartThings Lightbulb initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-smartthings-lightbulb";
+       this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Lightbulb initializing...Done');
+        this.logger.info('SmartThings Lightbulb initializing...Done');
     }
 
     /**
@@ -293,9 +337,8 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
-            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
+        } else {
+            return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -316,16 +359,16 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === lightDeviceDi) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 
@@ -367,11 +410,13 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
-        return this.smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartThingsHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
+        subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }

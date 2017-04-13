@@ -81,7 +81,6 @@
       ]
     },
 
-
     "oic.d.light": {
       "description": "The OCF Smarthome defined light",
       "type": "object",
@@ -99,7 +98,6 @@
         {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
      ]
     },
-
 
     "opent2t.d.light": {
       "description": "The opent2t light; extends oic.d.light",

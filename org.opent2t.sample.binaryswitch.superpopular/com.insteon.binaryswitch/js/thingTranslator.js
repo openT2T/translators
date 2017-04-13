@@ -1,4 +1,7 @@
 'use strict';
+
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
@@ -6,10 +9,10 @@ var crypto = require('crypto');
 
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -24,14 +27,16 @@ function findResource(schema, di, resourceId) {
     });
 
     if (!entity) {
-        throw new Error('Entity - '+ di +' not found.');
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
 
     var resource = entity.resources.find((r) => {
         return r.id === resourceId;
     });
 
-    if (!resource) throw new Error('Resource with resourceId \"' +  resourceId + '\" not found.');
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    }
     return resource;
 }
 
@@ -40,7 +45,7 @@ function findResource(schema, di, resourceId) {
  */
 function generateGUID(stringID) {
     var guid = crypto.createHash('sha1').update('Insteon' + stringID).digest('hex');
-    return guid.substr(0, 8) + '-' + guid.substr(8, 4) + '-' + guid.substr(12, 4) + '-' + guid.substr(16, 4) + '-' + guid.substr(20, 12);
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
 }
 
 /**
@@ -62,7 +67,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         rt: ['oic.r.switch.binary'],
         if: ['oic.if.a', 'oic.if.baseline']
     };
-    
+
     if (expand) {
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
@@ -74,6 +79,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             translator: 'opent2t-translator-com-insteon-binaryswitch',
             controlId: providerSchema['DeviceID']
         },
+        availability: providerSchema['Reachable'] ? 'online' : 'offline',
         pi: generateGUID(providerSchema['DeviceID']),
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Insteon"),
         mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Binary Switch (Generic)"),
@@ -85,7 +91,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
-                di: switchDeviceDi,
+                di: generateGUID( providerSchema['DeviceID'] + 'oic.d.smartplug' ),
                 resources: [
                     power
                 ]
@@ -108,25 +114,24 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             break;
         default:
             // Error case
-            throw new Error("Invalid resourceId");
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
     return result;
 }
 
-const switchDeviceDi = "f9604075-1a64-498b-ae9b-7436a63721ba";
-
 // This translator class implements the 'org.opent2t.sample.binaryswitch.superpopular' interface.
 class Translator {
 
-    constructor(deviceInfo) {
-        console.log('Insteon Binary Switch initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-insteon-binaryswitch";
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.insteonHub = deviceInfo.hub;
 
-        console.log('Insteon Binary Switch initializing...Done');
+        this.logger.info('Insteon Binary Switch initializing...Done');
     }
 
     /**
@@ -136,8 +141,7 @@ class Translator {
     get(expand, payload) {
         if (payload) {
             return  providerSchemaToPlatformSchema(payload, expand);
-        }
-        else {
+        } else {
             return this.insteonHub.getDeviceDetailsAsync(this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
@@ -159,7 +163,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === switchDeviceDi) {
+        if (di === generateGUID( this.controlId + 'oic.d.smartplug' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
@@ -167,6 +171,8 @@ class Translator {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
                 });
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
 

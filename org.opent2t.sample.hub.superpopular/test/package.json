@@ -10,7 +10,7 @@
   "main": "mockHub.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "1.0.1",
+    "opent2t": "^1.1.0",
     "q": "^1.4.1"
   },
   "devDependencies": {

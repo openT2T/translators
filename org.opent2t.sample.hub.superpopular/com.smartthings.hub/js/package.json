@@ -1,14 +1,13 @@
 {
   "name": "opent2t-translator-com-smartthings-hub",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "SmartThings Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
   "files": [
     "thingTranslator.js",
     "package.json",
-    "manifest.xml",
-    "common.js"
+    "manifest.xml"
   ],
   "repository": {
     "type": "git",
@@ -21,10 +20,12 @@
   "dependencies": {
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
-    "opent2t": "^1.0.1",
-    "opent2t-onboarding-org-opent2t-onboarding-smartthings": "^0.0.1"
+    "crypto": "^0.0.3", 
+    "promise-reflect": "^1.1.0", 
+    "opent2t": "^1.1.0",
+    "opent2t-onboarding-org-opent2t-onboarding-smartthings": "^0.3.0"
   },
   "devDependencies": {
-    "ava": "^0.15.2"
+    "ava": "^0.18.2"
   }
 }

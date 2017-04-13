@@ -1,18 +1,20 @@
 {  "expected_exceptions" :
     {
-        "GetAwayTemperatureHigh" : "NotImplemented",
-        "GetAwayTemperatureLow" : "NotImplemented",
-        "GetHeatingFuelSource" : "NotImplemented",
-        "GetFanActive" : "NotImplemented",
-        "GetFanTimerActive" : "NotImplemented",
-        "GetFanTimerTimeout" : "NotImplemented",
-        "GetAwayMode" : "NotImplemented",
-        "GetEcoMode" : "NotImplemented",
-        "SetTargetTemperature" : "NotMutable",
-        "SetAwayTemperatureHigh" : "NotImplemented",
-        "SetAwayTemperatureLow" : "NotImplemented",
-        "SetFanTimerTimeout" : "NotImplemented",
-        "SetAwayMode" : "NotImplemented",
-        "SetEcoMode" : "NotImplemented"
+        "GetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetHeatingFuelSource" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetAwayMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetEcoMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetTargetTemperature" : {"statusCode": 403, "message" : "Resource is not mutable"},
+        "SetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetAwayMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "SetEcoMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
+        "GetTargetTemperatureForNonexistentDevice_Fails" : {"statusCode" : 404},
+        "SetAwayModeForNonexistentDevice_Fails" : {"statusCode" : 404, "messageConst" : "DeviceNotFound"}
     }
 }

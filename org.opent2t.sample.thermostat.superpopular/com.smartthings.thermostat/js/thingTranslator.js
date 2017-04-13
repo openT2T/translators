@@ -1,14 +1,25 @@
 'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var crypto = require('crypto');
 
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
+/**
+ * Generate a GUID for given an ID.
+ */
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
+
 function validateArgumentType(arg, argName, expectedType) {
     if (typeof arg === 'undefined') {
-        throw new Error('Missing argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + '.');
     } else if (typeof arg !== expectedType) {
-        throw new Error('Invalid argument: ' + argName + '. ' +
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
             'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
@@ -22,13 +33,17 @@ function findResource(schema, di, resourceId) {
         return d.di === di; 
     }); 
     
-    if (!entity) throw new Error('NotFound');
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+    }
     
     var resource = entity.resources.find((r) => { 
         return r.id === resourceId;  
     }); 
 
-    if (!resource) throw new Error('NotFound'); 
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+    } 
     return resource; 
 }
 
@@ -93,7 +108,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = providerSchema['attributes'].coolingSetpoint;
     var min = providerSchema['attributes'].heatingSetpoint;
-    var temperatureUnits = providerSchema['attributes'].deviceTemperatureUnit;
+    var temperatureUnits = providerSchema['attributes'].temperatureScale;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['attributes'].temperature,
@@ -142,8 +157,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-smartthings-thermostat',
-            controlId: providerSchema['id']
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
         },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
         pi: providerSchema['id'],
         mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
         mnmo: defaultValueIfEmpty(providerSchema['model'], "Thermostat (Generic)"),
@@ -155,8 +172,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: thermostatDeviceDi,
-                resources: [
+                di: generateGUID( providerSchema['id'] + 'opent2t.d.thermostat' ),
+                    resources: [
                     ambientTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
@@ -200,9 +217,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
         case 'fanTimerTimeout':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
         default:
-            throw new Error('NotFound');
+            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
     }
 
     return result;
@@ -217,24 +234,24 @@ function validateResourceGet(resourceId) {
         case 'fanTimerActive':
         case 'fanTimerTimeout':
         case 'fanActive':
-            throw new Error('NotImplemented');
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
 }
-
-const thermostatDeviceDi = "185981bb-b056-42dd-959a-bc0d3f6080ea";
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
      
-    constructor(deviceInfo) {
-        console.log('SmartThings Thermostat initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-smartthings-thermostat";
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartThingsHub = deviceInfo.hub;
 
-        console.log('SmartThings Thermostat initializing...Done');
+        this.logger.info('SmartThings Thermostat initializing...Done');
     }
     
     /**
@@ -245,7 +262,7 @@ class Translator {
         if (payload) {
             return providerSchemaToPlatformSchema(payload, expand);
         } else {
-            return this.smartThingsHub.getDeviceDetailsAsync(this.controlId)
+            return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
                 .then((response) => {
                     return providerSchemaToPlatformSchema(response, expand);
                 });
@@ -268,17 +285,17 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === thermostatDeviceDi)
+        if (di === generateGUID( this.controlId + 'opent2t.d.thermostat') )
         {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
-            return this.smartThingsHub.putDeviceDetailsAsync(this.controlId, putPayload)
+            return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
                 .then((response) => {
                     var schema = providerSchemaToPlatformSchema(response, true);
                     return findResource(schema, di, resourceId);
                 });
         } else {
-            throw new Error('NotFound');
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
   
@@ -384,11 +401,13 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
-        return this.smartThingsHub.postSubscribe(subscriptionInfo);
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartThingsHub._subscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
+        subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
 }

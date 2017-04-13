@@ -1,0 +1,1071 @@
+{
+  "id": "http://schemas.microsoft.com/org.opent2t.sample.multisensor.superpopular#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "",
+  "title": "opent2t multisensor",
+  "definitions": {
+
+    "accelerationX": {
+      "description": "ReadOnly, X-Axis sensed acceleration experienced in 'g'.",
+      "type": "object",
+      "default": {
+        "id": "accelerationX",
+        "href": "/accelerationX",
+        "rt": [
+          "oic.r.sensor.acceleration"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.acceleration.json#/definitions/oic.r.sensor.acceleration"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "accelerationY": {
+      "description": "ReadOnly, Y-axis sensed acceleration experienced in 'g'.",
+      "type": "object",
+      "default": {
+        "id": "accelerationY",
+        "href": "/accelerationY",
+        "rt": [
+          "oic.r.sensor.acceleration"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.acceleration.json#/definitions/oic.r.sensor.acceleration"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "accelerationZ": {
+      "description": "ReadOnly, Z-axis sensed acceleration experienced in 'g'.",
+      "type": "object",
+      "default": {
+        "id": "accelerationZ",
+        "href": "/accelerationZ",
+        "rt": [
+          "oic.r.sensor.acceleration"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.acceleration.json#/definitions/oic.r.sensor.acceleration"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "airquality": {
+      "description": "ReadOnly, Array of air quality measures. One element per contaminant.",
+      "type": "object",
+      "default": {
+        "id": "airquality",
+        "href": "/airquality",
+        "rt": [
+          "oic.r.airquality"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.airquality.json#/definitions/oic.r.airquality"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "atmosphericpressure": {
+      "description": "ReadOnly, Current atmospheric pressure in hPa.",
+      "type": "object",
+      "default": {
+        "id": "atmosphericpressure",
+        "href": "/atmosphericpressure",
+        "rt": [
+          "oic.r.sensor.atmosphericpressure"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.atmosphericpressure.json#/definitions/oic.r.sensor.atmosphericpressure"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+   "brightnesschange": {
+      "description": "ReadOnly, Brightness change. Whether or not the sensor currently senses a large delta in light. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "brightnesschange",
+        "href": "/brightnesschange",
+        "rt": [
+          "oic.r.sensor"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "carbondioxide": {
+      "description": "ReadOnly, carbon dioxide detected. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "carbondioxide",
+        "href": "/carbondioxide",
+        "rt": [
+          "oic.r.sensor.carbondioxide"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.carbondioxide.json#/definitions/oic.r.sensor.carbondioxide"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "carbonmonoxide": {
+      "description": "ReadOnly, carbon monoxide detected. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "carbonmonoxide",
+        "href": "/carbonmonoxide",
+        "rt": [
+          "oic.r.sensor.carbonmonoxide"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.carbonmonoxide.json#/definitions/oic.r.sensor.carbonmonoxide"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "contact": {
+      "description": "ReadOnly, contact sensor. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "contact",
+        "href": "/contact",
+        "rt": [
+          "oic.r.sensor.contact"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.contact.json#/definitions/oic.r.sensor.contact"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+   "combustiblegas": {
+      "description": "ReadOnly, Combustible Gas Sensor Leak sensor. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "combustiblegas",
+        "href": "/combustiblegas",
+        "rt": [
+          "oic.r.sensor"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "glassbreak": {
+      "description": "ReadOnly, glass break sensor. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "glassbreak",
+        "href": "/glassbreak",
+        "rt": [
+          "oic.r.sensor.glassbreak"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.glassbreak.json#/definitions/oic.r.sensor.glassbreak"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "humidity":{
+      "description": "ReadOnly, humidity measured by the device.",
+      "type": "object",
+      "default": {
+        "id": "humidity",
+        "href": "/humidity",
+        "rt": [ "oic.r.humidity" ],
+        "if": [ "oic.if.s", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.humidity.json#/definitions/oic.r.humidity"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "illuminance": {
+      "description": "ReadOnly, Sensed luminous flux per unit area in lux",
+      "type": "object",
+      "default": {
+        "id": "illuminance",
+        "href": "/illuminance",
+        "rt": [
+          "oic.r.sensor.illuminance"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.illuminance.json#/definitions/oic.r.sensor.illuminance"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+   "locked": {
+      "description": "ReadOnly, Whether or not the sensor detects a locked state. True = locked, false = unlocked.",
+      "type": "object",
+      "default": {
+        "id": "locked",
+        "href": "/locked",
+        "rt": [
+          "oic.r.sensor"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.contact.json#/definitions/oic.r.sensor"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+   "loudnesschange": {
+      "description": "ReadOnly, Loudness change. Whether or not the sensor currently senses a large delta in sound. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "loudnesschange",
+        "href": "/loudnesschange",
+        "rt": [
+          "oic.r.sensor"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "motion": {
+      "description": "ReadOnly, motion sensor. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "motion",
+        "href": "/motion",
+        "rt": [
+          "oic.r.sensor.motion"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.motion.json#/definitions/oic.r.sensor.motion"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "presence": {
+      "description": "ReadOnly, presence detector. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "presence",
+        "href": "/presence",
+        "rt": [
+          "oic.r.sensor.presence"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.presence.json#/definitions/oic.r.sensor.presence"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "temperature": {
+      "description": "ReadOnly, Current temperature.",
+      "type": "object",
+      "default": {
+        "id": "temperature",
+        "href": "/temperature",
+        "rt": [ "oic.r.temperature" ],
+        "if": [ "oic.if.s", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "oic.r.temperature.json#/definitions/oic.r.temperature"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+    "uvradiation": {
+      "description": "ReadOnly, The measured UV Index.",
+      "type": "object",
+      "default": {
+        "id": "uvradiation",
+        "href": "/uvradiation",
+        "rt": [
+          "oic.r.sensor.radiation.uv"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.radiation.uv.json#/definitions/oic.r.sensor.radiation.uv"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+   "vibrationchange": {
+      "description": "ReadOnly, Vibration change. Whether or not the sensor currently senses a large delta in vibration. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "vibrationchange",
+        "href": "/vibrationchange",
+        "rt": [
+          "oic.r.sensor"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.json#/definitions/oic.r.sensor"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "smoke": {
+      "description": "ReadOnly, smoke detector. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "smoke",
+        "href": "/smoke",
+        "rt": [
+          "oic.r.sensor.smoke"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.smoke.json#/definitions/oic.r.sensor.smoke"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "touch": {
+      "description": "ReadOnly, touch detector. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "touch",
+        "href": "/touch",
+        "rt": [
+          "oic.r.sensor.touch"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.touch.json#/definitions/oic.r.sensor.touch"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "water": {
+      "description": "ReadOnly, water detector. True = sensed, false = not sensed.",
+      "type": "object",
+      "default": {
+        "id": "water",
+        "href": "/water",
+        "rt": [
+          "oic.r.sensor.water"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.sensor.water.json#/definitions/oic.r.water.touch"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "battery": {
+      "description": "ReadOnly, Battery current charge percentage.",
+      "type": "object",
+      "default": {
+        "id": "battery",
+        "href": "/battery",
+        "rt": [
+          "oic.r.energy.battery"
+        ],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {
+          "$ref": "oic.r.energy.battery.json#/definitions/oic.r.energy.battery"
+        },
+        {
+          "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"
+        }
+      ]
+    },
+
+    "opent2t.r.timestamp": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "description": "Using ISO 8601 datetime format (e.g: 2007-04-05T14:30Z, 2007-04-05T14:30+09:00)"
+        }
+      }
+    },
+
+    "lastchanged": {
+      "description": "ReadOnly, Timestamp showing last time sensor value changed.",
+      "type": "object",
+      "default": {
+        "id": "lastchanged",
+        "href": "/lastchanged",
+        "rt": ["opent2t.r.timestamp"],
+        "if": [
+          "oic.if.s",
+          "oic.if.baseline"
+        ]
+      },
+      "allOf": [
+        {"$ref": "#/definitions/opent2t.r.timestamp"},
+        {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
+      ]
+    },
+
+
+
+    "opent2t.d.sensor.acceleration": {
+      "description": "The opent2t acceleration sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/accelerationX"},
+              {"$ref": "#/definitions/accelerationY"},
+              {"$ref": "#/definitions/accelerationZ"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.airquality": {
+      "description": "The opent2t air quality sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/airquality"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+    
+    "opent2t.d.sensor.atmosphericpressure": {
+      "description": "The opent2t atmospheric pressure sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/atmosphericpressure"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.brightnesschange": {
+      "description": "The opent2t brightness change sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/brightnesschange"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.carbondioxide": {
+      "description": "The opent2t carbon dioxide sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/carbondioxide"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+       
+    "opent2t.d.sensor.carbonmonoxide": {
+      "description": "The opent2t carbon monoxide sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/carbonmonoxide"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+       
+    "opent2t.d.sensor.contact": {
+      "description": "The opent2t contact sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/contact"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.combustiblegas": {
+      "description": "The opent2t combustible gas sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/combustiblegas"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.glassbreak": {
+      "description": "The opent2t glassbreak sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/glassbreak"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.humidity": {
+      "description": "The opent2t humidity sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/humidity"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.illuminance": {
+      "description": "The opent2t illuminance sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/illuminance"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.locked": {
+      "description": "The opent2t locked sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/locked"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.loudnesschange": {
+      "description": "The opent2t loudness change sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/loudnesschange"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.motion": {
+      "description": "The opent2t motion sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/motion"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.presence": {
+      "description": "The opent2t presence sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/presence"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.temperature": {
+      "description": "The opent2t temperature sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/temperature"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+    
+    "opent2t.d.sensor.uvradiation": {
+      "description": "The opent2t uv radiation sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/uvradiation"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+
+    "opent2t.d.sensor.vibrationchange": {
+      "description": "The opent2t vibration change sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/vibrationchange"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+    
+    "opent2t.d.sensor.smoke": {
+      "description": "The opent2t smoke sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/smoke"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+               
+    "opent2t.d.sensor.touch": {
+      "description": "The opent2t touch sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/touch"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+               
+    "opent2t.d.sensor.water": {
+      "description": "The opent2t water sensor device",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/water"},
+              {"$ref": "#/definitions/lastchanged"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {"$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"}
+      ]
+    },
+    
+    "opent2t.d.battery": {
+      "description": "The opent2t multisensor battery",
+      "type": "object",
+      "properties": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/battery"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "opent2t.platform-schema.json#/definitions/opent2t.entity"
+        }
+      ]
+    },
+
+    "org.opent2t.sample.multisensor.superpopular": {
+      "description": "The opent2t multisensor platform",
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {"$ref": "#/definitions/opent2t.d.sensor.acceleration"},
+              {"$ref": "#/definitions/opent2t.d.sensor.airquality"},
+              {"$ref": "#/definitions/opent2t.d.sensor.atmosphericpressure"},
+              {"$ref": "#/definitions/opent2t.d.sensor.brightnesschange"},
+              {"$ref": "#/definitions/opent2t.d.sensor.carbondioxide"},
+              {"$ref": "#/definitions/opent2t.d.sensor.carbonmonoxide"},
+              {"$ref": "#/definitions/opent2t.d.sensor.contact"},
+              {"$ref": "#/definitions/opent2t.d.sensor.combustiblegas"},
+              {"$ref": "#/definitions/opent2t.d.sensor.glassbreak"},
+              {"$ref": "#/definitions/opent2t.d.sensor.humidity"},
+              {"$ref": "#/definitions/opent2t.d.sensor.illuminance"},
+              {"$ref": "#/definitions/opent2t.d.sensor.locked"},
+              {"$ref": "#/definitions/opent2t.d.sensor.loudnesschange"},
+              {"$ref": "#/definitions/opent2t.d.sensor.motion"},
+              {"$ref": "#/definitions/opent2t.d.sensor.presence"},
+              {"$ref": "#/definitions/opent2t.d.sensor.temperature"},
+              {"$ref": "#/definitions/opent2t.d.sensor.uvradiation"},
+              {"$ref": "#/definitions/opent2t.d.sensor.vibrationchange"},
+              {"$ref": "#/definitions/opent2t.d.sensor.smoke"},
+              {"$ref": "#/definitions/opent2t.d.sensor.touch"},
+              {"$ref": "#/definitions/opent2t.d.sensor.water"},
+              {"$ref": "#/definitions/opent2t.d.battery"}
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "opent2t.platform-schema.json#/definitions/opent2t.platform"
+        }
+      ]
+    }
+  },
+
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "oic.core.json#/definitions/oic.core"
+    },
+    {
+      "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+    },
+    {
+      "$ref": "#/definitions/org.opent2t.sample.multisensor.superpopular"
+    }
+  ]
+}
