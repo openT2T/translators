@@ -186,7 +186,7 @@ class Translator {
             var startInd = str.indexOf('{');
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
-            this.ConsoleLogger.error(`Ran into error in putDeviceDetailsAsync: ${errorMsg.error}`);
+            this.logger.error(`Ran into error in putDeviceDetailsAsync: ${errorMsg.error}`);
             return Promise.reject(errorMsg.error);        
         }.bind(this));
     }
@@ -217,7 +217,7 @@ class Translator {
             var startInd = str.indexOf('{');
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
-            this.ConsoleLogger.error(`Ran into error in setAwayMode: ${errorMsg.error}`);
+            this.logger.error(`Ran into error in setAwayMode: ${errorMsg.error}`);
             return Promise.reject(errorMsg.error);        
         }.bind(this));
     }
