@@ -45,7 +45,7 @@ class Translator {
             });
         } else {
 
-            console.log("Subscription Payload: " + JSON.stringify(payload, null, 2));
+            this.logger.verbose("Subscription Payload: " + JSON.stringify(payload, null, 2));
             if(payload.eventType){
                 //SmartThings device graph event: device added/removed
                 return this._getEndpointByLocationId(payload.locationId).then((endpoints) => {
@@ -354,7 +354,7 @@ class Translator {
                         return ["succeed"];
                     } else {
                         let errorMsg = "Non-zero length body for PUT/DELETE call to SmartThings";
-                        this.ConsoleLogger.warn(errorMsg);
+                        this.logger.warn(errorMsg);
                         return errorMsg;
                     }
                 } else {
