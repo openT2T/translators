@@ -7,6 +7,7 @@ const SchemaName = 'org.opent2t.sample.multisensor.superpopular';
 var testSettings = undefined;
 
 function runMultisensorTests(settings) {
+    var opent2t = new OpenT2T(settings.logger);
     var test = settings.test;
     testSettings = settings;
     var deviceIds = {};
@@ -14,7 +15,7 @@ function runMultisensorTests(settings) {
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 for (var i = 0; i < response.entities.length; i++) {
                     deviceIds[response.entities[i].rt[0]] = response.entities[i].di;
                 }
@@ -27,7 +28,7 @@ function runMultisensorTests(settings) {
     });
 
     test.serial('GetPlatform', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+        return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
             t.is(response.rt[0], SchemaName);
 
             t.true(response.entities.length > 0);
@@ -35,7 +36,7 @@ function runMultisensorTests(settings) {
     });
 
     test.serial('GetPlatformExpanded', t => {
-        return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', [true])
+        return opent2t.invokeMethodAsync(translator, SchemaName, 'get', [true])
             .then((response) => {
                 t.is(response.rt[0], SchemaName);
 
@@ -45,7 +46,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetAccelerationX', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAccelerationX', [deviceIds['opent2t.d.sensor.acceleration']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAccelerationX', [deviceIds['opent2t.d.sensor.acceleration']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.acceleration');
                     t.true(response.acceleration !== undefined);
@@ -56,7 +57,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetAccelerationY', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAccelerationY', [deviceIds['opent2t.d.sensor.acceleration']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAccelerationY', [deviceIds['opent2t.d.sensor.acceleration']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.acceleration');
                     t.true(response.acceleration !== undefined);
@@ -67,7 +68,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetAccelerationZ', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAccelerationZ', [deviceIds['opent2t.d.sensor.acceleration']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAccelerationZ', [deviceIds['opent2t.d.sensor.acceleration']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.acceleration');
                     t.true(response.acceleration !== undefined);
@@ -78,7 +79,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetAirquality', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAirquality', [deviceIds['opent2t.d.sensor.airquality']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAirquality', [deviceIds['opent2t.d.sensor.airquality']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.airquality');
                     t.true(response.contaminantvalue !== undefined);
@@ -91,7 +92,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetAtmosphericpressure', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesAtmosphericpressure', [deviceIds['opent2t.d.sensor.atmosphericpressure']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesAtmosphericpressure', [deviceIds['opent2t.d.sensor.atmosphericpressure']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.atmosphericpressure');
                     t.true(response.atmosphericPressure !== undefined);
@@ -102,7 +103,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetBrightnesschange', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesBrightnesschange', [deviceIds['opent2t.d.sensor.brightnesschange']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesBrightnesschange', [deviceIds['opent2t.d.sensor.brightnesschange']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor');
                     t.true(response.value !== undefined);
@@ -113,7 +114,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetCarbondioxide', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesCarbondioxide', [deviceIds['opent2t.d.sensor.carbondioxide']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesCarbondioxide', [deviceIds['opent2t.d.sensor.carbondioxide']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.carbondioxide');
                     t.true(response.value !== undefined);
@@ -124,7 +125,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetCarbonmonoxide', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesCarbonmonoxide', [deviceIds['opent2t.d.sensor.carbonmonoxide']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesCarbonmonoxide', [deviceIds['opent2t.d.sensor.carbonmonoxide']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.carbonmonoxide');
                     t.true(response.value !== undefined);
@@ -135,7 +136,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetContact', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesContact', [deviceIds['opent2t.d.sensor.contact']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesContact', [deviceIds['opent2t.d.sensor.contact']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.contact');
                     t.true(response.value !== undefined);
@@ -146,7 +147,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetCombustiblegas', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesCombustiblegas', [deviceIds['opent2t.d.sensor.combustiblegas']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesCombustiblegas', [deviceIds['opent2t.d.sensor.combustiblegas']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor');
                     t.true(response.value !== undefined);
@@ -157,7 +158,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetGlassbreak', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesGlassbreak', [deviceIds['opent2t.d.sensor.glassbreak']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesGlassbreak', [deviceIds['opent2t.d.sensor.glassbreak']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.glassbreak');
                     t.true(response.value !== undefined);
@@ -168,7 +169,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetHumidity', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesHumidity', [deviceIds['opent2t.d.sensor.humidity']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesHumidity', [deviceIds['opent2t.d.sensor.humidity']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.humidity');
                     t.true(response.humidity !== undefined);
@@ -179,7 +180,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetIlluminance', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesIlluminance', [deviceIds['opent2t.d.sensor.illuminance']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesIlluminance', [deviceIds['opent2t.d.sensor.illuminance']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.illuminance');
                     t.true(response.illuminance !== undefined);
@@ -190,7 +191,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetLocked', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesLocked', [deviceIds['opent2t.d.sensor.locked']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesLocked', [deviceIds['opent2t.d.sensor.locked']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor');
                     t.true(response.value !== undefined);
@@ -201,7 +202,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetLoudnesschange', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesLoudnesschange', [deviceIds['opent2t.d.sensor.loudnesschange']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesLoudnesschange', [deviceIds['opent2t.d.sensor.loudnesschange']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor');
                     t.true(response.value !== undefined);
@@ -212,7 +213,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetMotion', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesMotion', [deviceIds['opent2t.d.sensor.motion']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesMotion', [deviceIds['opent2t.d.sensor.motion']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.motion');
                     t.true(response.value !== undefined);
@@ -223,7 +224,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetMotion_FromWrongDevice', t => {
         t.throws(helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesMotion', [deviceIds['opent2t.d.battery']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesMotion', [deviceIds['opent2t.d.battery']])
                 .then(() => {
                     t.fail('getDevicesMotion for a non-motion device should fail');
                 });
@@ -232,7 +233,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetLastChanged_FromMotion', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesLastchanged', [deviceIds['opent2t.d.sensor.motion']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesLastchanged', [deviceIds['opent2t.d.sensor.motion']])
                 .then((response) => {
                     t.is(response.rt[0], 'opent2t.r.timestamp');
                     if(testSettings.inputLastReading !== undefined) { //Wink-Only
@@ -255,7 +256,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetPresence', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesPresence', [deviceIds['opent2t.d.sensor.presence']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesPresence', [deviceIds['opent2t.d.sensor.presence']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.presence');
                     t.true(response.value !== undefined);
@@ -266,7 +267,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetTemperature', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTemperature', [deviceIds['opent2t.d.sensor.temperature']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTemperature', [deviceIds['opent2t.d.sensor.temperature']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.temperature');
                     t.true(response.temperature !== undefined);
@@ -278,7 +279,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetUvradiation', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesUvradiation', [deviceIds['opent2t.d.sensor.uvradiation']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesUvradiation', [deviceIds['opent2t.d.sensor.uvradiation']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.radiation.uv');
                     t.true(response.measurement !== undefined);
@@ -289,7 +290,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetVibrationchange', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesVibrationchange', [deviceIds['opent2t.d.sensor.vibrationchange']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesVibrationchange', [deviceIds['opent2t.d.sensor.vibrationchange']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor');
                     t.true(response.value !== undefined);
@@ -300,7 +301,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetSmoke', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesSmoke', [deviceIds['opent2t.d.sensor.smoke']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesSmoke', [deviceIds['opent2t.d.sensor.smoke']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.smoke');
                     t.true(response.value !== undefined);
@@ -311,7 +312,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetTouch', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesTouch', [deviceIds['opent2t.d.sensor.touch']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesTouch', [deviceIds['opent2t.d.sensor.touch']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.touch');
                     t.true(response.value !== undefined);
@@ -322,7 +323,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetWater', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesWater', [deviceIds['opent2t.d.sensor.water']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesWater', [deviceIds['opent2t.d.sensor.water']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.sensor.water');
                     t.true(response.value !== undefined);
@@ -333,7 +334,7 @@ function runMultisensorTests(settings) {
 
     test.serial('GetBattery', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'getDevicesBattery', [deviceIds['opent2t.d.battery']])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesBattery', [deviceIds['opent2t.d.battery']])
                 .then((response) => {
                     t.is(response.rt[0], 'oic.r.energy.battery');
                     t.true(response.charge !== undefined);

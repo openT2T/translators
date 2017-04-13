@@ -7,6 +7,7 @@ var translator = undefined;
 var uuidRegExMatch = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i;
 
 function runTranslatorTests(settings) {
+    var opent2t = new OpenT2T(settings.logger);
     var test = settings.test;
     var deviceId = settings.deviceId;
     var SchemaName = settings.schemaName;
@@ -14,7 +15,7 @@ function runTranslatorTests(settings) {
     test.before(() => {
         return settings.createTranslator().then(trans => {
             translator = trans;
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
                     deviceId = response.entities[0].di;
                 }
@@ -31,7 +32,7 @@ function runTranslatorTests(settings) {
      */
     test.serial('GetPlatform', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 // Verify required platform properties are present.
                 // This is helpful for new translators that do not have a snapshot yet.
                 t.truthy(response.availability, `Platform requires platform availability (availability)`);
@@ -83,7 +84,7 @@ function runTranslatorTests(settings) {
 
     test.serial('GetPlatformExpanded', t => {
         return helpers.runTest(settings, t, () => {
-            return OpenT2T.invokeMethodAsync(translator, SchemaName, 'get', [true])
+            return opent2t.invokeMethodAsync(translator, SchemaName, 'get', [true])
                 .then((response) => {
                     // GetPlatform covers the required properties, so just verify a snapshot here.
                     t.snapshot(response);

@@ -1,5 +1,4 @@
 'use strict';
-var OpenT2TLogger = require('opent2t').Logger;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
 var crypto = require('crypto');
@@ -318,9 +317,9 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
         
-    constructor(deviceInfo, logLevel = "info") {
-       this.ConsoleLogger = new OpenT2TLogger(logLevel);
-        this.ConsoleLogger.info('SmartThings Lightbulb initializing...');
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-smartthings-lightbulb";
+       this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
@@ -328,7 +327,7 @@ class Translator {
         this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartThingsHub = deviceInfo.hub;
 
-        this.ConsoleLogger.info('SmartThings Lightbulb initializing...Done');
+        this.logger.info('SmartThings Lightbulb initializing...Done');
     }
 
     /**
