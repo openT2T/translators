@@ -207,6 +207,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['attributes'].level;
+        if (dim.dimmingSetting > 100 ) dim.dimmingSetting = 100;
         dim.range = [0, 100];
         
         if (supportColour) {
