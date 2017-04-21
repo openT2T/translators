@@ -128,8 +128,11 @@ def updated() {
 def initialize() {
 	log.debug "Initializing with settings: ${settings}"
 	state.deviceSubscriptionMap = [:]
+	log.debug "deviceSubscriptionMap created."
     state.locationSubscriptionMap = [:]
+	log.debug "deviceSubscriptionMap created."
     state.verificationKeyMap = [:]
+	log.debug "verificationKeyMap created."
     registerAllDeviceSubscriptions()
 }
 
@@ -280,6 +283,11 @@ def deviceEventHandler(evt) {
 	def evtDeviceType = getDeviceType(evtDevice)
 	def deviceData = [];
    	
+	if(evt.data != null){
+		def evtData = parseJson(evt.data)
+		log.info "Received event for ${evtDevice.displayName}, data: ${evtData},  description: ${evt.descriptionText}"
+	}
+
     if(evtDeviceType == "thermostat") {
 		deviceData = [name: evtDevice.displayName, id: evtDevice.id, status:evtDevice.status, deviceType:evtDeviceType, manufacturer:evtDevice.manufacturerName, model:evtDevice.modelName, attributes: deviceAttributeList(evtDevice, evtDeviceType), locationMode: getLocationModeInfo(), locationId: location.id ]
 	} else {
