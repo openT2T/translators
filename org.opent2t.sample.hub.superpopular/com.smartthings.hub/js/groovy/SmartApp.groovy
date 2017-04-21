@@ -1,3 +1,7 @@
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+
 definition(
     name: "<PLACEHOLDER: Your App Name>",
     namespace: "<PLACEHOLDER: Your App Namespace>",
@@ -106,12 +110,15 @@ def updated() {
     //Initialize state variables if didn't exist.
     if( state.deviceSubscriptionMap == null ){
 		state.deviceSubscriptionMap = [:]
+		log.debug "deviceSubscriptionMap created."
 	}
     if( state.locationSubscriptionMap == null ){
 		state.locationSubscriptionMap = [:]
+		log.debug "deviceSubscriptionMap created."
 	}
     if(state.verificationKeyMap == null){
     	state.verificationKeyMap = [:]
+		log.debug "verificationKeyMap created."
     }
     
 	unsubscribe()
@@ -169,11 +176,7 @@ def registerDeviceChange() {
 			}
             
             if(params.key != null){
-            	if(state.verificationKeyMap[subscriptionEndpt] == null){
-                    state.verificationKeyMap.put(subscriptionEndpt, params.key)
-                } else {
-                    state.verificationKeyMap[subscriptionEndpt] = params.key
-                }
+            	state.verificationKeyMap[subscriptionEndpt] = params.key
             }
         }
 	} catch (e) {
@@ -234,11 +237,7 @@ def registerDeviceGraph() {
         }
         
         if(params.key != null){
-            if(state.verificationKeyMap[subscriptionEndpt] == null){
-                state.verificationKeyMap.put(subscriptionEndpt, params.key)
-            } else {
-                state.verificationKeyMap[subscriptionEndpt] = params.key
-            }
+            state.verificationKeyMap[subscriptionEndpt] = params.key
         }
         
         log.info "Current location subscription map is ${state.locationSubscriptionMap}"
@@ -293,7 +292,10 @@ def deviceEventHandler(evt) {
 	log.debug "Current subscription urls for ${evtDevice.displayName} is ${state.deviceSubscriptionMap[evtDevice.id]}"
 	state.deviceSubscriptionMap[evtDevice.id].each {
 		params.uri = "${it}"
-        params.header = [Signature: ComputHMACValue(it, groovy.json.JsonOutput.toJson(params.body))]
+        if(state.verificationKeyMap[it] != null ){
+        	def key = state.verificationKeyMap[it]
+            params.header = [Signature: ComputHMACValue(key, groovy.json.JsonOutput.toJson(params.body))]
+        }
 		log.trace "POST URI: ${params.uri}"
         log.trace "Header: ${params.header}"
 		log.trace "Payload: ${params.body}"
@@ -323,7 +325,10 @@ def locationEventHandler(evt) {
         
             state.locationSubscriptionMap[location.id].each {
                 params.uri = "${it}"
-                params.header = [Signature: ComputHMACValue(it, groovy.json.JsonOutput.toJson(params.body))]
+                if(state.verificationKeyMap[it] != null ){
+                    def key = state.verificationKeyMap[it]
+                    params.header = [Signature: ComputHMACValue(key, groovy.json.JsonOutput.toJson(params.body))]
+                }
                 log.trace "POST URI: ${params.uri}"
 				log.trace "Header: ${params.header}"
                 log.trace "Payload: ${params.body}"
@@ -342,15 +347,14 @@ def locationEventHandler(evt) {
     }
 }
 
-private ComputHMACValue(subscriptionEndpt, data){
+private ComputHMACValue(key, data){
 	try {
-        def key = state.verificationKeyMap[subscriptionEndpt]
         SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "HmacSHA1")
 		Mac mac = Mac.getInstance("HmacSHA1")
 		mac.init(secretKeySpec)
 		byte[] digest = mac.doFinal(data.getBytes("UTF-8"))
 		return byteArrayToString(digest)
-	} catch (InvalidKeyException e) {
+	} catch (InvalidKeyException e) {  
      	log.error "Invalid key exception while converting to HMac SHA1"
 	}
 }
