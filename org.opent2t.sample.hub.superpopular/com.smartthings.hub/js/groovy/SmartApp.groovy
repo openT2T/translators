@@ -114,7 +114,7 @@ def updated() {
 	}
     if( state.locationSubscriptionMap == null ){
 		state.locationSubscriptionMap = [:]
-		log.debug "deviceSubscriptionMap created."
+		log.debug "locationSubscriptionMap created."
 	}
     if(state.verificationKeyMap == null){
     	state.verificationKeyMap = [:]
@@ -130,7 +130,7 @@ def initialize() {
 	state.deviceSubscriptionMap = [:]
 	log.debug "deviceSubscriptionMap created."
     state.locationSubscriptionMap = [:]
-	log.debug "deviceSubscriptionMap created."
+	log.debug "locationSubscriptionMap created."
     state.verificationKeyMap = [:]
 	log.debug "verificationKeyMap created."
     registerAllDeviceSubscriptions()
@@ -174,12 +174,15 @@ def registerDeviceChange() {
         if(subscriptionEndpt != null){
 			if(state.deviceSubscriptionMap[deviceId] == null){
 				state.deviceSubscriptionMap.put(deviceId, [subscriptionEndpt])
+				log.info "Added subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
 			} else if (!state.deviceSubscriptionMap[deviceId].contains(subscriptionEndpt)){
 				state.deviceSubscriptionMap[deviceId] << subscriptionEndpt
+				log.info "Added subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
 			}
             
             if(params.key != null){
             	state.verificationKeyMap[subscriptionEndpt] = params.key
+				log.info "Added verification key: ${params.key} for ${subscriptionEndpt}"
             }
         }
 	} catch (e) {
@@ -235,12 +238,15 @@ def registerDeviceGraph() {
 
     	if(state.locationSubscriptionMap[location.id] == null){
             state.locationSubscriptionMap.put(location.id, [subscriptionEndpt])
+			log.info "Added subscription URL: ${subscriptionEndpt} for Location ${location.name}"
         }else if (!state.locationSubscriptionMap[location.id].contains(subscriptionEndpt)){
             state.locationSubscriptionMap[location.id] << subscriptionEndpt
+			log.info "Added subscription URL: ${subscriptionEndpt} for Location ${location.name}"
         }
         
         if(params.key != null){
             state.verificationKeyMap[subscriptionEndpt] = params.key
+			log.info "Added verification key: ${params.key} for ${subscriptionEndpt}"
         }
         
         log.info "Current location subscription map is ${state.locationSubscriptionMap}"
