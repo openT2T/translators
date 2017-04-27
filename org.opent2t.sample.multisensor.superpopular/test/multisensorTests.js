@@ -1,19 +1,20 @@
 'use strict';
 
-var OpenT2T = require('opent2t').OpenT2T;
+// var runAllPlatformTests = require('opent2t-device-all/tests');
 var helpers = require('opent2t-testcase-helpers');
-var translator = undefined;
 const SchemaName = 'org.opent2t.sample.multisensor.superpopular';
-var testSettings = undefined;
 
 function runMultisensorTests(settings) {
-    var opent2t = new OpenT2T(settings.logger);
+    helpers.updateSettings(settings);
+    var opent2t = settings.opent2t;
     var test = settings.test;
-    testSettings = settings;
     var deviceIds = {};
+    var translator;
+
+    // runAllPlatformTests(settings);
     
     test.before(() => {
-        return settings.createTranslator().then(trans => {
+        return opent2t.createTranslatorAsync(settings.translatorPath, 'thingTranslator', settings.getDeviceInfo()).then(trans => {
             translator = trans;
             return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 for (var i = 0; i < response.entities.length; i++) {
@@ -236,9 +237,9 @@ function runMultisensorTests(settings) {
             return opent2t.invokeMethodAsync(translator, SchemaName, 'getDevicesLastchanged', [deviceIds['opent2t.d.sensor.motion']])
                 .then((response) => {
                     t.is(response.rt[0], 'opent2t.r.timestamp');
-                    if(testSettings.inputLastReading !== undefined) { //Wink-Only
-                        let testChangedAt = testSettings.inputLastReading["motion_changed_at"];
-                        let testUpdatedAt = testSettings.inputLastReading["motion_updated_at"];
+                    if(settings.inputLastReading !== undefined) { //Wink-Only
+                        let testChangedAt = settings.inputLastReading["motion_changed_at"];
+                        let testUpdatedAt = settings.inputLastReading["motion_updated_at"];
                         if ((!testChangedAt || isNaN(testChangedAt))
                             && (!testUpdatedAt || isNaN(testUpdatedAt))) { 
                             t.true(response.timestamp === undefined, "Expected undefined value for motion-lastchanged");

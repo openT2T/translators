@@ -1,19 +1,19 @@
 'use strict';
 
-var OpenT2T = require('opent2t').OpenT2T;
 var helpers = require('opent2t-testcase-helpers');
-var translator = undefined;
 
 var uuidRegExMatch = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/i;
 
 function runTranslatorTests(settings) {
-    var opent2t = new OpenT2T(settings.logger);
-    var test = settings.test;
-    var deviceId = settings.deviceId;
+	helpers.updateSettings(settings);
+	var test = settings.test;
+	var opent2t = settings.opent2t;
     var SchemaName = settings.schemaName;
+    var deviceId = settings.deviceId;
+    var translator;
     
     test.before(() => {
-        return settings.createTranslator().then(trans => {
+        return opent2t.createTranslatorAsync(settings.translatorPath, 'thingTranslator', settings.getDeviceInfo()).then(trans => {
             translator = trans;
             return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {

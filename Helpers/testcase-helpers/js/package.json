@@ -10,6 +10,7 @@
   "main": "helpers.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "^1.1.0"
+    "opent2t": "^1.1.0",
+    "ava": "^0.18.2"
   }
 }

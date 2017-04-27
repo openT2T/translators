@@ -2,21 +2,17 @@
 
 var MockHub = require('opent2t-device-hub/mockHub');
 
-function modifyDeviceState(deviceState, modifications) {
-    if(deviceState && modifications) {
-        for(var modification in modifications) {
-            deviceState.attributes[modification] = modifications[modification];
-        }
-    }
-}
-
-function verifyPayload(modification, t, args) {
-    return JSON.stringify(args[2]) === JSON.stringify(modification);
-}
-
 class MockSmartthingsHub extends MockHub {
-    constructor(logger, initialState) {
-        super(logger, initialState, modifyDeviceState, verifyPayload);
+    constructor(initialState) {
+        super(initialState.base_state.id, initialState);
+    }
+
+    modifyDeviceState(modifications, args) {
+        for(var modification in modifications) {
+            this.deviceState.attributes[modification] = modifications[modification];
+        }
+        
+		this.test.true(JSON.stringify(args[2]) === JSON.stringify(modifications), 'Verify payload');
     }
 }
 
