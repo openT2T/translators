@@ -169,7 +169,6 @@ function getLastChangedResource(stateReader, property, expand, logger) {
 function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
-    var controlId = providerSchema['object_id'];
     var name = providerSchema['name'];
     var entities = [];
 

@@ -96,6 +96,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         power.value = powered;
     }
 
+    console.log(providerSchema['uuid'] + ":" + generateGUID( providerSchema['uuid'] + 'oic.d.smartplug' ));
     return {
         opent2t: {
             schema: 'org.opent2t.sample.binaryswitch.superpopular',
@@ -151,6 +152,7 @@ class Translator {
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.uuid = deviceInfo.deviceInfo.opent2t.uuid;
+        console.log("Translator:"+JSON.stringify(deviceInfo.deviceInfo));
         this.deviceType = 'binary_switches';
         this.winkHub = deviceInfo.hub;
 
@@ -187,6 +189,8 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
+        console.log(this.uuid + ":" + generateGUID( this.uuid + 'oic.d.smartplug' ));
+
         if (di === generateGUID( this.uuid + 'oic.d.smartplug' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
