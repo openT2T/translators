@@ -63,7 +63,7 @@ class Translator {
      * and on the hub translator (this) for verification.
 
      */
-    _subscribe(subscriptionInfo) {
+    postSubscribe(subscriptionInfo) {
         // Error case: waiting for design decision
         throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }

@@ -138,7 +138,7 @@ class Translator {
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
      */
-    _subscribe(subscriptionInfo) {
+    postSubscribe(subscriptionInfo) {
         if (subscriptionInfo.callbackUrl){
             var requestPath = "";
             if(subscriptionInfo.controlId){

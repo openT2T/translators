@@ -443,7 +443,7 @@ class Translator {
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.deviceId = this.controlId;
         subscriptionInfo.deviceType = this.deviceType;
-        return this.winkHub._subscribe(subscriptionInfo);
+        return this.winkHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
