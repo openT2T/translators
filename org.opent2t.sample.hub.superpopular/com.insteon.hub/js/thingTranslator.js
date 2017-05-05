@@ -198,6 +198,37 @@ class Translator {
     }
 
     /**
+     * Gets the subscription modes supported by this provider and translator
+     */
+    getSubscribe() {
+        return {
+            supportedModes: ['polling']
+        }
+    }
+
+    /* eslint no-unused-vars: "off" */
+     /**
+     * Subscribe to notifications for a platform.
+     * This function is intended to be called by the platform translator for initial subscription,
+     * and on the hub translator (this) for verification.
+     */
+    postSubscribe(subscriptionInfo) {
+        // Error case: waiting for design decision
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+    }
+
+    /**
+     * Unsubscribe from a platform subscription.
+     * This function is intended to be called by a platform translator
+     */
+    _unsubscribe(subscriptionInfo) {
+        // Error case: waiting for design decision
+        throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+    }
+    /* eslint no-unused-vars: "warn" */
+
+
+    /**
      * Gets device details (all fields), response formatted per http://docs.insteon.apiary.io/#reference/devices
      */
     getDeviceDetailsAsync(deviceId) {
