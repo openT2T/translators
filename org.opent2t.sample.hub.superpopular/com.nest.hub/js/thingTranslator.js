@@ -56,12 +56,19 @@ class Translator {
         return this._authTokens;
     }
 
+    /**
+     * Gets the subscription modes supported by this provider and translator
+     */
+    getSubscribe() {
+        return {
+            supportedModes: ['polling']
+        }
+    }
 
     /**
      * Subscribe to notifications for a platform.
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
-
      */
     postSubscribe(subscriptionInfo) {
         // Error case: waiting for design decision
