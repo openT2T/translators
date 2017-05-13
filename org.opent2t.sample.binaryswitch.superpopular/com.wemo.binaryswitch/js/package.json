@@ -1,0 +1,29 @@
+{
+  "name": "opent2t-translator-com-wemo-binaryswitch",
+  "version": "0.2.0",
+  "description": "Wemo Binary Switch",
+  "homepage": "http://opentranslatorstothings.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opent2t/translators.git"
+  },
+  "main": "thingTranslator.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "ava tests/test.js",
+    "unittest": "ava tests/unitTests.js"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ]
+  },
+  "dependencies": {
+     "q": "^1.4.1",
+     "wemo-client": "^0.11.2",
+     "opent2t-onboarding-org-opent2t-onboarding-wifi-wemo": "^0.0.1"
+  },
+  "devDependencies": {
+      "ava": "^0.15.2"
+  }
+}
