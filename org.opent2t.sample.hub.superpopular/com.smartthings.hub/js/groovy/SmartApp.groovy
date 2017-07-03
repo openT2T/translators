@@ -3,15 +3,14 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 
 definition(
-    name: "<PLACEHOLDER: Your App Name>",
-    namespace: "<PLACEHOLDER: Your App Namespace>",
-    author: "<PLACEHOLDER: Your Username>",
-    description: "<PLACEHOLDER: Your App Description>",
-    category: "SmartThings Labs",
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
-    oauth: true)
+    name: "OpenT2T SmartApp Test",
+		namespace: "opent2t",
+		author: "OpenT2T",
+		description: "Test app to test end to end SmartThings scenarios via OpenT2T",
+		category: "SmartThings Labs",
+		iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
+		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
+		iconX3Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png")
 
 /** --------------------+---------------+-----------------------+------------------------------------
  *  Device Type         | Attribute Name| Commands              | Attribute Values
@@ -41,7 +40,7 @@ definition(
 
 //Device Inputs
 preferences {
-	section("Allow <PLACEHOLDER: Your App Name> to control these things...") {
+	section("Allow Cortana to control these things...") {
 		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false, hideWhenEmpty: true
 		input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false, hideWhenEmpty: true
  		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false, hideWhenEmpty: true
@@ -67,6 +66,7 @@ def getInputs() {
 	inputList += waterSensors?: []
     return inputList
 }
+
 
 //API external Endpoints
 mappings {
@@ -176,7 +176,10 @@ def registerDeviceChange() {
 				state.deviceSubscriptionMap.put(deviceId, [subscriptionEndpt])
 				log.info "Added subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
 			} else if (!state.deviceSubscriptionMap[deviceId].contains(subscriptionEndpt)){
-				state.deviceSubscriptionMap[deviceId] << subscriptionEndpt
+				// state.deviceSubscriptionMap[deviceId] << subscriptionEndpt
+                // For now, we will only have one subscription endpoint per device
+				state.deviceSubscriptionMap.remove(deviceId)
+				state.deviceSubscriptionMap.put(deviceId, [subscriptionEndpt])
 				log.info "Added subscription URL: ${subscriptionEndpt} for ${myDevice.displayName}"
 			}
             
@@ -289,15 +292,15 @@ def deviceEventHandler(evt) {
 	def evtDeviceType = getDeviceType(evtDevice)
 	def deviceData = [];
    	
-	if(evt.data != null){
-		def evtData = parseJson(evt.data)
-		log.info "Received event for ${evtDevice.displayName}, data: ${evtData},  description: ${evt.descriptionText}"
-	}
-
     if(evtDeviceType == "thermostat") {
 		deviceData = [name: evtDevice.displayName, id: evtDevice.id, status:evtDevice.status, deviceType:evtDeviceType, manufacturer:evtDevice.manufacturerName, model:evtDevice.modelName, attributes: deviceAttributeList(evtDevice, evtDeviceType), locationMode: getLocationModeInfo(), locationId: location.id ]
 	} else {
 		deviceData = [name: evtDevice.displayName, id: evtDevice.id, status:evtDevice.status, deviceType:evtDeviceType, manufacturer:evtDevice.manufacturerName, model:evtDevice.modelName, attributes: deviceAttributeList(evtDevice, evtDeviceType), locationId: location.id ]
+	}
+    
+    if(evt.data != null){
+		def evtData = parseJson(evt.data)
+		log.info "Received event for ${evtDevice.displayName}, data: ${evtData},  description: ${evt.descriptionText}"
 	}
     
     def params = [ body: deviceData ]
@@ -308,10 +311,10 @@ def deviceEventHandler(evt) {
 		params.uri = "${it}"
         if(state.verificationKeyMap[it] != null ){
         	def key = state.verificationKeyMap[it]
-            params.header = [Signature: ComputHMACValue(key, groovy.json.JsonOutput.toJson(params.body))]
+            params.headers = [Signature: ComputHMACValue(key, groovy.json.JsonOutput.toJson(params.body))]
         }
 		log.trace "POST URI: ${params.uri}"
-        log.trace "Header: ${params.header}"
+        log.trace "Headers: ${params.headers}"
 		log.trace "Payload: ${params.body}"
 		try{
 			httpPostJson(params) { resp ->
@@ -341,10 +344,10 @@ def locationEventHandler(evt) {
                 params.uri = "${it}"
                 if(state.verificationKeyMap[it] != null ){
                     def key = state.verificationKeyMap[it]
-                    params.header = [Signature: ComputHMACValue(key, groovy.json.JsonOutput.toJson(params.body))]
+                    params.headers = [Signature: ComputHMACValue(key, groovy.json.JsonOutput.toJson(params.body))]
                 }
                 log.trace "POST URI: ${params.uri}"
-				log.trace "Header: ${params.header}"
+				log.trace "Headers: ${params.headers}"
                 log.trace "Payload: ${params.body}"
                 try{
                     httpPostJson(params) { resp ->
@@ -363,6 +366,7 @@ def locationEventHandler(evt) {
 
 private ComputHMACValue(key, data){
 	try {
+    	log.debug "data hased: ${data}"
         SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes("UTF-8"), "HmacSHA1")
 		Mac mac = Mac.getInstance("HmacSHA1")
 		mac.init(secretKeySpec)
@@ -383,7 +387,7 @@ private def byteArrayToString(byte[] data) {
 
 //Endpoints function: return all device data in json format
 def getDevices() {
-	def deviceData = []
+	def deviceData = [] 
 	inputs?.each {
 		def deviceType = getDeviceType(it)
 		if(deviceType == "thermostat") {
