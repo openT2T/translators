@@ -59,10 +59,9 @@ class Translator {
                 var hashFromSmartThings = verification.header.Signature;
                 var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
 
-                if (hashFromSmartThings !== hashFromPayload) {
+                if (!crypto.timingSafeEqual(hashFromSmartThings, hashFromPayload)) {
                     throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
                 }
-
             }
             
             if(payload.eventType){

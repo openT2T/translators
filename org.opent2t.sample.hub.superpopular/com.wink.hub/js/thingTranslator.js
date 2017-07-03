@@ -78,7 +78,7 @@ class Translator {
                 var hashFromWink = getDictionaryItemCaseInsensitive(verification.header, "x-hub-signature");
                 var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
 
-                if (hashFromWink !== hashFromPayload) {
+                if (!crypto.timingSafeEqual(hashFromWink, hashFromPayload)) {
                     throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
                 }
             }
