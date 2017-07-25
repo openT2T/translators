@@ -5,8 +5,8 @@ import java.security.InvalidKeyException;
 definition(
     name: "OpenT2T SmartApp Test",
 		namespace: "opent2t",
-		author: "OpenT2T",
-		description: "Test app to test end to end SmartThings scenarios via OpenT2T",
+		author: "Microsoft",
+		description: "Test app to test end to end SmartThings scenarios via Microsoft",
 		category: "SmartThings Labs",
 		iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
 		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
@@ -40,7 +40,7 @@ definition(
 
 //Device Inputs
 preferences {
-	section("Allow Cortana to control these things...") {
+	section("Allow Microsoft to control these things...") {
 		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false, hideWhenEmpty: true
 		input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false, hideWhenEmpty: true
  		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false, hideWhenEmpty: true
