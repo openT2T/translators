@@ -185,7 +185,7 @@ class Translator {
     }
 
     postSubscribe(subscriptionInfo) {
-        return this.insteonHub._subscribe(subscriptionInfo);
+        return this.insteonHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {

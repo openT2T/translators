@@ -119,7 +119,7 @@ class Translator {
     }
 
     postSubscribeLight(callbackUrl, verificationRequest, verificationResponse) {
-        return this.contosothingsHub._subscribe(deviceType, this.deviceId, callbackUrl, verificationRequest, verificationResponse);
+        return this.contosothingsHub.postSubscribe(deviceType, this.deviceId, callbackUrl, verificationRequest, verificationResponse);
     }
 
     deleteSubscribeLight(callbackUrl) {
