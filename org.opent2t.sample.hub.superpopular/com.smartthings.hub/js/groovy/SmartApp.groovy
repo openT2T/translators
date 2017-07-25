@@ -6,7 +6,7 @@ definition(
     name: "OpenT2T SmartApp Test",
 		namespace: "opent2t",
 		author: "Microsoft",
-		description: "Test app to test end to end SmartThings scenarios via Microsoft",
+		description: "SmartApp for end to end SmartThings scenarios via Microsoft",
 		category: "SmartThings Labs",
 		iconUrl: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience.png",
 		iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Convenience/Cat-Convenience@2x.png",
@@ -41,15 +41,15 @@ definition(
 //Device Inputs
 preferences {
 	section("Allow Microsoft to control these things...") {
-		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false, hideWhenEmpty: true
-		input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false, hideWhenEmpty: true
- 		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false, hideWhenEmpty: true
-		input "cameras", "capability.videoCapture", title: "Which Cameras?",  multiple: true, required: false, hideWhenEmpty: true
-		input "motionSensors", "capability.motionSensor", title: "Which Motion Sensors?", multiple: true, required: false, hideWhenEmpty: true
-		input "presenceSensors", "capability.presenceSensor", title: "Which Presence Sensors", multiple: true, required: false, hideWhenEmpty: true
+//		input "contactSensors", "capability.contactSensor", title: "Which Contact Sensors", multiple: true, required: false, hideWhenEmpty: true
+//		input "garageDoors", "capability.garageDoorControl", title: "Which Garage Doors?", multiple: true, required: false, hideWhenEmpty: true
+// 		input "locks", "capability.lock", title: "Which Locks?", multiple: true, required: false, hideWhenEmpty: true
+//		input "cameras", "capability.videoCapture", title: "Which Cameras?",  multiple: true, required: false, hideWhenEmpty: true
+//		input "motionSensors", "capability.motionSensor", title: "Which Motion Sensors?", multiple: true, required: false, hideWhenEmpty: true
+//		input "presenceSensors", "capability.presenceSensor", title: "Which Presence Sensors", multiple: true, required: false, hideWhenEmpty: true
 		input "switches", "capability.switch", title: "Which Switches and Lights?", multiple: true, required: false, hideWhenEmpty: true
 		input "thermostats", "capability.thermostat", title: "Which Thermostat?", multiple: true, required: false, hideWhenEmpty: true
-		input "waterSensors", "capability.waterSensor", title: "Which Water Leak Sensors?", multiple: true, required: false, hideWhenEmpty: true
+//		input "waterSensors", "capability.waterSensor", title: "Which Water Leak Sensors?", multiple: true, required: false, hideWhenEmpty: true
 	}
 }
 
