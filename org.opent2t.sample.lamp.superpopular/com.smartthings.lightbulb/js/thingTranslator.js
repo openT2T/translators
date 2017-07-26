@@ -207,6 +207,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['attributes'].level;
+        if (dim.dimmingSetting > 100 ) dim.dimmingSetting = 100;
         dim.range = [0, 100];
         
         if (supportColour) {
@@ -411,7 +412,7 @@ class Translator {
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
         subscriptionInfo.endpointUri = this.endpointUri;
-        return this.smartThingsHub._subscribe(subscriptionInfo);
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {

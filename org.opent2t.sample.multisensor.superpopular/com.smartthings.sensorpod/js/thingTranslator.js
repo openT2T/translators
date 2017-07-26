@@ -176,9 +176,14 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     }
 
     if ('temperature' in attributes) {
+        var units = attributes['temperatureScale'];
+        if (units) {
+            units = units.toLowerCase();
+        }
+
         var temperature = createResource('oic.r.temperature', 'oic.if.s', 'temperature', expand, {
             temperature: attributes['temperature'],
-            units: attributes['temperatureScale'].toLowerCase()
+            units: units
         });
 
         entities.push(createEntity(name, 'opent2t.d.sensor.temperature', [

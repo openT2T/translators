@@ -117,7 +117,7 @@ class Translator {
      * @returns {number} Object containing the subscription expiration time, and any content that
      *      needs to be included in a response to the original request.
      */
-    _subscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
+    postSubscribe(deviceType, deviceId, callbackUrl, verificationRequest) {
         // fix lint error
         console.log(deviceType + deviceId + callbackUrl + verificationRequest);
         throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);

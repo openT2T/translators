@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-insteon-binaryswitch",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Insteon Binary Switch",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {

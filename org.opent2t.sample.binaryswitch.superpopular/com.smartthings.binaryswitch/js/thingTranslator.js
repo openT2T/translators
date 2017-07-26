@@ -177,7 +177,7 @@ class Translator {
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
         subscriptionInfo.endpointUri = this.endpointUri;
-        return this.smartThingsHub._subscribe(subscriptionInfo);
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {

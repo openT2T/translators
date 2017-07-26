@@ -2,6 +2,7 @@
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
+var Crypto = require('crypto');
 var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
@@ -37,15 +38,32 @@ class Translator {
      * 
      * @param {bool} expand - True to include the current state of the resources.
      * @param {Buffer} payload - POST content for a subscribed notification
+     * @param {Object} verification - Information used to authenticate that the post is valid
+     * @param {Array} verification.header - Header information that came with the payload POST.
+     *                                      Includes hubSignature.
+     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
      */
-    getPlatforms(expand, payload) {
+    getPlatforms(expand, payload, verification) {
         if (payload === undefined) {
             return this._getEndpoints().then((endpoints) => {
                 return this._getPlatformsByEndpointList(expand, endpoints);
             });
         } else {
-
             this.logger.verbose("Subscription Payload: " + JSON.stringify(payload, null, 2));
+            
+            //HMAC verification
+            var payloadAsString = typeof payload === 'object' ? JSON.stringify(payload) : payload;
+
+            // Calculate the HMAC for the payload using the secret
+            if (verification !== undefined && verification.key !== undefined) {
+                var hashFromSmartThings = verification.header.Signature;
+                var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
+
+                if (!Crypto.timingSafeEqual(hashFromSmartThings, hashFromPayload)) {
+                    throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
+                }
+            }
+            
             if(payload.eventType){
                 //SmartThings device graph event: device added/removed
                 return this._getEndpointByLocationId(payload.locationId).then((endpoints) => {
@@ -56,21 +74,7 @@ class Translator {
                 return this._getEndpointByLocationId(payload.locationId).then((endpoints) => {
                     if (endpoints.length === 0) return undefined;
                     
-                    //Check that the ST endpoint is valid (actually has access to devices)
-                    var endpointPromises = [];
-                    endpoints.forEach((endpointUri) => {
-                        endpointPromises.push(this.getDeviceDetailsAsync(endpointUri, payload.deviceId)
-                            .then((device) => {
-                                return this._providerSchemaToPlatformSchema(device, expand, endpointUri);
-                            }).catch((err) => {
-                                return Promise.resolve(undefined);
-                            }));
-                    });
-
-                    return Promise.all(endpointPromises).then((responses) => {
-                            var result = responses.filter(r => r !== undefined);
-                            return result[0];
-                        });
+                    return this._providerSchemaToPlatformSchema(payload, expand, endpoints[0]);
                 });
             }
         }
@@ -133,17 +137,29 @@ class Translator {
      * This function is intended to be called by the platform translator for initial subscription,
      * and on the hub translator (this) for verification.
      */
-    _subscribe(subscriptionInfo) {
+    postSubscribe(subscriptionInfo) {
         if (subscriptionInfo.callbackUrl){
             var requestPath = "";
             if(subscriptionInfo.controlId){
+                //subscribe to paltform change
                 requestPath = this._deviceChangeSubscriptionPath + '?deviceId=' + subscriptionInfo.controlId 
                                                 + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
             } else {
-                //subscribe to device graph
+                //subscribe to device graph (hub-level change)
                 requestPath = this._deviceGraphSubscriptionPath + '?subscriptionURL=' + subscriptionInfo.callbackUrl;
             }
-            return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', "");
+
+            if(subscriptionInfo.key){
+                requestPath += "&key=" + subscriptionInfo.key;
+            }
+            
+            if(subscriptionInfo.endpointUri){
+                return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'POST', '');
+            } else {
+                return this._getEndpoints().then((endpoints) => {
+                    return this._makeRequest(endpoints, requestPath, 'POST', '');
+                });
+            }
         }
     }
 
@@ -152,9 +168,20 @@ class Translator {
      * This function is intended to be called by a platform translator
      */
     _unsubscribe(subscriptionInfo) {
-        var requestPath = this._deviceChangeSubscriptionPath + '?deviceId=' + subscriptionInfo.controlId 
-                                            + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
-        return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'DELETE');
+        if(subscriptionInfo.endpointUri){
+            if(subscriptionInfo.controlId){
+                //unsubscribe to paltform change
+                var requestPath = this._deviceChangeSubscriptionPath + '?deviceId=' + subscriptionInfo.controlId 
+                                                + '&subscriptionURL=' + subscriptionInfo.callbackUrl;
+                return this._makeRequest(subscriptionInfo.endpointUri, requestPath, 'DELETE');
+            }
+        } else {
+            //unsubscribe from device graph (hub-level change)
+            requestPath = this._deviceGraphSubscriptionPath + '?subscriptionURL=' + subscriptionInfo.callbackUrl;
+            return this._getEndpoints().then((endpoints) => {
+                return this._makeRequest(endpoints, requestPath, 'DELETE');
+            });
+        }
     }
 
 
@@ -361,6 +388,15 @@ class Translator {
                     return JSON.parse(body);
                 }                
             }.bind(this));
+    }
+
+    /** 
+     * Calculates a new hash of contents using key.
+     */
+    _generateHmac(key, contents) {
+        var hmac = Crypto.createHmac("sha1", key);
+        hmac.update(contents.toString());
+        return hmac.digest("hex");
     }
 }
 

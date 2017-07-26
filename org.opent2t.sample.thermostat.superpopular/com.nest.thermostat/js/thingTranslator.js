@@ -446,7 +446,7 @@ class Translator {
 
     postSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
-        return this.nestHub._subscribe(subscriptionInfo);
+        return this.nestHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
