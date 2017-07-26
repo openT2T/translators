@@ -7,18 +7,6 @@
   </schemas>
   <!-- associated onboarding module -->
   <onboarding id="org.opent2t.onboarding.winkhub">
-    <onboardflow name="getUserInput">
-      <flow type="input">
-        <arg name="username" />
-        <description language="en">Type in your Wink username</description>
-        <description language="fr">Entrez for nom pour Wink</description>
-      </flow>
-      <flow type="password">
-        <arg name="password"  />
-        <description language="en">Type in your Wink password</description>
-        <description language="fr">Entrez for password pour Wink</description>
-      </flow>
-    </onboardflow>
     <onboardflow name="getDeveloperInput">
       <flow>
         <arg name="client_id" />
@@ -29,6 +17,21 @@
         <arg name="client_secret" />
         <description language="en">Ask for Client Secret</description>
         <description language="fr">Demandez Client Secret</description>
+      </flow>
+	  <flow>
+        <arg name="redirect_url" />
+        <description language="en">Ask for redirect URL</description>
+        <description language="fr">Demandez redirect URL</description>
+      </flow>
+    </onboardflow>
+	<onboardflow name="askUserPermission">
+      <flow>
+        <arg name="url" />
+        <description language="en">https://api.wink.com/oauth2/authorize?client_id={client_id}&amp;redirect_uri={redirect_url}</description>
+      </flow>
+      <flow>
+        <arg name="method" />
+        <description language="en">getUserVerificationUri</description>
       </flow>
     </onboardflow>
   </onboarding>
