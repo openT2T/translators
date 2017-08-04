@@ -100,7 +100,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.binaryswitch.superpopular',
             translator: 'opent2t-translator-com-wink-binaryswitch',
-            controlId: providerSchema.binary_switch_id
+            controlId: providerSchema.binary_switch_id,
+            uuid: providerSchema['uuid']
         },
         availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
@@ -114,7 +115,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['oic.d.smartplug'],
-                di: generateGUID( providerSchema.binary_switch_id + 'oic.d.smartplug' ),
+                di: generateGUID( providerSchema['uuid'] + 'oic.d.smartplug' ),
                 resources: [
                     power
                 ]
@@ -149,6 +150,7 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
         
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.uuid = deviceInfo.deviceInfo.opent2t.uuid;
         this.deviceType = 'binary_switches';
         this.winkHub = deviceInfo.hub;
 
@@ -185,7 +187,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID( this.controlId + 'oic.d.smartplug' )) {
+        if (di === generateGUID( this.uuid + 'oic.d.smartplug' )) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)

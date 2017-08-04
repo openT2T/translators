@@ -548,7 +548,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.lamp.superpopular',
             translator: 'opent2t-translator-com-wink-lightbulb',
-            controlId: providerSchema['object_id']
+            controlId: providerSchema['object_id'],
+            uuid: providerSchema['uuid']
         },
         availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
@@ -560,7 +561,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
             {
                 n: providerSchema['name'],
                 rt: ['opent2t.d.light'],
-                di: generateGUID( providerSchema['object_id'] + 'opent2t.d.light' ),
+                di: generateGUID( providerSchema['uuid'] + 'opent2t.d.light' ),
                 icv: 'core.1.1.0',
                 dmv: 'res.1.1.0',
                 resources: createLightBulbResources(expand, bulbInfo)
@@ -579,6 +580,7 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.uuid = deviceInfo.deviceInfo.opent2t.uuid;
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'light_bulbs';
 
@@ -614,7 +616,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if(di == generateGUID(this.controlId +'opent2t.d.light')) {
+        if(di == generateGUID(this.uuid +'opent2t.d.light')) {
             return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
                 .then((putPayload) => {
                     return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)

@@ -187,7 +187,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
             translator: 'opent2t-translator-com-wink-thermostat',
-            controlId: providerSchema.thermostat_id
+            controlId: providerSchema.thermostat_id,
+            uuid: providerSchema['uuid']
         },
         availability: stateReader.get('connection') ? 'online' : 'offline',
         pi: providerSchema['uuid'],
@@ -201,7 +202,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: generateGUID(providerSchema.thermostat_id + 'opent2t.d.thermostat'),
+                di: generateGUID(providerSchema['uuid'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
                     targetTemperature,
@@ -289,6 +290,7 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
 
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.uuid = deviceInfo.deviceInfo.opent2t.uuid;
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'thermostats';
 
@@ -326,7 +328,7 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
+        if (di === generateGUID(this.uuid + 'opent2t.d.thermostat')) {
             var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
 
             return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)

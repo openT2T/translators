@@ -108,11 +108,11 @@ function defaultValueIfEmpty(property, defaultValue) {
     }
 }
 
-function createEntity(name, resourceType, resources, controlId) {
+function createEntity(name, resourceType, resources, platformId) {
     return {
         n: name,
         rt: [resourceType],
-        di: generateGUID(controlId + resourceType),
+        di: generateGUID(platformId + resourceType),
         icv: 'core.1.1.0',
         dmv: 'res.1.1.0',
         resources: resources
@@ -169,7 +169,6 @@ function getLastChangedResource(stateReader, property, expand, logger) {
 function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
-    var controlId = providerSchema['object_id'];
     var name = providerSchema['name'];
     var entities = [];
 
@@ -182,7 +181,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             brightnesschange,
             getLastChangedResource(stateReader, 'brightness', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('opened')) {
@@ -194,7 +193,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             contact,
             getLastChangedResource(stateReader, 'opened', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('humidity')) {
@@ -206,7 +205,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             humidity,
             getLastChangedResource(stateReader, 'humidity', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('locked')) {
@@ -218,7 +217,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             locked,
             getLastChangedResource(stateReader, 'locked', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('loudness')) {
@@ -230,7 +229,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             loudnesschange,
             getLastChangedResource(stateReader, 'loudness', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('motion')) {
@@ -242,7 +241,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             motion,
             getLastChangedResource(stateReader, 'motion', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('occupied')) {
@@ -254,7 +253,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             presence,
             getLastChangedResource(stateReader, 'occupied', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('temperature')) {
@@ -267,7 +266,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             temperature,
             getLastChangedResource(stateReader, 'temperature', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('vibration')) {
@@ -279,7 +278,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             vibrationchange,
             getLastChangedResource(stateReader, 'vibration', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('liquid_detected')) {
@@ -291,7 +290,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
             water,
             getLastChangedResource(stateReader, 'liquid_detected', expand, logger)
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     if (stateReader.containsKey('battery')) {
@@ -302,14 +301,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand, logger) {
         entities.push(createEntity(name, 'opent2t.d.battery', [
             battery
         ],
-        controlId));
+        providerSchema['uuid']));
     }
 
     return {
         opent2t: {
             schema: 'org.opent2t.sample.multisensor.superpopular',
             translator: 'opent2t-translator-com-wink-sensorpod',
-            controlId: providerSchema['object_id']
+            controlId: providerSchema['object_id'],
+            uuid: providerSchema['uuid']
         },
         pi: providerSchema['uuid'],
         mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
@@ -330,6 +330,7 @@ class Translator {
         validateArgumentType(deviceInfo, "deviceInfo", "object");
        
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.uuid = deviceInfo.deviceInfo.opent2t.uuid;
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'sensor_pods';
 

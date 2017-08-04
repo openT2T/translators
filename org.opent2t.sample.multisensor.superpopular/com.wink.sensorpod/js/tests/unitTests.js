@@ -11,7 +11,7 @@ var mockHub = new MockHub(logger, deviceData);
 var settings = {
     logger,
     test,
-    createTranslator : mockHub.createTranslator(translatorPath, deviceData.base_state.data.object_id),
+    createTranslator : mockHub.createTranslator(translatorPath, deviceData.base_state.data.object_id, deviceData.base_state.data.uuid),
     setTestData : mockHub.setTestData,
     expectedExceptions : testData.expected_exceptions,
     inputLastReading : deviceData.base_state.data.last_reading
