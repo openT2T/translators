@@ -148,8 +148,8 @@ class Translator {
 
         // POST oauth2/token
         var postPayloadString = JSON.stringify({
-            'client_id': authInfo[1].client_id,
-            'client_secret': authInfo[1].client_secret,
+            'client_id': authInfo[0].client_id,
+            'client_secret': authInfo[0].client_secret,
             'grant_type': 'refresh_token',
             'refresh_token': this._authTokens['refresh'].token,
         });
