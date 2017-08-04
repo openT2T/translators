@@ -1,21 +1,21 @@
 'use strict';
 
-var OpenT2T = require('opent2t').OpenT2T;
 var helpers = require('opent2t-testcase-helpers');
 var runAllPlatformTests = require('opent2t-device-all/tests');
-var translator = undefined;
 const SchemaName = 'org.opent2t.sample.lamp.superpopular';
 
 function runLampTests(settings) {
-    var opent2t = new OpenT2T(settings.logger);
+    helpers.updateSettings(settings);
+    var opent2t = settings.opent2t;
     var test = settings.test;
     var deviceId = settings.deviceId;
+    var translator
     settings.schemaName = SchemaName;
 
     runAllPlatformTests(settings);
 
     test.before(() => {
-        return settings.createTranslator().then(trans => {
+        return opent2t.createTranslatorAsync(settings.translatorPath, 'thingTranslator', settings.getDeviceInfo()).then(trans => {
             translator = trans;
             return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {

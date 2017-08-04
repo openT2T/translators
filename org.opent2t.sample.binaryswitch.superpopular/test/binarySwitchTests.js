@@ -1,27 +1,21 @@
 'use strict';
 
-var OpenT2T = require('opent2t').OpenT2T;
+const SchemaName = 'org.opent2t.sample.binaryswitch.superpopular';
 var runAllPlatformTests = require('opent2t-device-all/tests');
 var helpers = require('opent2t-testcase-helpers');
-const SchemaName = 'org.opent2t.sample.binaryswitch.superpopular';
-var translator = undefined;
 
 function runBinarySwitchTests(settings) {
-    var opent2t = new OpenT2T(settings.logger);
-    var test = settings.test;
+	helpers.updateSettings(settings);
+	var test = settings.test;
+	var opent2t = settings.opent2t;
     var deviceId = settings.deviceId;
+    var translator;
     settings.schemaName = SchemaName;
-
-    function setData(t) {
-        if(settings.setTestData) {
-            settings.setTestData(t.title, t);
-        }
-    }
 
     runAllPlatformTests(settings);
 
     test.before(() => {
-        return settings.createTranslator().then(trans => {
+        return opent2t.createTranslatorAsync(settings.translatorPath, 'thingTranslator', settings.getDeviceInfo()).then(trans => {
             translator = trans;
             return opent2t.invokeMethodAsync(translator, SchemaName, 'get', []).then((response) => {
                 if(deviceId === undefined) {
@@ -41,7 +35,6 @@ function runBinarySwitchTests(settings) {
     });
 
     test.serial('SetPower', t => {
-        setData(t);
         return helpers.runTest(settings, t, () => {
             return opent2t.invokeMethodAsync(translator, SchemaName, 'postDevicesPower', [deviceId, { 'value': true }])
                 .then((response) => {

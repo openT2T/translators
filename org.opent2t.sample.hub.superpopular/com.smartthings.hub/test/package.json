@@ -10,7 +10,6 @@
   "main": "mockSmartthingsHub.js",
   "license": "MIT",
   "dependencies": {
-    "opent2t": "*",
     "opent2t-device-hub": "file:../../test"
   }
 }

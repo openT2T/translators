@@ -1,6 +1,9 @@
 'use strict';
 
+var test = require('ava');
+var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var OpenT2TLogger = require('opent2t').Logger;
 
 function runTest(settings, t, testMethod) {
     let expectedException = settings.expectedExceptions === undefined ? undefined : settings.expectedExceptions[t.title];
@@ -40,5 +43,26 @@ function verifyModesData(t, response) {
     t.is(Object.prototype.toString.call(response.modes), '[object Array]', 'Verify modes data is object array');
 }
 
+function createLogger() {
+    return new OpenT2TLogger("info");
+}
+
+function createOpenT2T() {
+    return new OpenT2T(createLogger());
+}
+
+function updateSettings(settings) {
+    if (!settings.opent2t) {
+        settings.opent2t = createOpenT2T();
+    }
+
+    if (!settings.test) {
+        settings.test = test;
+    }
+}
+
 module.exports.runTest = runTest;
 module.exports.verifyModesData = verifyModesData;
+module.exports.createLogger = createLogger;
+module.exports.createOpenT2T = createOpenT2T;
+module.exports.updateSettings = updateSettings;
