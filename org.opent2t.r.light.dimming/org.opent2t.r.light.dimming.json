@@ -1,0 +1,37 @@
+{
+    "id": "http://schemas.microsoft.com/org.opent2t.r.light.dimming.json#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Copyright (c) 2017 Microsoft Corp. All rights reserved.",
+    "title": "Relative Dimming",
+    "definitions": {
+        "org.opent2t.r.light.dimming": {
+            "type": "object",
+            "properties": {
+                "dimmingSetPercentage": {
+                    "type": "integer",
+                    "description": "WriteOnly, Current dimming value as percentage"
+                },
+                "dimmingIncrementPercentage": {
+                    "type": "integer",
+                    "description": "WriteOnly, Increase Current dimming value by the given percentage"
+                },
+                "dimmingDecrementPercentage": {
+                    "type": "integer",
+                    "description": "WriteOnly, Increase Current dimming value by the given percentage"
+                }
+            }
+        }
+    },
+    "type": "object",
+    "allOf": [
+        {
+            "$ref": "oic.core.json#/definitions/oic.core"
+        },
+        {
+            "$ref": "oic.baseResource.json#/definitions/oic.r.baseresource"
+        },
+        {
+            "$ref": "#/definitions/org.opent2t.r.light.dimming"
+        }
+    ]
+}

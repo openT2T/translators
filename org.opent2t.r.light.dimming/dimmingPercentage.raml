@@ -1,0 +1,49 @@
+#%RAML 0.8
+title: OpenT2TDimming
+version: v1.0
+
+schemas:
+  - Dimming: !include org.opent2t.r.light.dimming.json
+
+traits:
+  - interface-writeonly:
+      queryParameters:
+        if:
+          enum: ["oic.if.w","oic.if.baseline"]
+
+/DimmingResURI:
+  description: |
+    This resource describes a dimming function.
+    dimmingSetPercentage is an integer showing the current dimming level. A value of 0 means total dimming; a value of 100 means no dimming.
+    dimmingIncrementPercentage is an integer giving a percentage to increase the dim level by. 
+    dimmingDecrementPercentage is an integer giving a percentage to decrease the dim level by. 
+    Increment and decrement are absolute values, so if the current value is 20% a request to increase by 10% will set dimming to 30% 
+    
+
+  displayName: Dimming
+  is: [ interface-writeonly ]
+
+  post:
+    description: |
+      Sets the desired dimming level.
+    body:
+      application/json:
+        schema: Dimming
+        example: |
+          {
+            "id": "unique_example_id",
+            "dimmingIncrementPercentage": 5
+          }
+
+    responses:
+      200:
+        description: |
+          Indicates that the dimming was changed.
+        body:
+          application/json:
+            schema: Dimming
+            example: |
+              {
+                "id": "unique_example_id",
+                "dimmingSetPercentage": 40
+              }
