@@ -27,24 +27,24 @@ function validateArgumentType(arg, argName, expectedType) {
 /**
  * Finds a resource for an entity in a schema
  */
-function findResource(schema, di, resourceId) { 
-    // Find the entity by the unique di 
-    var entity = schema.entities.find((d) => { 
-        return d.di === di; 
-    }); 
-    
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
     if (!entity) {
         throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
-    
-    var resource = entity.resources.find((r) => { 
-        return r.id === resourceId;  
-    }); 
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
 
     if (!resource) {
         throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
     }
-    return resource; 
+    return resource;
 }
 
 /**
@@ -60,7 +60,7 @@ const OneMil = 1000000.0;
  * Convert HSV to RGB colours
  *   0 <= Hue < 360
  *   0 <= Saturation <= 1
- *   0 <= lumosity <= 1 
+ *   0 <= lumosity <= 1
  */
 function HSVtoRGB(hue, saturation, lumosity) {
 
@@ -156,10 +156,53 @@ function defaultValueIfEmpty(property, defaultValue) {
 }
 
 /**
+ * Given a SmartThings provider formatted Schema, calculate the
+ * desired brightness as a percentage of the current setting
+ */
+function getDesiredBrightnessState(providerSchema, resourceSchema) {
+
+    var result = {};
+
+    if(providerSchema.attributes.hasOwnProperty('level')) {
+
+        // current brightness, already scaled
+        var level = providerSchema.attributes.level;
+        var desired_level = level;
+
+        if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
+
+            desired_level = resourceSchema.dimmingSetPercentage;
+
+        } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
+
+            var incrementBy = resourceSchema.dimmingIncrementPercentage;
+            desired_level = level+incrementBy;
+
+        } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
+
+            var decrementBy = resourceSchema.dimmingDecrementPercentage;
+            desired_level = level-decrementBy;
+
+        }
+
+        if (desired_level < 0) {
+            desired_level = 0;
+        } else if (desired_level > 100) {
+            desired_level = 100;
+        }
+
+        result['level'] = desired_level;
+
+    }
+
+    return result;
+}
+
+/**
  * Converts a representation of a platform from the Wink API into an OCF representation.
  */
 function providerSchemaToPlatformSchema(providerSchema, expand) {
-    
+
     var supportCT = providerSchema['attributes'].colorTemperature !== undefined;
     var supportColour = ( providerSchema['attributes'].hue !== undefined
         && providerSchema['attributes'].saturation !== undefined
@@ -177,6 +220,13 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "href": "/dim",
         "rt": ["oic.r.light.dimming"],
         "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    // Build the org.opent2t.r.light.dimPercentage resource
+    var dimPercentage  = {
+         "href": "/dimPercentage",
+         "rt": ["org.opent2t.r.light.dimming"],
+         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
     // Build the colourMode resource
@@ -199,7 +249,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "rt": ["oic.r.colour.chroma"],
         "if": ["oic.if.a", "oic.if.baseline"]
     }
-  
+
     // Include the values is expand is specified
     if (expand) {
         power.id = 'power';
@@ -209,7 +259,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dim.dimmingSetting = providerSchema['attributes'].level;
         if (dim.dimmingSetting > 100 ) dim.dimmingSetting = 100;
         dim.range = [0, 100];
-        
+
+        dimPercentage.id = 'dimPercentage';
+        dimPercentage.dimmingSetPercentage = dim.dimmingSetting;
+        dimPercentage.dimmingIncrementPercentage = 0;
+        dimPercentage.dimmingDecrementPercentage = 0;
+
         if (supportColour) {
             colourMode.id = 'colourMode';
             colourMode.modes = ['rgb'];
@@ -236,7 +291,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         }
     }
 
-    var resources = [power, dim];
+    var resources = [power, dim, dimPercentage];
 
     if (supportColour && supportCT) {
         resources.push(colourMode);
@@ -276,54 +331,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
-/***
- * Converts an OCF platform/resource schema for calls to the SmartThings API
- */
-function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
-
-    // build the object with desired state
-    var result = {};
-
-    switch (resourceId) {
-        case 'power':
-            result['switch'] = resourceSchema.value ? 'on' : 'off';
-            break;
-        case 'dim':
-            result['level'] = resourceSchema.dimmingSetting;
-            break;
-        case 'colourRGB':
-            var HSVColor = RGBtoHSV(resourceSchema.rgbValue);
-            if (HSVColor !== undefined)
-            {
-                result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
-                result['saturation'] = Math.round(HSVColor.saturation * 100);
-                result['level'] = Math.round(HSVColor.level * 100);
-            }
-            break;
-        case 'colourChroma':
-            if (resourceSchema.ct !== undefined)
-            {
-                result['colorTemperature'] = Math.round( OneMil / resourceSchema.ct );
-            } else {
-                throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
-            }
-            break
-        default:
-            // Error case
-            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
-    }
-    return result;
-}
-
 // This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
 class Translator {
-        
+
     constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-smartthings-lightbulb";
-       this.logger = logger;
+        this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
-        
+
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
         this.smartThingsHub = deviceInfo.hub;
@@ -361,12 +377,13 @@ class Translator {
      */
     postDeviceResource(di, resourceId, payload) {
         if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response, true);
-                    return findResource(schema, di, resourceId);
+          return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+            .then((putPayload) => {
+                return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
+                    .then((response) => {
+                        var schema = providerSchemaToPlatformSchema(response, true);
+                        return findResource(schema, di, resourceId);
+                    });
                 });
         } else {
             throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
@@ -401,6 +418,14 @@ class Translator {
         return this.postDeviceResource(di, "dim", payload);
     }
 
+    getDevicesDimPercentage(di) {
+        return this.getDeviceResource(di, "dimPercentage");
+    }
+
+    postDevicesDimPercentage(di, payload) {
+        return this.postDeviceResource(di, "dimPercentage", payload);
+    }
+
     getDevicesColourChroma(di) {
         return this.getDeviceResource(di, "colourChroma");
     }
@@ -419,6 +444,51 @@ class Translator {
         subscriptionInfo.controlId = this.controlId;
         subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartThingsHub._unsubscribe(subscriptionInfo);
+    }
+
+     /***
+     * Converts an OCF platform/resource schema for calls to the SmartThings API
+     */
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+
+        // build the object with desired state
+        var result = {};
+
+        switch (resourceId) {
+            case 'power':
+                result['switch'] = resourceSchema.value ? 'on' : 'off';
+                break;
+            case 'dim':
+                result['level'] = resourceSchema.dimmingSetting;
+                break;
+            case 'dimPercentage':
+                // Get the device from SmartThings in order to figure out what the current dimness setting is
+                return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId).then((providerSchema) => {
+                    return getDesiredBrightnessState(providerSchema, resourceSchema);
+                });
+            case 'colourRGB':
+                var HSVColor = RGBtoHSV(resourceSchema.rgbValue);
+                if (HSVColor !== undefined)
+                {
+                    result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
+                    result['saturation'] = Math.round(HSVColor.saturation * 100);
+                    result['level'] = Math.round(HSVColor.level * 100);
+                }
+                break;
+            case 'colourChroma':
+                if (resourceSchema.ct !== undefined)
+                {
+                    result['colorTemperature'] = Math.round( OneMil / resourceSchema.ct );
+                } else {
+                    return Promise.reject(OpenT2TConstants.InvalidResourceId);
+                }
+                break
+            default:
+                // Error case
+                return Promise.reject(OpenT2TConstants.InvalidResourceId);
+        }
+
+        return Promise.resolve(result);
     }
 }
 
