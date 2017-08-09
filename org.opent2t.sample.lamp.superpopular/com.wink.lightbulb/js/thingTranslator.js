@@ -10,7 +10,7 @@ var colorConvert = require('color-convert');
 
 /**
  * Validates an argument matches the expected type.
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function validateArgumentType(arg, argName, expectedType) {
@@ -25,7 +25,7 @@ function validateArgumentType(arg, argName, expectedType) {
 
 /**
  * Generate a GUID for given an ID.
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function generateGUID(stringID) {
@@ -35,7 +35,7 @@ function generateGUID(stringID) {
 
 /**
  * Finds a resource for an entity in a schema
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function findResource(schema, di, resourceId) {
@@ -63,7 +63,7 @@ function findResource(schema, di, resourceId) {
  * Validates that an object (arguments[0]) contains properties
  * (arguments[1...n]) and throws a descriptive OpenT2T error if the
  * request is malformed.
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function validateHasOwnProperty() {
@@ -81,7 +81,7 @@ function validateHasOwnProperty() {
 
 /**
  * Returns a default value if the specified property is null, undefined, or an empty string
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function defaultValueIfEmpty(property, defaultValue) {
@@ -94,7 +94,7 @@ function defaultValueIfEmpty(property, defaultValue) {
 
 /**
  * Create a colourRgb resource
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function createColourRGBResource(expand, rgbArray, range = [0, 255]) {
@@ -115,7 +115,7 @@ function createColourRGBResource(expand, rgbArray, range = [0, 255]) {
 
 /**
  * Creates a colour chroma resource based on the hsv, csc, and ct values
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function createColourChromaResource(expand, hsvValue, cscValue, ctValue) {
@@ -147,7 +147,7 @@ function createColourChromaResource(expand, hsvValue, cscValue, ctValue) {
 
 /**
  * Creates a colour mode resource
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function createColourModeResource(expand, modes, supportedModes) {
@@ -172,7 +172,7 @@ function createColourModeResource(expand, modes, supportedModes) {
 
 /**
  * Creates a power resource
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function createPowerResource(expand, value) {
@@ -192,7 +192,7 @@ function createPowerResource(expand, value) {
 
 /**
  * Creates a dimming resource
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function createDimmingResource(expand, dimmingSetting, dimmingRange = [0, 100]) {
@@ -213,7 +213,7 @@ function createDimmingResource(expand, dimmingSetting, dimmingRange = [0, 100]) 
 
 /**
  * Creates a dimPercentage resource
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 
@@ -239,10 +239,10 @@ function createDimPercentageResource(expand, dimmingSetting, dimmingIncrementPer
 
 /**
  * Create the required resources for colour support.
- *
+ * 
  * If any colour is supported, then the platform will include both RGB and Chroma resources (by way
  * of conversion).  If colour temperature is supported, then a Chroma resource with ct will be used.
- *
+ * 
  * bulbInfo:
  *      power (true, false)
  *      dimmingSetting (1-100)
@@ -253,7 +253,7 @@ function createDimPercentageResource(expand, dimmingSetting, dimmingIncrementPer
  *      csc [x,y] (0-1.0)
  *      rgb [r,g,b] (0-255)
  *      temperatureMired
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function createLightBulbResources(expand, bulbInfo) {
@@ -340,7 +340,7 @@ function createLightBulbResources(expand, bulbInfo) {
 /**
  * Converts a value from one scale [0...originalRange] to another [0...newRange], optionally
  * rounding the result to the nearest integer.
- *
+ * 
  * TODO: This method should be moved to a shared location for all translators
  */
 function scaleValue(value, originalRange, newRange, round = false) {
@@ -354,12 +354,12 @@ function scaleValue(value, originalRange, newRange, round = false) {
 
 /**
  * Gets the supported colour modes for a Wink bulb
- *
+ * 
  * Gets the lightbulb data from Wink, and uses it to figure out what colour modes are supported.
  * This is needed because Wink will allow us to set the wrong mode with an undetectable failure.
  * We can't just use providerSchema.capabilities.fields to get color_models because it lists
  * modes that the bulb cannot use.
- *
+ * 
  * Bulbs always expose the properties of the colours that they support, regardless of what color_model
  * is currently active.
  */
@@ -390,18 +390,18 @@ function getProviderColourModes(providerSchema) {
  * Given a Wink provider formatted Schema, and a colour resource object,
  * choose the best color_model to apply the the bulb, in the event that the
  * requested mode (inferred by the resource properties) is not supported.
- *
+ * 
  * Priority is RGB > HSB > XYZ if the requested mode is not supported.
  * If the resource is attempting to set more than one color mode, the first
  * will be used (eg: if hue, saturaton and csc are all values, hsb will be used)
- *
+ * 
  * This method exists because Wink doesn't report what modes are supported,
  * and setting the wrong mode results in a silent failure.
- *
+ * 
  * A side effect is that this method may result in a change to brightness as
  * a result of applying an RGB resource to a hsb bulb.  This is desired in order
  * to properly display the color.
- *
+ * 
  * NOTE: xyz/csc is not supported for the time being because we haven't found
  * a bulb that supports it.
  */
@@ -553,7 +553,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
      * the capabilities field here as it reports incorrect modes, and setting a bad mode doesn'tell
      * report a failure that the translator is capable of catching.  last_reading is used here because
      * desired_state doesn't neccesarily contain valid colour data.
-     *
+     * 
      * If an invalid value is set, Wink will place it in the desired_state successfully but it will not apply it
      * The value will be maintained in the desired state for 2 minutes, so if anybody (OpenT2T or otherwise) sets
      * wrong colour data, the translator could read the wrong values.  In order to deal with this the translator
@@ -561,7 +561,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
      * supported, then the last_reading state will be used instead.  The desired_state needs to be used if the
      * value is valid so that the caller gets correct values back if they just set the state (eg: If a caller
      * changes a colour bulb to colour temperature, the the temperature colourMode should be returned by the POST).
-     *
+     * 
      * If the caller is subscribed to changes in state, then this is all moot as they would get a post back when
      * the last_reading state changes.
      */
