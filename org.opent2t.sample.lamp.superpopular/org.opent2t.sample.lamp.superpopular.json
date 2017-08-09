@@ -20,7 +20,7 @@
       ]
     },
 
-    "dim": {
+    "dim":{
       "description": "Dimming Level.",
       "type": "object",
       "default": {
