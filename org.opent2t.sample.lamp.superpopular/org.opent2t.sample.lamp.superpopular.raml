@@ -5,7 +5,6 @@ version: v1.0
 schemas:
   - BinarySwitch: !include oic.r.switch.binary.json
   - Dimming: !include oic.r.light.dimming.json
-  - DimmingPercentage: !include org.opent2t.r.light.dimming.json
   - Mode: !include oic.r.mode.json
   - ColourRGB: !include oic.r.colour.rgb.json
   - ColourChroma: !include oic.r.colour.chroma.json
@@ -19,10 +18,10 @@ schemas:
           "response": { "type": "string"}
         }
       }
-
+    
 
 traits:
-  - interface-actuator:
+    - interface-actuator:
       queryParameters:
         if:
           enum: ["oic.if.a", "oic.if.baseline"]
@@ -31,11 +30,6 @@ traits:
       queryParameters:
         if:
           enum: ["oic.if.s", "oic.if.baseline"]
-
-  - interface-writeonly:
-      queryParameters:
-        if:
-          enum: ["oic.if.w","oic.if.baseline"]
 
 resourceTypes:
   - !include org.opent2t.availability.yaml
@@ -103,7 +97,7 @@ resourceTypes:
                 ]
               }
 
-/?$expand:
+/?$expand
   displayName: Platform
   get:
     responses:
@@ -293,31 +287,6 @@ resourceTypes:
                   "dimmingSetting": 50
                 }
 
-  /dimmingPercent:
-    displayName: Dimming
-    is: [ interface-writeonly ]
-
-    post:
-      body:
-        application/json:
-          schema: DimmingPercentage
-          example: |
-            {
-              "id": "unique_example_id",
-              "dimmingIncrementPercentage": 5
-            }
-
-      responses:
-        200:
-          body:
-            application/json:
-              schema: DimmingPercentage
-              example: |
-                {
-                  "id": "unique_example_id",
-                  "dimmingSetPercentage": 40
-                }
-
   /colourChroma:
     displayName: Colour Chroma
     is: [ interface-actuator ]
@@ -363,7 +332,7 @@ resourceTypes:
                   "csc":         [0.41,0.51],
                   "ct":          467
                 }
-
+                
 #
 # Notification subscription URIs
 #
@@ -372,7 +341,7 @@ resourceTypes:
   description: |
     This resource manages subscriptions to changes on this device.
   displayName: Subscribe
-
+    
   post:
     description: |
         Creates or refreshes a subscription to this lamp.  This method can be called twice, first with
@@ -385,7 +354,7 @@ resourceTypes:
         example: |
           {
             "callbackUrl": "http://myserver.com",
-          }
+          }    
     responses:
        200:
         body:
@@ -414,7 +383,7 @@ resourceTypes:
         example: |
           {
             "callbackUrl": "http://myserver.com",
-          }
+          } 
     responses:
       200:
         body:
