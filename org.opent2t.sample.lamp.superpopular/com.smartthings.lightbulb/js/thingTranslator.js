@@ -163,36 +163,32 @@ function getDesiredBrightnessState(providerSchema, resourceSchema) {
 
     var result = {};
 
-    if(providerSchema.attributes.hasOwnProperty('level')) {
+    if (providerSchema.attributes.hasOwnProperty('level')) {
 
-        // current brightness, already scaled
-        var level = providerSchema.attributes.level;
-        var desired_level = level;
+        var level = parseInt(providerSchema.attributes.level);
+
+        // Special case: light is off
+        if (providerSchema.attributes.hasOwnProperty('switch') &&
+            providerSchema.attributes.switch == 'off') {
+            level = 0; // Treat current dimmness as 0
+        }
 
         if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
-
-            desired_level = resourceSchema.dimmingSetPercentage;
-
+            level = resourceSchema.dimmingSetPercentage;
         } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
-
-            var incrementBy = resourceSchema.dimmingIncrementPercentage;
-            desired_level = level+incrementBy;
-
+            level += resourceSchema.dimmingIncrementPercentage;
         } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
-
-            var decrementBy = resourceSchema.dimmingDecrementPercentage;
-            desired_level = level-decrementBy;
-
+            level -= resourceSchema.dimmingDecrementPercentage;
         }
 
-        if (desired_level < 0) {
-            desired_level = 0;
-        } else if (desired_level > 100) {
-            desired_level = 100;
+        if (level < 0) {
+            level = 0;
+        } else if (level > 100) {
+            level = 100;
         }
 
-        result['level'] = desired_level;
-
+        result['switch'] = level > 0 ? 'on' : 'off';
+        result['level'] = level;
     }
 
     return result;
