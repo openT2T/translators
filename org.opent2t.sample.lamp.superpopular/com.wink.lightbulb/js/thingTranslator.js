@@ -25,7 +25,7 @@ function validateArgumentType(arg, argName, expectedType) {
 
 /**
  * Generate a GUID for given an ID.
- * 
+ *
  * TODO: This method should be moved to a shared location for all translators
  */
 function generateGUID(stringID) {
@@ -471,44 +471,39 @@ function getDesiredColourState(providerSchema, resourcePayload) {
     return { desired_state: state };
 }
 
+
 /**
  * Given a Wink provider formatted Schema, calculate the
  * desired brightness as a percentage of the current setting
  */
 function getDesiredBrightnessState(providerSchema, resourceSchema) {
+    var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
     var state = {};
 
-    if(providerSchema.last_reading.hasOwnProperty('brightness')) {
+    // Current brightness, already scaled
+    var brightness = stateReader.get('brightness');
 
-        // current brightness, already scaled
-        var brightness = providerSchema.last_reading.brightness;
-        var desired_brightness = brightness;
-
-        if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
-
-            desired_brightness = scaleValue(resourceSchema.dimmingSetPercentage, 100, 1.0);
-
-        } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
-
-            var incrementBy = scaleValue(resourceSchema.dimmingIncrementPercentage, 100, 1.0);
-            desired_brightness = brightness+incrementBy;
-
-        } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
-
-            var decrementBy = scaleValue(resourceSchema.dimmingDecrementPercentage, 100, 1.0);
-            desired_brightness = brightness-decrementBy;
-
-        }
-
-        if (desired_brightness < 0) {
-            desired_brightness = 0;
-        } else if (desired_brightness > 1.0) {
-            desired_brightness = 1.0;
-        }
-
-        state['brightness'] = desired_brightness;
-
+    // Special case: light is off
+    if (!stateReader.get('powered')) {
+        brightness = 0; // Treat current dimmness as 0
     }
+
+    if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
+        brightness = scaleValue(resourceSchema.dimmingSetPercentage, 100, 1.0);
+    } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
+        brightness += scaleValue(resourceSchema.dimmingIncrementPercentage, 100, 1.0);
+    } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
+        brightness -= scaleValue(resourceSchema.dimmingDecrementPercentage, 100, 1.0);
+    }
+
+    if (brightness < 0) {
+        brightness = 0;
+    } else if (brightness > 1.0) {
+        brightness = 1.0;
+    }
+
+    state['powered'] = brightness > 0 ? true : false;
+    state['brightness'] = brightness;
 
     return { desired_state: state };
 }
@@ -548,7 +543,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         dimmingRange: [0,100],
     };
 
-    /**
+    /** 
      * Get the supported colour modes from the provider data.  The translator cannot use the
      * the capabilities field here as it reports incorrect modes, and setting a bad mode doesn'tell
      * report a failure that the translator is capable of catching.  last_reading is used here because
@@ -728,6 +723,7 @@ class Translator {
     postDevicesDim(deviceId, payload) {
         return this.postDeviceResource(deviceId, "dim", payload);
     }
+
     getDevicesDimPercentage(deviceId) {
         return this.getDeviceResource(deviceId, "dimPercentage");
     }
