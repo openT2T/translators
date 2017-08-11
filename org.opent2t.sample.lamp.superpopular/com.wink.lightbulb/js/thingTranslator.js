@@ -39,7 +39,7 @@ function generateGUID(stringID) {
  * TODO: This method should be moved to a shared location for all translators
  */
 function findResource(schema, di, resourceId) {
-    // Find the entity by the unique di 
+    // Find the entity by the unique di
     var entity = schema.entities.find((d) => {
         return d.di === di;
     });
@@ -55,7 +55,7 @@ function findResource(schema, di, resourceId) {
     if (!resource) {
         throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
     }
-    
+
     return resource;
 }
 
@@ -212,6 +212,32 @@ function createDimmingResource(expand, dimmingSetting, dimmingRange = [0, 100]) 
 }
 
 /**
+ * Creates a dimPercentage resource
+ * 
+ * TODO: This method should be moved to a shared location for all translators
+ */
+
+function createDimPercentageResource(expand, dimmingSetting, dimmingIncrementPercentage = 0, dimmingDecrementPercentage = 0) {
+
+     var dimPercentage  = {
+         "href": "/dimPercentage",
+         "rt": ["org.opent2t.r.light.dimming"],
+         "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    if (expand) {
+        dimPercentage.id = "dimPercentage";
+
+        dimPercentage.dimmingSetPercentage = dimmingSetting;
+        dimPercentage.dimmingIncrementPercentage = dimmingIncrementPercentage;
+        dimPercentage.dimmingDecrementPercentage = dimmingDecrementPercentage;
+
+    }
+
+    return dimPercentage;
+}
+
+/**
  * Create the required resources for colour support.
  * 
  * If any colour is supported, then the platform will include both RGB and Chroma resources (by way
@@ -253,7 +279,7 @@ function createLightBulbResources(expand, bulbInfo) {
         // Overwrite any rgbValue that may have been calculated from HSV or XYZ
         rgbValue = bulbInfo.rgb;
     }
-    
+
     // Supports colour temperature
     if (bulbInfo.hasOwnProperty('temperatureMired')) {
         ctValue = bulbInfo.temperatureMired;
@@ -261,7 +287,7 @@ function createLightBulbResources(expand, bulbInfo) {
         // as a result, there won't be data to create a colourRGB resource, which the translator must return if the bulb
         // supports colour at all.
         if (bulbInfo.supportedModes.indexOf('rgb') > -1 ||
-            bulbInfo.supportedModes.indexOf('hsb') > -1 || 
+            bulbInfo.supportedModes.indexOf('hsb') > -1 ||
             bulbInfo.supportedModes.indexOf('csc') > -1) {
                 // Knowing the colour temperature, the RGB value can be calculated, though it is in-exact.
                 // See here https://en.wikipedia.org/wiki/Color_temperature#Approximation
@@ -288,6 +314,7 @@ function createLightBulbResources(expand, bulbInfo) {
     // Add the dimming resource
     if (bulbInfo.hasOwnProperty('dimmingSetting')) {
         resources.push(createDimmingResource(expand, bulbInfo.dimmingSetting));
+        resources.push(createDimPercentageResource(expand, bulbInfo.dimmingSetting));
     }
 
     // Add the coorChroma resource if a supported colour is available
@@ -346,7 +373,7 @@ function getProviderColourModes(providerSchema) {
     if (providerSchema.hasOwnProperty('color')) {
         supportedModes.push('rgb');
     }
-    
+
     if (providerSchema.hasOwnProperty('color_x') && providerSchema.hasOwnProperty('color_y'))
     {
         supportedModes.push('xy');
@@ -444,6 +471,43 @@ function getDesiredColourState(providerSchema, resourcePayload) {
     return { desired_state: state };
 }
 
+
+/**
+ * Given a Wink provider formatted Schema, calculate the
+ * desired brightness as a percentage of the current setting
+ */
+function getDesiredBrightnessState(providerSchema, resourceSchema) {
+    var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
+    var state = {};
+
+    // Current brightness, already scaled
+    var brightness = stateReader.get('brightness');
+
+    // Special case: light is off
+    if (!stateReader.get('powered')) {
+        brightness = 0; // Treat current dimmness as 0
+    }
+
+    if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
+        brightness = scaleValue(resourceSchema.dimmingSetPercentage, 100, 1.0);
+    } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
+        brightness += scaleValue(resourceSchema.dimmingIncrementPercentage, 100, 1.0);
+    } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
+        brightness -= scaleValue(resourceSchema.dimmingDecrementPercentage, 100, 1.0);
+    }
+
+    if (brightness < 0) {
+        brightness = 0;
+    } else if (brightness > 1.0) {
+        brightness = 1.0;
+    }
+
+    state['powered'] = brightness > 0 ? true : false;
+    state['brightness'] = brightness;
+
+    return { desired_state: state };
+}
+
 /**
  * Wink does not always populate every desired_state property, but last_reading doesn't necessarily
  * update as soon as we send our PUT request. Instead of relying just on one state or the other,
@@ -498,7 +562,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
      */
     var winkModes = getProviderColourModes(providerSchema.last_reading);
     var colorModel = winkModes.indexOf(stateReader.get('color_model')) > -1 ?
-        stateReader.get('color_model') : 
+        stateReader.get('color_model') :
         providerSchema.last_reading.color_model;
 
     // Convert Wink color_model names into resource names
@@ -577,7 +641,7 @@ class Translator {
         this.logger = logger;
 
         validateArgumentType(deviceInfo, "deviceInfo", "object");
-       
+
         this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
         this.winkHub = deviceInfo.hub;
         this.deviceType = 'light_bulbs';
@@ -660,6 +724,14 @@ class Translator {
         return this.postDeviceResource(deviceId, "dim", payload);
     }
 
+    getDevicesDimPercentage(deviceId) {
+        return this.getDeviceResource(deviceId, "dimPercentage");
+    }
+
+    postDevicesDimPercentage(deviceId, payload) {
+        return this.postDeviceResource(deviceId, "dimPercentage", payload);
+    }
+
     getDevicesColourChroma(deviceId) {
         return this.getDeviceResource(deviceId, "colourChroma");
     }
@@ -687,7 +759,7 @@ class Translator {
         // build the object with desired state
         var result = {};
         result.desired_state = existingProviderSchema ? existingProviderSchema.desired_state : {};
-        
+
         var desired_state = result.desired_state;
 
         switch(resourceId) {
@@ -699,6 +771,11 @@ class Translator {
                 validateHasOwnProperty(resourceSchema, 'dimmingSetting');
                 desired_state['brightness'] = scaleValue(resourceSchema.dimmingSetting, 100, 1.0);
                 break;
+            case 'dimPercentage':
+                // Get the device from Wink in order to figure out what the current dimness setting is
+                return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+                    return getDesiredBrightnessState(providerSchema.data, resourceSchema);
+                });
             case 'colourMode':
                 validateHasOwnProperty(resourceSchema, 'modes');
                 // Try to set the mode, a bad mode won't error.
