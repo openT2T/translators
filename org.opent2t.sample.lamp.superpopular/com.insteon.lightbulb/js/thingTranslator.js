@@ -58,6 +58,41 @@ function defaultValueIfEmpty(property, defaultValue) {
     }
 }
 
+function getDesiredBrightnessState(providerSchema, resourceSchema) {
+
+    var result = {};
+
+    if (providerSchema.hasOwnProperty('Level')) {
+
+        var level = providerSchema.Level;
+
+        // Special case: light is off
+        if (providerSchema.hasOwnProperty('Power') &&
+            providerSchema.Power == 'off') {
+            level = 0; // Treat current dimmness as 0
+        }
+
+        if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
+            level = resourceSchema.dimmingSetPercentage;
+        } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
+            level += resourceSchema.dimmingIncrementPercentage;
+        } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
+            level -= resourceSchema.dimmingDecrementPercentage;
+        }
+
+        if (level < 0) {
+            level = 0;
+        } else if (level > 100) {
+            level = 100;
+        }
+
+        result['command'] = level > 0 ? 'on' : 'off';
+        result['level'] = level;
+    }
+
+    return result;
+}
+
 /**
  * Converts a representation of a platform from the Insteon API into an OCF representation.
  */
@@ -77,14 +112,26 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         "if": ["oic.if.a", "oic.if.baseline"]
     }
 
+    // Build the org.opent2t.r.light.dimPercentage resource
+    var dimPercentage  = {
+         "href": "/dimPercentage",
+         "rt": ["org.opent2t.r.light.dimming"],
+         "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
     // Include the values is expand is specified
-    if (expand) {  
+    if (expand) {
         power.id = 'power';
         power.value = providerSchema['Power'] === 'on';
 
         dim.id = 'dim';
         dim.dimmingSetting = providerSchema['Level'];
         dim.range = [0, 100];
+
+        dimPercentage.id = 'dimPercentage';
+        dimPercentage.dimmingSetPercentage = dim.dimmingSetting;
+        dimPercentage.dimmingIncrementPercentage = 0;
+        dimPercentage.dimmingDecrementPercentage = 0;
     }
 
     return {
@@ -108,40 +155,12 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 dmv: 'res.1.1.0',
                 resources: [
                     power,
-                    dim
+                    dim,
+                    dimPercentage
                 ]
             }
         ]
     };
-}
-
-/***
- * Converts an OCF platform/resource schema for calls to the Insteon API
- */
-function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
-
-    // build the object with desired state
-    var result = {};
-    switch (resourceId) {
-        case 'power':
-            result['command'] = resourceSchema.value ? 'on' : 'off';
-            break;
-        case 'dim':
-            result['command'] = resourceSchema.dimmingSetting > 0 ? 'on' : 'off';
-            result['level'] = resourceSchema.dimmingSetting;
-            break;
-        case 'n':
-            result['DeviceName'] = resourceSchema.n;
-            break;
-        case 'colourMode':
-        case 'colourRgb':
-        case 'colourChroma':
-            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
-        default:
-            // Error case
-            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
-    }
-    return result;
 }
 
 function validateResourceGet(resourceId) {
@@ -200,12 +219,13 @@ class Translator {
      */
     postDeviceResource(di, resourceId, payload) {
         if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response, true);
-                    return findResource(schema, di, resourceId);
+            return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+                .then((putPayload) => {
+                    return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload)
+                        .then((response) => {
+                            var schema = providerSchemaToPlatformSchema(response, true);
+                            return findResource(schema, di, resourceId);
+                        });
                 });
         } else {
             throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
@@ -242,6 +262,14 @@ class Translator {
         return this.postDeviceResource(di, "dim", payload);
     }
 
+    getDevicesDimPercentage(di) {
+        return this.getDeviceResource(di, "dimPercentage");
+    }
+
+    postDevicesDimPercentage(di, payload) {
+        return this.postDeviceResource(di, "dimPercentage", payload);
+    }
+
     getDevicesColourChroma(di) {
         return this.getDeviceResource(di, "colourChroma");
     }
@@ -249,13 +277,47 @@ class Translator {
     postDevicesColourChroma(di, payload) {
         return this.postDeviceResource(di, "colourChroma", payload);
     }
-    
+
     postSubscribe(subscriptionInfo) {
         return this.insteonHub.postSubscribe(subscriptionInfo);
     }
 
     deleteSubscribe(subscriptionInfo) {
         return this.insteonHub._unsubscribe(subscriptionInfo);
+    }
+
+    /***
+     * Converts an OCF platform/resource schema for calls to the Insteon API
+     */
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+
+        // build the object with desired state
+        var result = {};
+        switch (resourceId) {
+            case 'power':
+                result['command'] = resourceSchema.value ? 'on' : 'off';
+                break;
+            case 'dim':
+                result['command'] = resourceSchema.dimmingSetting > 0 ? 'on' : 'off';
+                result['level'] = resourceSchema.dimmingSetting;
+                break;
+            case 'dimPercentage':
+                // Get the device from SmartThings in order to figure out what the current dimness setting is
+                return this.insteonHub.getDeviceDetailsAsync(this.controlId).then((providerSchema) => {
+                    return getDesiredBrightnessState(providerSchema, resourceSchema);
+                });
+            case 'n':
+                result['DeviceName'] = resourceSchema.n;
+                break;
+            case 'colourMode':
+            case 'colourRgb':
+            case 'colourChroma':
+                return Promise.reject(OpenT2TConstants.NotImplemented);
+            default:
+                // Error case
+                return Promise.reject(OpenT2TConstants.InvalidResourceId);
+        }
+        return Promise.resolve(result);
     }
 }
 

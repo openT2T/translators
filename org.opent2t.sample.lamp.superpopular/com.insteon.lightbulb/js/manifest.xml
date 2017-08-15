@@ -11,6 +11,7 @@
     <schema id="oic.oic-link" type="OCF" />
     <schema id="oic.r.switch.binary" type="OCF" />
     <schema id="oic.r.light.dimming" type="OCF" />
+    <schema id="org.opent2t.r.light.dimming" type="OCF" />
     <schema id="oic.r.colour.rgb" type="OCF" />
     <schema id="oic.r.colour.chroma" type="OCF" />
     <schema id="oic.r.mode" type="OCF" />

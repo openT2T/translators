@@ -30,7 +30,22 @@
         "if": [ "oic.if.a", "oic.if.baseline" ]
       },
       "allOf": [
-        {"$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming"},
+        { "$ref": "oic.r.light.dimming.json#/definitions/oic.r.light.dimming" },
+        { "$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link" }
+      ]
+    },
+
+    "dimPercentage":{
+      "description": "Dimming Level (Percentage Changes).",
+      "type": "object",
+      "default": {
+        "id": "dimPercentage",
+        "href": "/dimPercentage",
+        "rt": [ "org.opent2t.r.light.dimming" ],
+        "if": [ "oic.if.w", "oic.if.baseline" ]
+      },
+      "allOf": [
+        {"$ref": "org.opent2t.r.light.dimming.json#/definitions/org.opent2t.r.light.dimming"},
         {"$ref": "oic.oic-link-schema.json#/definitions/oic.oic-link"}
       ]
     },
@@ -108,6 +123,7 @@
           "items": {
             "anyOf": [
               {"$ref": "#/definitions/dim"},
+              {"$ref": "#/definitions/dimPercentage"},
               {"$ref": "#/definitions/colourMode"},
               {"$ref": "#/definitions/colourRGB"},
               {"$ref": "#/definitions/colourChroma"}
