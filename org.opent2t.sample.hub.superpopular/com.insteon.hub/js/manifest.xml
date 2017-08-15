@@ -7,23 +7,31 @@
   </schemas>
   <!-- associated onboarding module -->
   <onboarding id="org.opent2t.onboarding.insteon">
-    <onboardflow name="getUserInput">
-      <flow type="input">
-        <arg name="username" />
-        <description language="en">Type in your Insteon username</description>
-        <description language="fr">Entrez for nom pour Insteon</description>
-      </flow>
-      <flow type="password">
-        <arg name="password"  />
-        <description language="en">Type in your Insteon password</description>
-        <description language="fr">Entrez for password pour Insteon</description>
-      </flow>
-    </onboardflow>
-    <onboardflow name="getDeveloperInput">
+      <onboardflow name="getDeveloperInput">
       <flow>
         <arg name="client_id" />
         <description language="en">Ask for Client id</description>
         <description language="fr">Demandez Client ID</description>
+      </flow>
+      <flow>
+        <arg name="client_secret" />
+        <description language="en">Ask for Client Secret</description>
+        <description language="fr">Demandez Client Secret</description>
+      </flow>
+	  <flow>
+        <arg name="redirect_url" />
+        <description language="en">Ask for redirect URL</description>
+        <description language="fr">Demandez redirect URL</description>
+      </flow>
+    </onboardflow>
+	<onboardflow name="askUserPermission">
+      <flow>
+        <arg name="url" />
+        <description language="en">https://connect.insteon.com/api/v2/oauth2/auth?client_id={client_id}&amp;state=state&amp;response_type=response_type&amp;redirect_uri={redirect_url}</description>
+      </flow>
+      <flow>
+        <arg name="method" />
+        <description language="en">getUserVerificationUri</description>
       </flow>
     </onboardflow>
   </onboarding>

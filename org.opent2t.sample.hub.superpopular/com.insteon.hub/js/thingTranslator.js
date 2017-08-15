@@ -169,7 +169,7 @@ class Translator {
             url: 'https://connect.insteon.com/api/v2/oauth2/token',
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'grant_type=refresh_token&refresh_token=' + this._authTokens['refresh'].token + '&client_id=' + authInfo[1].client_id
+            body: 'grant_type=refresh_token&refresh_token=' + this._authTokens['refresh'].token + '&client_id=' + authInfo[0].client_id
         };
 
         return request(options).then((body) => {
@@ -183,7 +183,7 @@ class Translator {
 
                 this._authTokens['access'].token = tokenInfo.access_token;
                 this._authTokens['access'].expiration = expiration
-                this._authTokens['access'].client_id = authInfo[1].client_id;
+                this._authTokens['access'].client_id = authInfo[0].client_id;
 
                 return this._authTokens;
                 
