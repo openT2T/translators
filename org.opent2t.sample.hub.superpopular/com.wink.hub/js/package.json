@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-wink-hub",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Wink Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
