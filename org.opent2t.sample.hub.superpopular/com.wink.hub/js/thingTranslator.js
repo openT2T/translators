@@ -178,6 +178,14 @@ class Translator {
     }
 
     /**
+     * Adding for consistency across hubs
+     */
+    deauthorizeToken(authInfo) {
+        // Not supported
+        return true;
+    }
+
+    /**
      * Translates an array of provider schemas into an opent2t/OCF representations
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {

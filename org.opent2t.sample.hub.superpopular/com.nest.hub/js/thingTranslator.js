@@ -56,6 +56,24 @@ class Translator {
         return this._authTokens;
     }
 
+    
+    /**
+     * Deauthorizes the OAuth token for the hub by calling DELETE with the current access token.
+     * https://developers.nest.com/documentation/cloud/deauthorization-overview
+     */
+    deauthorizeToken(authInfo) {
+        
+        var options = {
+            url: 'https://api.home.nest.com/oauth2/access_tokens/' + this._authTokens['access'].token,
+            method: 'DELETE'
+        };
+
+        return request(options).then((body) => {
+            return true;
+        });
+        
+    }
+
     /**
      * Gets the subscription modes supported by this provider and translator
      */

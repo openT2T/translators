@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-insteon-hub",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Insteon Hub",
   "license": "MIT",
   "main": "thingTranslator.js",

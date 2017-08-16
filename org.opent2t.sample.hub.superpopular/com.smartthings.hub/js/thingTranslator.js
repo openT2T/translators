@@ -122,6 +122,14 @@ class Translator {
     }
 
     /**
+     * Adding for consistency across hubs
+     */
+    deauthorizeToken(authInfo) {
+        // Not supported
+        return true;
+    }
+
+    /**
      * Gets the subscription modes supported by this provider and translator
      */
     getSubscribe() {

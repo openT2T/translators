@@ -191,6 +191,14 @@ class Translator {
     }
 
     /**
+     * Adding for consistency across hubs
+     */
+    deauthorizeToken(authInfo) {
+        // Not supported
+        return true;
+    }
+
+    /**
      * Get the name of the hub.  Ties to the n property from oic.core
      */
     getN() {
