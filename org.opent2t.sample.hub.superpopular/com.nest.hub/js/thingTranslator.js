@@ -2,7 +2,6 @@
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
-var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
@@ -56,6 +55,7 @@ class Translator {
     refreshAuthToken(authInfo) {
         return this._authTokens;
     }
+
     
     /**
      * Deauthorizes the OAuth token for the hub by calling DELETE with the current access token.
@@ -68,7 +68,13 @@ class Translator {
             method: 'DELETE'
         };
 
-        return request(options);
+        return request(options)
+            .then(function (body) {
+                return true;
+            })
+            .catch((err) => {              
+                return false;
+            });
     }
 
     /**
