@@ -68,20 +68,7 @@ class Translator {
             method: 'DELETE'
         };
 
-        return request(options).then((body) => {
-
-            this._authTokens['refresh'].token = '';
-            this._authTokens['refresh'].expiration = '';
-
-            this._authTokens['access'].token = '';
-            this._authTokens['access'].expiration = '';
-            this._authTokens['access'].client_id = '';
-
-            console.log(this._authTokens);
-
-            return this._authTokens;
-
-        });
+        return request(options);
     }
 
     /**
