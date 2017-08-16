@@ -2,6 +2,7 @@
 // For Node.js ES2015 support details, reference http://node.green/
 
 "use strict";
+var request = require('request-promise');
 var OpenT2T = require('opent2t').OpenT2T;
 var OpenT2TError = require('opent2t').OpenT2TError;
 var OpenT2TConstants = require('opent2t').OpenT2TConstants;
