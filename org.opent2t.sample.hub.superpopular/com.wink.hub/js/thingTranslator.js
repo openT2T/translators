@@ -178,6 +178,17 @@ class Translator {
     }
 
     /**
+     * Adding for consistency across hubs
+     */
+    deauthorizeToken(authInfo) {
+        if (!authInfo) {
+            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
+        }
+        // Not supported
+        return true;
+    }
+
+    /**
      * Translates an array of provider schemas into an opent2t/OCF representations
      */
     _providerSchemaToPlatformSchema(providerSchemas, expand) {

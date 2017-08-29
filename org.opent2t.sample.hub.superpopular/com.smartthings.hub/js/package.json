@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-smartthings-hub",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "SmartThings Hub",
   "license": "MIT",
   "main": "thingTranslator.js",
