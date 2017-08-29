@@ -10,7 +10,7 @@ var OpenT2TError = require('opent2t').OpenT2TError;
 var InsteonConstants = require('./constants');
 /* eslint no-unused-vars: "warn" */
 var sleep = require('es6-sleep').promise;
-var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete 
+var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
 
 /**
 * This translator class implements the "Hub" interface.
@@ -62,7 +62,7 @@ class Translator {
         }
 
         providerSchemas.forEach((insteonDevice) => {
-            //query detail device data    
+            //query detail device data
             var promise = this._makeRequest(this._devicesPath + '/' + insteonDevice.DeviceID, 'GET')
                 .then((data) => {
 
@@ -88,7 +88,7 @@ class Translator {
                                 return this._getCommandResponse(response.id) // get device status
                                     .then((deviceStatus) => {
                                         if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
-                                            
+
                                             deviceData['Reachable'] = true;
 
                                             switch (opent2tInfo.schema) {
@@ -110,7 +110,7 @@ class Translator {
                                         } else if (deviceStatus.status === 'failed') {
                                             deviceData['Reachable'] = false;
                                         }
-                                        
+
                                         // Create a translator for this device and get the platform information, possibly expanded
                                         return this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
                                             .then((translator) => {
@@ -124,8 +124,8 @@ class Translator {
                                                 // Being logged in HubController already
                                                 return Promise.resolve(undefined);
                                             });
-                                        
-                                    }).catch((err) => { 
+
+                                    }).catch((err) => {
                                         return Promise.reject(err);
                                     });
                             });
@@ -169,7 +169,7 @@ class Translator {
             url: 'https://connect.insteon.com/api/v2/oauth2/token',
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'grant_type=refresh_token&refresh_token=' + this._authTokens['refresh'].token + '&client_id=' + authInfo[1].client_id
+            body: 'grant_type=refresh_token&refresh_token=' + this._authTokens['refresh'].token + '&client_id=' + authInfo[0].client_id
         };
 
         return request(options).then((body) => {
@@ -183,10 +183,10 @@ class Translator {
 
                 this._authTokens['access'].token = tokenInfo.access_token;
                 this._authTokens['access'].expiration = expiration
-                this._authTokens['access'].client_id = authInfo[1].client_id;
+                this._authTokens['access'].client_id = authInfo[0].client_id;
 
                 return this._authTokens;
-                
+
             });
     }
 
@@ -244,9 +244,9 @@ class Translator {
                 };
 
                 return this._makeRequest(this._commandPath, 'POST', JSON.stringify(postPaylaod))
-                    .then((response) => {                       
+                    .then((response) => {
                         return this._getCommandResponse(response.id) // get device status
-                            .then((deviceStatus) => {  
+                            .then((deviceStatus) => {
                                 if (deviceStatus !== undefined && deviceStatus.status === 'succeeded') {
 
                                     deviceData['Reachable'] = true;
@@ -285,9 +285,9 @@ class Translator {
         // build request path and body
         var statusChanges = { device_id: deviceId };
         var nonStatusChanges = {};
-        
+
         for(var item in putPayload){
-            if(this._isDeviceStatus(item)){
+            if (this._isDeviceStatus(item)){
                 statusChanges[item] = putPayload[item];
             } else {
                 nonStatusChanges[item] = putPayload[item];
@@ -325,9 +325,9 @@ class Translator {
         // Merge Responses
         var device = {};
         return Promise.all(promises).then(function (responses) {
-            
+
             for (var i = 0; i < responses.length ; i++) {
-                if ( responses[i] !== undefined && responses[i].status == 'succeeded') {
+                if (responses[i] !== undefined && responses[i].status == 'succeeded') {
                     if (responses[i].command !== undefined) {
                         if (responses[i].command !== undefined ) {
                             switch(responses[i].command.command) {
@@ -355,8 +355,8 @@ class Translator {
                                     break;
                             }
                         }
-                        
-                        if( responses[i].command.level !== undefined) {
+
+                        if (responses[i].command.level !== undefined) {
                             device['Level'] = responses[i].command.level;
                         }
                     }
@@ -378,7 +378,7 @@ class Translator {
         });
     }
 
-    /** 
+    /**
      * Given the hub specific device, returns the opent2t schema and translator
      * devCat: Insteon device category
      * We can identify the device using those two value based on the table at
@@ -407,7 +407,6 @@ class Translator {
                 return undefined;
         }
     }
-    
 
     /**
      *  Internal helper method to determine if a property name belongs to device status or not.
@@ -425,8 +424,8 @@ class Translator {
      *  Internal helper method which get the results of an Insteon commands.
      *  Count specifies the number of time we try to retrieve the command result before we identify the result as timeout.
      *  
-     *  Per Insteon's recommendation at http://docs.insteon.apiary.io/#reference/commands/commands-collection, in Usage, 
-     *  it suggested us to wait for 1 second for the call to complete its roundtrip from the client to the hub, to the 
+     *  Per Insteon's recommendation at http://docs.insteon.apiary.io/#reference/commands/commands-collection, in Usage,
+     *  it suggested us to wait for 1 second for the call to complete its roundtrip from the client to the hub, to the
      *  device and back to the client.
      */
     _getCommandResponse(commandId) {
@@ -440,19 +439,19 @@ class Translator {
                         case 'succeeded':
                             return Promise.resolve(response);
                         default:
-                            if( response.command.device_id !== undefined){
+                            if (response.command.device_id !== undefined){
                                 this._throwError( 'Internal Error - Insteon command failed for deviceId ' + response.command.device_id + '.');
                             } else {
                                 this._throwError('Internal Error - Insteon command timeout.');
                             }
                     }
                 })
-                .catch((err) => { 
-                    Promise.reject(err); 
+                .catch((err) => {
+                    Promise.reject(err);
                 });
             });
         }
-    
+
     /**
      * Internal helper method which makes the actual request to the insteon service
      */
