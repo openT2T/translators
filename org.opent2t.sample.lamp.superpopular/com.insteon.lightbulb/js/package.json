@@ -1,6 +1,6 @@
 {
   "name": "opent2t-translator-com-insteon-lightbulb",
-  "version": "0.3.2",
+  "version": "1.4.0",
   "description": "Insteon Light Bulb",
   "homepage": "http://opentranslatorstothings.org",
   "repository": {
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "opent2t": "^1.1.0",
-    "opent2t-translator-com-insteon-hub": "^0.3.0"
+    "opent2t-translator-com-insteon-hub": "^1.4.0"
   },
   "devDependencies": {
     "ava": "^0.18.2",
