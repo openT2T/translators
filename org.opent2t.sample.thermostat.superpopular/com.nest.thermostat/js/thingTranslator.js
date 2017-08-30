@@ -21,24 +21,26 @@ function validateArgumentType(arg, argName, expectedType) {
 /**
  * Finds a resource for an entity in a schema
  */
-function findResource(schema, di, resourceId) { 
+function findResource(schema, di, resourceId) {
+
     // Find the entity by the unique di 
-    var entity = schema.entities.find((d) => { 
-        return d.di === di; 
-    }); 
-    
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
     if (!entity) {
-        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
     }
-    
-    var resource = entity.resources.find((r) => { 
-        return r.id === resourceId;  
-    }); 
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
 
     if (!resource) {
-        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
     }
-    return resource; 
+
+    return resource;
 }
 
 /**
@@ -115,7 +117,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // Quirks:
     // - Nest does not have an external temperature field, so that is left out.
     // - Away Mode is not implemented at this time.
-    
+
     // Get temperature scale
     var ts = providerSchema['temperature_scale'] !== undefined ? providerSchema['temperature_scale'].toLowerCase() : undefined;
 
@@ -128,7 +130,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         temperature: providerSchema['target_temperature_' + ts],
         units: ts
     });
-
+    
     var targetTemperatureHigh = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureHigh', expand, {
         temperature: providerSchema['target_temperature_high_' + ts],
         units: ts
@@ -154,10 +156,10 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
-        modes:  [providerSchema['away']],
+        modes: [providerSchema['away']],
         supportedModes: ['home', 'away']
     });
-    
+
     var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
         value: providerSchema['has_leaf']
     });
@@ -175,7 +177,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     var fanTimerActive = createResource('oic.r.sensor', 'oic.if.a', 'fanTimerActive', expand, {
         value: providerSchema['fan_timer_active']
     });
- 
+
     return {
         opent2t: {
             schema: 'org.opent2t.sample.thermostat.superpopular',
@@ -218,6 +220,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
 // Helper method to convert the translator schema to the device schema.
 function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
+
     // build the object with desired state
     var result = {};
 
@@ -275,6 +278,133 @@ function validateResourceGet(resourceId) {
     }
 }
 
+/**
+ * If the user provides a unit, validate the value is within the units range.
+ *  Range is defined by Nest as:
+ *    c [9-32]
+ *    f [50-90]
+ *  Unless, is_locked = true, then it will be defined by the locked values.
+ * 
+ * If the unit is provided and within range, returns provided unit 
+ *  otherwise an exception is thrown.
+ * 
+ * If no unit is provided and the value is within one of the two ranges,
+ *  the unit of the valid range will be returned, otherwise an 
+ *  exception is thrown.
+ * 
+ * TODO: Could use the 'temperature_scale' from the thermostat to pick a unit.
+ * 
+ * @param {*} resourceSchema 
+ * @param {*} providerSchema 
+ */
+function getValidatedUnit(resourceSchema, providerSchema) {
+
+    var value = resourceSchema.temperature;
+
+    if (resourceSchema.hasOwnProperty('units') && resourceSchema.units != null) {
+        var unit = resourceSchema.units.toLowerCase();
+        var min = getMinTemperature(providerSchema, unit);
+        var max = getMaxTemperature(providerSchema, unit);
+        if (value >= min && value <= max) {
+            return unit;
+        }
+        throw new OpenT2TError(440, "Invalid temperature (" + value + ") for unit (" + unit + " [" + min + ", " + max + "])");
+    } else {
+        var min_f = getMinTemperature(providerSchema, 'f');
+        var max_f = getMaxTemperature(providerSchema, 'f');
+        if (value >= min_f && value <= max_f) {
+            return 'f';
+        }
+        var min_c = getMinTemperature(providerSchema, 'c');
+        var max_c = getMaxTemperature(providerSchema, 'c');
+        if (value >= min_c && value <= max_c) {
+            return 'c';
+        }
+        throw new OpenT2TError(440, "Temperature outside supported range (" + value + ")");
+    }
+
+}
+
+/**
+ * Given a target temperature, compute a target 
+ * low and target high centerd around it.
+ * @param {*} resourceSchema 
+ * @param {*} providerSchema 
+ */
+function getTargetTemperatureRange(resourceSchema, providerSchema) {
+    var result = {};
+
+    var value = resourceSchema.temperature;
+    var unit = getValidatedUnit(resourceSchema, providerSchema);
+    var min = getMinTemperature(providerSchema, unit);
+    var max = getMaxTemperature(providerSchema, unit);
+
+    var targetLow = getTargetTemperatureLow(providerSchema, unit);
+    var targetHigh = getTargetTemperatureHigh(providerSchema, unit);
+
+    var range = targetHigh - targetLow;    
+    // Minimum range set by Nest API
+    if(range < 3) {
+        range = 3; 
+    }
+
+    var halfRange = Math.round(range / 2);
+    var newTargetLow = value - halfRange;
+    var newTargetHigh = value + halfRange;
+
+    // If either value is outside min/max range, adjust accordingly
+    if (newTargetLow < min) {
+        newTargetLow = min;
+        newTargetHigh = min + range;
+    }
+
+    if (newTargetHigh > max) {
+        newTargetHigh = max;
+        newTargetLow = Math.max(min, max - range);
+    }
+
+    result['target_temperature_high_' + unit] = newTargetHigh;
+    result['target_temperature_low_' + unit] = newTargetLow;
+
+    return result;
+}
+
+function getTargetTemperatureHigh(providerSchema, unit) {
+    if (unit === 'f') {
+        return providerSchema.target_temperature_high_f;
+    } else if (unit === 'c') {
+        return providerSchema.target_temperature_high_c;
+    }
+    throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
+}
+
+function getTargetTemperatureLow(providerSchema, unit) {
+    if (unit === 'f') {
+        return providerSchema.target_temperature_low_f;
+    } else if (unit === 'c') {
+        return providerSchema.target_temperature_low_c;
+    }
+    throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
+}
+
+function getMinTemperature(providerSchema, unit) {
+    if (unit === 'f') {
+        return providerSchema.is_locked ? providerSchema.locked_temp_min_f : 50;
+    } else if (unit === 'c') {
+        return providerSchema.is_locked ? providerSchema.locked_temp_min_c : 9;
+    }
+    throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
+}
+
+function getMaxTemperature(providerSchema, unit) {
+    if (unit === 'f') {
+        return providerSchema.is_locked ? providerSchema.locked_temp_max_f : 90;
+    } else if (unit === 'c') {
+        return providerSchema.is_locked ? providerSchema.locked_temp_max_c : 32;
+    }
+    throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
+}
+
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
@@ -306,9 +436,9 @@ class Translator {
         }
     }
 
-     /**
-     * Finds a resource on a platform by the id
-     */
+    /**
+    * Finds a resource on a platform by the id
+    */
     getDeviceResource(di, resourceId) {
         validateResourceGet(resourceId);
 
@@ -319,26 +449,35 @@ class Translator {
     }
 
     /**
-     * Finds a resource on a platform by the id
+     * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat'))
-        {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            if (resourceId === 'awayMode') {
-                return this.nestHub.setAwayMode(this.structureId, this.controlId, putPayload)
-                    .then((response) => {
-                        var schema = providerSchemaToPlatformSchema(response, true);
-                        return findResource(schema, di, resourceId);
-                    });
-            } else {
-                return this.nestHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
-                    .then((response) => {
-                        var schema = providerSchemaToPlatformSchema(response, true);
-                        return findResource(schema, di, resourceId);
-                    });
-            }
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
+            return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+                .then((putPayload => {
+                    if (resourceId === 'awayMode') {
+                        return this.nestHub.setAwayMode(this.structureId, this.controlId, putPayload)
+                            .then((response) => {
+                                var schema = providerSchemaToPlatformSchema(response, true);
+                                return findResource(schema, di, resourceId);
+                            });
+                    } else {
+                        return this.nestHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload).then((response) => {
+                            // target temperature can become target low and target high if thermostat was in auto mode
+                            var schema = providerSchemaToPlatformSchema(response, true);
+                            if (resourceId === 'targetTemperature' && (response.hasOwnProperty('target_temperature_low_c') 
+                                || response.hasOwnProperty('target_temperature_low_f'))) {
+                                response['hvac_mode'] = 'heat-cool';
+                                var low = findResource(schema, di, 'targetTemperatureLow');
+                                var high = findResource(schema, di, 'targetTemperatureHigh');
+                                var hvacMode = findResource(schema, di, 'hvacMode');
+                                return { low, high, hvacMode };
+                            } else {
+                                return findResource(schema, di, resourceId);
+                            }
+                        });
+                    }
+                }));
         } else {
             throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
@@ -352,6 +491,15 @@ class Translator {
         return this.getDeviceResource(di, 'targetTemperature');
     }
 
+    /**
+     * Target temperature will be set based on the mode of the thermostat
+     * In 'heat' or 'cool' -> targetTemperature will be set
+     * In 'auto' -> target_low/target_high will be set
+     * In 'eco' -> eco_low/eco_high will be set
+     * When 'off' -> error
+     * @param {*} di 
+     * @param {*} payload 
+     */
     postDevicesTargetTemperature(di, payload) {
         return this.postDeviceResource(di, 'targetTemperature', payload);
     }
@@ -452,6 +600,71 @@ class Translator {
     deleteSubscribe(subscriptionInfo) {
         subscriptionInfo.controlId = this.controlId;
         return this.nestHub._unsubscribe(subscriptionInfo);
+    }
+
+    /**
+     * Convertrs an OCF platform/resource schema to Nest API calls - async.
+     */
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+        // build the object with desired state
+        var result = {};
+        switch (resourceId) {
+            case 'targetTemperature':
+                return this.nestHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+                    switch (providerSchema.hvac_mode) {
+                        case 'heat':
+                        case 'cool':
+                            var unit = getValidatedUnit(resourceSchema, providerSchema);
+                            result['target_temperature_' + unit] = resourceSchema.temperature;
+                            break;
+                        case 'heat-cool':
+                            result = getTargetTemperatureRange(resourceSchema, providerSchema);
+                            break;
+                        case 'eco':
+                            throw new OpenT2TError(448, "Nest thermostat is in eco mode.");
+                            break;
+                        case 'off':
+                            throw new OpenT2TError(444, "Nest thermostat is off.");
+                            break;
+                    }
+                    return result;
+                });
+            case 'targetTemperatureHigh':
+                if (!resourceSchema.units) {
+                    throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
+                }
+                result['target_temperature_high_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
+                break;
+            case 'targetTemperatureLow':
+                if (!resourceSchema.units) {
+                    throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
+                }
+                result['target_temperature_low_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
+                break;
+            case 'hvacMode':
+                result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
+                break;
+            case 'fanActive':
+            case 'fanTimerActive':
+                result['fan_timer_active'] = resourceSchema.value;
+                break;
+            case 'awayMode':
+                result['away'] = resourceSchema.modes[0];
+                break;
+            case 'ambientTemperature':
+            case 'awayTemperatureHigh':
+            case 'awayTemperatureLow':
+            case 'humidity':
+            case 'ecoMode':
+            case 'fanTimerTimeout':
+                throw new OpenT2TError(403, NestConstants.ResourceNotMutable);
+            case 'fanMode':
+                throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+            default:
+                throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
+        }
+
+        return Promise.resolve(result);
     }
 }
 
