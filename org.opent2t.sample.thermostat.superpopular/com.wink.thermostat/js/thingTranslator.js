@@ -44,7 +44,7 @@ function findResource(schema, di, resourceId) {
     if (!resource) {
         throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
     }
-    
+
     return resource;
 }
 
@@ -119,7 +119,7 @@ function createResource(resourceType, accessLevel, id, expand, state) {
         resource.id = id;
         Object.assign(resource, state);
     }
-    
+
     return resource;
 }
 
@@ -138,14 +138,16 @@ function defaultValueIfEmpty(property, defaultValue) {
 function providerSchemaToPlatformSchema(providerSchema, expand) {
     var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
 
-    var max = stateReader.get('max_set_point');
-    var min = stateReader.get('min_set_point');
-
     // according to Wink docs the temperature is always returned as C 
-    var temperatureUnits = "c";
+    // state reader shows a 'units' field, return the result in this unit if it exists
+    var units = stateReader.get('units');
+    var temperatureUnits = (units === undefined || units.temperature === undefined) ? 'c' : units.temperature;
+
+    var max = temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('max_set_point')) : stateReader.get('max_set_point');
+    var min = temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('min_set_point')) : stateReader.get('min_set_point');
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
-        temperature: stateReader.get('temperature'),
+        temperature: temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('temperature')) : stateReader.get('temperature'),
         units: temperatureUnits
     });
 
@@ -230,7 +232,6 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
     // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
     // Instead, we infer it from the max and min setpoint
     // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
-
     switch (resourceId) {
         case 'targetTemperatureHigh':
             desired_state['max_set_point'] = resourceSchema.temperature;
@@ -242,17 +243,16 @@ function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
             desired_state['users_away'] = resourceSchema.modes[0] === 'away';
             break;
         case 'hvacMode': {
-                var mode = resourceSchema.modes[0];
-
-                if (mode === 'off') {
-                    desired_state['powered'] = false;
-                }
-                else {
-                    desired_state['powered'] = true;
-                    desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
-                }
-                break;
+            var mode = resourceSchema.modes[0];
+            if (mode === 'off') {
+                desired_state['powered'] = false;
             }
+            else {
+                desired_state['powered'] = true;
+                desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+            }
+            break;
+        }
         case 'targetTemperature':
         case 'awayTemperatureHigh':
         case 'awayTemperatureLow':
@@ -277,6 +277,149 @@ function validateResourceGet(resourceId) {
         case 'fanMode':
             throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
     }
+}
+
+/**
+ * If the user provides a unit, validate the value is within the units range.
+ *  Range is defined by min/max_min/max_set_point if available, otherwise:
+ *    c [9-32]
+ *    f [50-90]
+ * 
+ * If the unit is provided and within range, returns provided unit 
+ *  otherwise an exception is thrown.
+ * 
+ * If no unit is provided and the value is within one of the two ranges,
+ *  the unit of the valid range will be returned, otherwise an 
+ *  exception is thrown.
+ *  * 
+ * @param {*} resourceSchema 
+ * @param {*} providerSchema 
+ */
+function getValidatedUnit(resourceSchema, stateReader) {
+    var value = resourceSchema.temperature;
+    if (resourceSchema.hasOwnProperty('units') && resourceSchema.units != null) {
+        var unit = resourceSchema.units.toLowerCase();
+        var value = unit === 'c' ? value : fahrenheitToCelsius(value);
+        var min = getMinTemperatureLow(stateReader);
+        var max = getMaxTemperatureHigh(stateReader);
+        if (value >= min && value <= max) {
+            return unit;
+        }
+        throw new OpenT2TError(440, "Invalid temperature (" + value + ") for unit (c [" + min + ", " + max + "])");
+    } else {
+        var min_c = getMinTemperatureLow(stateReader);
+        var max_c = getMaxTemperatureHigh(stateReader);
+        if (value >= min_c && value <= max_c) {
+            return 'c';
+        }
+        var min_f = celsiusToFahrenheit(min_c);
+        var max_f = celsiusToFahrenheit(max_c);
+        if (value >= min_f && value <= max_f) {
+            return 'f';
+        }
+        throw new OpenT2TError(440, "Temperature outside supported range (" + value + ")");
+    }
+}
+
+/**
+ * Given a target temperature, compute a target 
+ * low and target high centerd around it.
+ * @param {*} resourceSchema 
+ * @param {*} stateReader 
+ */
+function getTargetTemperatureRange(resourceSchema, stateReader) {
+    var result = { 'desired_state': {} };
+    var desired_state = result.desired_state;
+
+    var value = resourceSchema.temperature;
+    var unit = getValidatedUnit(resourceSchema, stateReader);
+    if (unit === 'f') {
+        value = fahrenheitToCelsius(value);
+    }
+
+    var min_min = getMinTemperatureLow(stateReader);
+    var min_max = getMinTemperatureHigh(stateReader);
+
+    var max_min = getMaxTemperatureLow(stateReader);
+    var max_max = getMaxTemperatureHigh(stateReader);
+
+    var minSetPoint = getMinSetPoint(stateReader);
+    var maxSetPoint = getMaxSetPoint(stateReader);
+
+    var range = maxSetPoint - minSetPoint;
+    var halfRange = range / 2;
+    var newMinSetPoint = value - halfRange;
+    var newMaxSetPoint = value + halfRange;
+
+    // If either value is outside min/max range, adjust accordingly
+    if (newMinSetPoint < min_min) {
+        newMinSetPoint = min_min;
+        newMaxSetPoint = min_min + range;
+    }
+
+    if (newMinSetPoint > min_max) {
+        newMinSetPoint = min_max;
+        newMaxSetPoint = min_max + range;
+    }
+
+    if (newMaxSetPoint > max_max) {
+        newMaxSetPoint = max_max;
+        newMinSetPoint = Math.max(min_min, max_max - range);
+    }
+
+    if (newMaxSetPoint < max_min) {
+        newMaxSetPoint = max_min;
+        newMinSetPoint = Math.max(min_min, max_min - range);
+    }
+
+    desired_state['min_set_point'] = newMinSetPoint;
+    desired_state['max_set_point'] = newMaxSetPoint;
+
+    return result;
+}
+
+function getMaxTemperatureHigh(stateReader) {
+    // highest allowed max set point
+    var max_max_c = stateReader.get("max_max_set_point");
+    return max_max_c === undefined ? 32 : max_max_c;
+}
+
+function getMaxTemperatureLow(stateReader) {
+    // lowest allowed max set point
+    var min_max_c = stateReader.get("min_max_set_point");
+    return min_max_c === undefined ? 9 : min_max_c;
+}
+
+function getMinTemperatureHigh(stateReader) {
+    // highest allowed min set point
+    var max_min_c = stateReader.get("max_min_set_point");
+    return max_min_c === undefined ? 32 : max_min_c;
+}
+
+function getMinTemperatureLow(stateReader) {
+    // lowest allowed max set point
+    var min_min_c = stateReader.get("min_min_set_point");
+    return min_min_c === undefined ? 9 : min_min_c;
+}
+
+function getMinSetPoint(stateReader) {
+    // min set point for heating in celsius
+    var min_c = stateReader.get("min_set_point");
+    return min_c === undefined ? 22 : min_c;
+}
+
+function getMaxSetPoint(stateReader) {
+    // max set point for cooling in celsius
+    var max_c = stateReader.get("max_set_point");
+    return max_c === undefined ? 22 : max_c;
+}
+
+function celsiusToFahrenheit(c) {
+    return (c * 1.8) + 32;
+}
+
+function fahrenheitToCelsius(f) {
+    return (f - 32) / 1.8;
 }
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
@@ -327,14 +470,21 @@ class Translator {
      */
     postDeviceResource(di, resourceId, payload) {
         if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
-
-            return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response.data, true);
-
-                    return findResource(schema, di, resourceId);
-                });
+            return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+                .then((putPayload => {
+                    return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
+                        .then((response) => {
+                            var schema = providerSchemaToPlatformSchema(response.data, true);
+                            if (resourceId === 'targetTemperature') {
+                                var low = findResource(schema, di, 'targetTemperatureLow');
+                                var high = findResource(schema, di, 'targetTemperatureHigh');
+                                var hvacMode = findResource(schema, di, 'hvacMode');
+                                return { low, high, hvacMode };
+                            } else {
+                                return findResource(schema, di, resourceId);
+                            }
+                        });
+                }));
         } else {
             throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
@@ -451,6 +601,72 @@ class Translator {
         subscriptionInfo.deviceType = this.deviceType;
         return this.winkHub._unsubscribe(subscriptionInfo);
     }
+
+    // Helper method to convert the translator schema to the device schema.
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+
+        // build the object with desired state
+        var result = { 'desired_state': {} };
+        var desired_state = result.desired_state;
+
+        // Quirks:
+        // Wink does not have a target temperature field, so ignoring that resource.
+        // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+        // Instead, we infer it from the max and min setpoint
+        // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
+
+        switch (resourceId) {
+            case 'targetTemperature':
+                return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+                    var stateReader = new StateReader(providerSchema.data.desired_state, providerSchema.data.last_reading);
+                    if (stateReader.get('eco_target')) {
+                        throw new OpenT2TError(448, "Wink thermostat is in eco mode.");
+                    }
+                    if (stateReader.get('mode') === 'off') {
+                        throw new OpenT2TError(444, "Wink thermostat is off.");
+                    }
+                    return getTargetTemperatureRange(resourceSchema, stateReader);
+                });
+            case 'targetTemperatureHigh':
+                if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
+                    desired_state['max_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                } else {
+                    desired_state['max_set_point'] = resourceSchema.temperature;
+                }
+                break;
+            case 'targetTemperatureLow':
+                if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
+                    desired_state['min_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                } else {
+                    desired_state['min_set_point'] = resourceSchema.temperature;
+                }
+                break;
+            case 'awayMode':
+                desired_state['users_away'] = resourceSchema.modes[0] === 'away';
+                break;
+            case 'hvacMode': {
+                var mode = resourceSchema.modes[0];
+                if (mode === 'off') {
+                    desired_state['powered'] = false;
+                }
+                else {
+                    desired_state['powered'] = true;
+                    desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+                }
+                break;
+            }
+            case 'targetTemperature':
+            case 'awayTemperatureHigh':
+            case 'awayTemperatureLow':
+            case 'fanTimerTimeout':
+            case 'fanMode':
+                throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+            default:
+                throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
+        }
+        return Promise.resolve(result);
+    }
+
 }
 
 // Export the translator from the module.
