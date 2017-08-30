@@ -204,7 +204,11 @@ class Translator {
 
         winkDevices.forEach((winkDevice) => {
             // Ignore physical hubs for now
-            if (winkDevice.model_name && winkDevice.model_name.toLowerCase() === 'hub') {
+            if (winkDevice.object_type && winkDevice.object_type.toLowerCase() === 'hub') {
+               return;
+            }
+            // Ignore hidden devices
+            if (winkDevice.hidden_at) {
                 return;
             }
 
