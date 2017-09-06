@@ -134,8 +134,8 @@ function defaultValueIfEmpty(property, defaultValue) {
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
 
-    var max = providerSchema.hasOwnProperty('cool_point') ? providerSchema['cool_point'] : 0;
-    var min = providerSchema.hasOwnProperty('heat_point') ? providerSchema['heat_point'] : 0;
+    var max = providerSchema['cool_point'] || 0;
+    var min = providerSchema['heat_point'] || 0;
     var targetTemperature = (max > 0 && min > 0) ? ((max + min) / 2) : max > 0 ? max : min;
     var temperatureUnits = getUnitSafe(providerSchema, undefined);
 
@@ -282,7 +282,7 @@ function validateResourceGet(resourceId) {
  */
 function getValidatedUnit(resourceSchema) {
     var value = resourceSchema.temperature;
-    if (resourceSchema.hasOwnProperty('units') && resourceSchema.units != null) {
+    if (resourceSchema['units'] != undefined && resourceSchema['units'] !== null) {
         var unit = resourceSchema.units.toLowerCase();
         var min = getMinTemperature(unit);
         var max = getMaxTemperature(unit);
@@ -290,19 +290,18 @@ function getValidatedUnit(resourceSchema) {
             return unit;
         }
         throw new OpenT2TError(440, "Invalid temperature (" + value + ") for unit (" + unit + " [" + min + ", " + max + "])");
-    } else {
-        var min_f = getMinTemperature('f');
-        var max_f = getMaxTemperature('f');
-        if (value >= min_f && value <= max_f) {
-            return 'f';
-        }
-        var min_c = getMinTemperature('c');
-        var max_c = getMaxTemperature('c');
-        if (value >= min_c && value <= max_c) {
-            return 'c';
-        }
-        throw new OpenT2TError(440, "Temperature outside supported range (" + value + ")");
     }
+    var min_f = getMinTemperature('f');
+    var max_f = getMaxTemperature('f');
+    if (value >= min_f && value <= max_f) {
+        return 'f';
+    }
+    var min_c = getMinTemperature('c');
+    var max_c = getMaxTemperature('c');
+    if (value >= min_c && value <= max_c) {
+        return 'c';
+    }
+    throw new OpenT2TError(440, "Temperature outside supported range (" + value + ")");
 }
 
 /**
@@ -312,9 +311,6 @@ function getValidatedUnit(resourceSchema) {
  * @param {*} providerSchema 
  */
 function getTargetTemperatureRange(resourceSchema, providerSchema) {
-
-    var response = {};
-    var command = {}
 
     var unit = getValidatedUnit(resourceSchema);
     var providerUnit = getUnitSafe(providerSchema, unit);
@@ -356,6 +352,9 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
 
     var adjustedRange = newTargetLow - targetLow;
 
+    var response = {};
+    var command = {}
+    
     // Temp, just for the response - convert back to users units
     response.cool_point = convertTemperature(newTargetHigh, providerUnit, unit);
     response.heat_point = convertTemperature(newTargetLow, providerUnit, unit);
@@ -375,7 +374,7 @@ function getTargetTemperatureHigh(resourceSchema, providerSchema) {
 
     var unit = getValidatedUnit(resourceSchema);
     var providerUnit = getUnitSafe(providerSchema, unit);
-    
+
     // Temp just for the resource response
     response.cool_point = resourceSchema.temperature;
     response.mode = 'cool';
