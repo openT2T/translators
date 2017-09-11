@@ -114,7 +114,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // TODO: deviceTemperatureUnits is the units displayed on the device
     // temperatureScale is the value of the variables - we should
     // convert and return the values to deviceTemperatureUnits
-    var temperatureUnits = getUnitSafe(attributes); 
+    var temperatureUnits = getUnitSafe(attributes);
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: getIntSafe(attributes.temperature, 0),
@@ -227,10 +227,10 @@ function validateResourceGet(resourceId) {
 function getValidatedUnit(resourceSchema, attributes) {
     var value = resourceSchema.temperature;
     var providerUnit = getUnitSafe(attributes);
+    var min = getMinHeatingSetpoint(attributes);
+    var max = getMaxCoolingSetpoint(attributes);
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
-        var min = getMinHeatingSetpoint(attributes);
-        var max = getMaxCoolingSetpoint(attributes);
         if (unit === 'c' && providerUnit === 'f') {
             value = celsiusToFahrenheit(value);
         } else if (unit === 'f' && providerUnit === 'c') {
@@ -241,8 +241,6 @@ function getValidatedUnit(resourceSchema, attributes) {
         }
         throw new OpenT2TError(440, "Invalid temperature (" + value + ") for unit (" + unit + "[" + min + ", " + max + "])");
     } else {
-        var min = getMinHeatingSetpoint(attributes);
-        var max = getMaxCoolingSetpoint(attributes);
         if (value >= min && value <= max) {
             return providerUnit;
         }
