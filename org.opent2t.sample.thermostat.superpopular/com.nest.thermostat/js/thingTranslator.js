@@ -119,7 +119,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // - Away Mode is not implemented at this time.
 
     // Get temperature scale
-    var ts = providerSchema['temperature_scale'] !== undefined ? providerSchema['temperature_scale'].toLowerCase() : undefined;
+    var ts = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].toLowerCase() : undefined;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient_temperature_' + ts],
