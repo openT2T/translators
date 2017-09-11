@@ -120,6 +120,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     // Get temperature scale
     var ts = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].toLowerCase() : undefined;
+    var targetLow = providerSchema['target_temperature_low_' + ts];
+    var targetHigh =  providerSchema['target_temperature_high_' + ts];
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient_temperature_' + ts],
@@ -127,17 +129,17 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
-        temperature: providerSchema['target_temperature_' + ts],
+        temperature: providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + ts],
         units: ts
     });
 
     var targetTemperatureHigh = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureHigh', expand, {
-        temperature: providerSchema['target_temperature_high_' + ts],
+        temperature: targetHigh,
         units: ts
     });
 
     var targetTemperatureLow = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureLow', expand, {
-        temperature: providerSchema['target_temperature_low_' + ts],
+        temperature: targetLow,
         units: ts
     });
 
@@ -218,57 +220,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
-// Helper method to convert the translator schema to the device schema.
-function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
-
-    // build the object with desired state
-    var result = {};
-
-    switch (resourceId) {
-        case 'targetTemperature':
-            if (!resourceSchema.units) {
-                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
-            }
-            result['target_temperature_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
-            break;
-        case 'targetTemperatureHigh':
-            if (!resourceSchema.units) {
-                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
-            }
-            result['target_temperature_high_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
-            break;
-        case 'targetTemperatureLow':
-            if (!resourceSchema.units) {
-                throw new OpenT2TError(400, NestConstants.SchemaMissingTemperature);
-            }
-            result['target_temperature_low_' + resourceSchema.units.toLowerCase()] = resourceSchema.temperature;
-            break;
-        case 'hvacMode':
-            result['hvac_mode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
-            break;
-        case 'fanActive':
-        case 'fanTimerActive':
-            result['fan_timer_active'] = resourceSchema.value;
-            break;
-        case 'awayMode':
-            result['away'] = resourceSchema.modes[0];
-            break;
-        case 'ambientTemperature':
-        case 'awayTemperatureHigh':
-        case 'awayTemperatureLow':
-        case 'humidity':
-        case 'ecoMode':
-        case 'fanTimerTimeout':
-            throw new OpenT2TError(403, NestConstants.ResourceNotMutable);
-        case 'fanMode':
-            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
-        default:
-            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
-    }
-
-    return result;
-}
-
 function validateResourceGet(resourceId) {
     switch (resourceId) {
         case 'heatingFuelSource':
@@ -298,7 +249,10 @@ function validateResourceGet(resourceId) {
  * @param {*} providerSchema 
  */
 function getValidatedUnit(resourceSchema, providerSchema) {
-    var value = resourceSchema.temperature;
+    var value = resourceSchema.temperature;    
+    if (!value) {
+        throw new OpenT2TError("Invalid target temperature " + value);
+    }        
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
         var min = getMinTemperature(providerSchema, unit);
@@ -332,6 +286,7 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
 
     var value = resourceSchema.temperature;
     var unit = getValidatedUnit(resourceSchema, providerSchema);
+    // In 'c' nest allows *.5, but not for 'f'
     var min = getMinTemperature(providerSchema, unit);
     var max = getMaxTemperature(providerSchema, unit);
 
@@ -339,14 +294,28 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
     var targetHigh = getTargetTemperatureHigh(providerSchema, unit);
 
     var range = targetHigh - targetLow;
-    // Minimum range set by Nest API
-    if (range < 3) {
-        range = 3;
+    var halfRange = range / 2;
+
+    if (unit === 'f') {
+        // Minimum range set by Nest API if in f
+        if (range < 3) {
+            range = 3;
+        }
+        value = Math.round(value); // Must be a whole number
+        halfRange = Math.round(halfRange);
+    } else if (unit === 'c') {
+        // Minimum range set by Nest API if in c
+        if (range < 1.5 && unit === 'c') {
+            range = 1.5;
+        }
+        // Value must be either a whole number or .5 increment
+        value = roundToHalf(value); 
+        halfRange = roundToHalf(halfRange);
     }
 
-    var halfRange = Math.round(range / 2);
+    // Keeps the range, but may not be perfectly centered over new target
     var newTargetLow = value - halfRange;
-    var newTargetHigh = value + halfRange;
+    var newTargetHigh = value + (range - halfRange); 
 
     // If either value is outside min/max range, adjust accordingly
     if (newTargetLow < min) {
@@ -373,6 +342,7 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
 
 
 function getTargetTemperature(resourceSchema, providerSchema) {
+
     var unit = getValidatedUnit(resourceSchema, providerSchema);
 
     var response = {};
@@ -388,45 +358,60 @@ function getTargetTemperature(resourceSchema, providerSchema) {
 
 function getTargetTemperatureHigh(providerSchema, unit) {
     if (unit === 'f') {
-        return getInt(providerSchema.target_temperature_high_f, 90);
+        return getNumber(providerSchema.target_temperature_high_f, 90);
     } else if (unit === 'c') {
-        return getInt(providerSchema.target_temperature_high_c, 32);
+        return getNumber(providerSchema.target_temperature_high_c, 32);
     }
     throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
 }
 
 function getTargetTemperatureLow(providerSchema, unit) {
     if (unit === 'f') {
-        return getInt(providerSchema.target_temperature_low_f, 50);
+        return getNumber(providerSchema.target_temperature_low_f, 50);
     } else if (unit === 'c') {
-        return getInt(providerSchema.target_temperature_low_c, 9);
+        return getNumber(providerSchema.target_temperature_low_c, 9);
     }
     throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
 }
 
 function getMinTemperature(providerSchema, unit) {
     if (unit === 'f') {
-        return providerSchema.is_locked ? getInt(providerSchema.locked_temp_min_f, 50) : 50;
+        return providerSchema.is_locked ? getNumber(providerSchema.locked_temp_min_f, 50) : 50;
     } else if (unit === 'c') {
-        return providerSchema.is_locked ? getInt(providerSchema.locked_temp_min_c, 9) : 9;
+        return providerSchema.is_locked ? getNumber(providerSchema.locked_temp_min_c, 9) : 9;
     }
     throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
 }
 
 function getMaxTemperature(providerSchema, unit) {
     if (unit === 'f') {
-        return providerSchema.is_locked ? getInt(providerSchema.locked_temp_max_f, 90) : 90;
+        return providerSchema.is_locked ? getNumber(providerSchema.locked_temp_max_f, 90) : 90;
     } else if (unit === 'c') {
-        return providerSchema.is_locked ? getInt(providerSchema.locked_temp_max_c, 32) : 32;
+        return providerSchema.is_locked ? getNumber(providerSchema.locked_temp_max_c, 32) : 32;
     }
     throw new OpenT2TError(440, "Invalid temperature unit (" + unit + ")");
+}
+
+function roundToHalf(value) {
+    var rounded = Math.round(value);
+    if (value === rounded) // already a whole number
+        return value;
+    var floor = Math.floor(value);
+    var decimal = value - floor;
+    if (decimal < 0.25) {
+        return floor;
+    }
+    if (decimal < 0.75) {
+        return floor + 0.5;
+    }
+    return rounded;
 }
 
 function isDefined(object, variable) {
     return object && object[variable];
 }
 
-function getInt(value, defaultValue) {
+function getNumber(value, defaultValue) {
     return value ? value : defaultValue;
 }
 
@@ -650,10 +635,8 @@ class Translator {
                             return getTargetTemperatureRange(resourceSchema, providerSchema);
                         case 'eco':
                             throw new OpenT2TError(448, "Nest thermostat is in eco mode.");
-                            break;
                         case 'off':
                             throw new OpenT2TError(444, "Nest thermostat is off.");
-                            break;
                     }
                     return result;
                 });
