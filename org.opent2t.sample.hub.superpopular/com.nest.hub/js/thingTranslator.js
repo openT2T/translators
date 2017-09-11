@@ -37,12 +37,12 @@ class Translator {
      * Get the list of devices discovered through the hub.
      */
     getPlatforms(expand, payload) {
-        if (payload !== undefined) {
-            return this._providerSchemaToPlatformSchema(payload, expand);
-        } else {
+        if (payload === undefined) {
             return this._firebaseRef.child(this._devicesPath).once('value').then((snapshot) => {
                 return this._providerSchemaToPlatformSchema(snapshot.val(), expand);
             });
+        } else {
+            return this._providerSchemaToPlatformSchema(payload, expand);
         }
     }
 
@@ -57,12 +57,13 @@ class Translator {
         return this._authTokens;
     }
 
+
     /**
      * Deauthorizes the OAuth token for the hub by calling DELETE with the current access token.
      * https://developers.nest.com/documentation/cloud/deauthorization-overview
      */
     deauthorizeToken(authInfo) {
-        
+
         var options = {
             url: 'https://api.home.nest.com/oauth2/access_tokens/' + this._authTokens['access'].token,
             method: 'DELETE'
@@ -73,6 +74,11 @@ class Translator {
                 return true;
             })
             .catch((err) => {
+                var str = err.toString();
+                var startInd = str.indexOf('{');
+                var endInd = str.lastIndexOf('}');
+                var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
+                this.logger.error(`Ran into error in deauthorizeToken: ${errorMsg.error}`);
                 return false;
             });
     }
@@ -199,12 +205,7 @@ class Translator {
                 var result = {
                     device_id: deviceId
                 };
-                for (var propertyName in putPayload) {
-                    result[propertyName] = putPayload[propertyName];
-                    if (propertyName.includes('_temperature_')) {
-                        result['temperature_scale'] = propertyName.charAt(propertyName.length - 1);
-                    }
-                }
+                Object.assign(result, putPayload)
                 return result;
             }
         }).catch(function (err) {
@@ -216,7 +217,7 @@ class Translator {
             return Promise.reject(errorMsg.error);
         }.bind(this));
     }
-    
+
     /**
      * Internal Helper function to get the away status for structure with structureId
      */
