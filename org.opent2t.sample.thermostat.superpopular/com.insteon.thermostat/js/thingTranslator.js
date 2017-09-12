@@ -209,48 +209,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     return PlatformSchema;
 }
 
-// Helper method to convert the translator schema to the device schema.
-function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
-
-    // build the object with desired state
-    var result = {};
-
-    switch (resourceId) {
-        case 'n':
-            result['DeviceName'] = resourceSchema.n;
-            break;
-        case 'targetTemperatureHigh':
-            result.command = 'set_cool_to';
-            result.temp = resourceSchema.temperature;
-            break;
-        case 'targetTemperatureLow':
-            result.command = 'set_heat_to';
-            result.temp = resourceSchema.temperature;
-            break;
-        case 'fanMode':
-            result.command = resourceSchema.modes[0] === 'on' ? 'fan_on' : 'fan_auto';
-            break;
-        case 'hvacMode':
-            result.command = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
-            break;
-        case 'humidity':
-        case 'targetTemperature':
-            throw new OpenT2TError(403, InsteonConstants.ResourceNotMutable);
-        case 'awayTemperatureHigh':
-        case 'awayTemperatureLow':
-        case 'heatingFuelSource':
-        case 'fanTimerActive':
-        case 'fanTimerTimeout':
-        case 'awayMode':
-        case 'ecoMode':
-            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
-        default:
-            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
-    }
-
-    return result;
-}
-
 function validateResourceGet(resourceId) {
     switch (resourceId) {
         case 'awayTemperatureHigh':
@@ -282,7 +240,7 @@ function validateResourceGet(resourceId) {
  */
 function getValidatedUnit(resourceSchema) {
     var value = resourceSchema.temperature;
-    if (resourceSchema['units'] != undefined && resourceSchema['units'] !== null) {
+    if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
         var min = getMinTemperature(unit);
         var max = getMaxTemperature(unit);
@@ -354,7 +312,7 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
 
     var response = {};
     var command = {}
-    
+
     // Temp, just for the response - convert back to users units
     response.cool_point = convertTemperature(newTargetHigh, providerUnit, unit);
     response.heat_point = convertTemperature(newTargetLow, providerUnit, unit);
@@ -409,6 +367,10 @@ function getTargetTemperatureLow(resourceSchema, providerSchema) {
 function getUnitSafe(providerSchema, defaultUnit) {
     return providerSchema.hasOwnProperty('unit') && providerSchema.unit != null ?
         providerSchema.unit.toLowerCase() : defaultUnit;
+}
+
+function isDefined(object, variable) {
+    return object[variable] != undefined && object.variable !== null;
 }
 
 function getMinTemperature(unit) {
