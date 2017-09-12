@@ -1,574 +1,647 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
+'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var crypto = require('crypto');
+
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
-"use strict";
-var request = require('request-promise');
-var OpenT2T = require('opent2t').OpenT2T;
-var OpenT2TError = require('opent2t').OpenT2TError;
-var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-var Crypto = require('crypto');
-var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
-
 /**
- * Gets a property from a JSON dictionary without case sensitivity
- * this will return the first item it finds, though multiple may match
- * in JSON.
+ * Generate a GUID for given an ID.
  */
-function getDictionaryItemCaseInsensitive(obj, propertyName) {
-    var upperName = propertyName.toUpperCase();
-    for (var name in obj) {
-        if (upperName === name.toUpperCase()) {
-            return obj[name];
-        }
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('Wink' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
+
+function validateArgumentType(arg, argName, expectedType) {
+    if (typeof arg === 'undefined') {
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + '.');
+    } else if (typeof arg !== expectedType) {
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
 
 /**
-* This translator class implements the "Hub" interface.
-*/
-class Translator {
-    constructor(authTokens, logger) {
-        this.name = "opent2t-translator-com-wink-hub";
-        this._authTokens = authTokens;
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di 
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
 
-        this._baseUrl = "https://api.wink.com";
-        this._devicesPath = '/users/me/wink_devices';
-        this._oAuthPath = '/oauth2/token';
-        this._name = "Wink Hub";
-        this.logger = logger; 
-        this.opent2t = new OpenT2T(logger);
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
     }
 
-    /**
-     * Get the hub definition and devices
-     */
-    get(expand, payload, verification) {
-        return this.getPlatforms(expand, payload, verification);
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
     }
 
-    /**
-     * Get the list of devices discovered through the hub.
-     * 
-     * @param {bool} expand - True to include the current state of the resources.
-     * @param {Buffer} payload - POST content for a subscribed notification
-     * @param {Object} verification - Information used to authenticate that the post is valid
-     * @param {Array} verification.header - Header information that came with the payload POST.
-     *      Should include X-Hub-Signature
-     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
-     */
-    getPlatforms(expand, payload, verification) {
+    return resource;
+}
 
-        // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
-        // converted to the opent2t/ocf representation.
-        if (payload !== undefined) {
+// Wink does not always populate every desired_state property, but last_reading doesn't necessarily
+// update as soon as we send our PUT request. Instead of relying just on one state or the other,
+// we use this StateReader class to read from desired_state if it is there, and fall back to last_reading
+// if it is not.
+class StateReader {
+    constructor(desired_state, last_reading) {
+        this.desired_state = desired_state;
+        this.last_reading = last_reading;
+    }
 
-            // The payload must be an object for translation, and a string/buffer for calculating
-            // the HMAC. Ensure we have a copy in both formats
-            var payloadAsString = typeof payload === 'object' ? JSON.stringify(payload) : payload;
-            var payloadAsObject = typeof payload === 'object' ? payload : JSON.parse(payload);
-
-            // Calculate the HMAC for the payload using the secret
-            if (verification !== undefined && verification.key !== undefined) {
-                // HTTP headers are case insensitive, while the JSON dictionary is case sensitive,
-                // so the hub signature can be either x-hub-signature or X-Hub-Signature depending on
-                // what server was used to capture the notification POST request.
-                var hashFromWink = getDictionaryItemCaseInsensitive(verification.header, "x-hub-signature");
-                var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
-
-                if (!Crypto.timingSafeEqual(hashFromWink, hashFromPayload)) {
-                    throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
-                }
-            }
-
-            // Payload may be a device graph update, in Wink's case, the body payload will contain an array of "objects"
-            // {object_id: "...", object_type: "..."} but will not include state.  Without state, we can't even make non expanded platform schemas
-            // as there is no way to know what resources would be supported where they are optional (a light_bulb object_type optionally supports access
-            // colourRGB resource).
-            // In the case of a device graph update, fall through to the _makeRequest/_providerSchemaToPlatformSchema combo below.
-            if (!payloadAsObject.hasOwnProperty('objects')) {
-                // Return the verified payload
-                return this._providerSchemaToPlatformSchema(payloadAsObject, expand);
-            }
+    get(state) {
+        if (this.desired_state[state] !== undefined) {
+            return this.desired_state[state];
+        } else {
+            return this.last_reading[state];
         }
-
-        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-            return this._providerSchemaToPlatformSchema(response.data, expand);
-        });
-    }
-
-    /**
-     * Get the name of the hub.  Ties to the n property from oic.core
-     */
-    getN() {
-        return this._name;
-    }
-
-    /**
-     * Gets device details (all fields), response formatted per http://docs.winkapiv2.apiary.io/
-     */
-    getDeviceDetailsAsync(deviceType, deviceId) {
-
-        // build request URI
-        var requestPath = '/' + deviceType + '/' + deviceId;
-
-        // Make the async request
-        return this._makeRequest(requestPath, 'GET');
-    }
-
-    /**
-     * Puts device details (all fields) payload formatted per http://docs.winkapiv2.apiary.io/
-    */
-    putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
-
-        // build request path and body
-        var requestPath = '/' + deviceType + '/' + deviceId;
-        var putPayloadString = JSON.stringify(putPayload);
-
-        // Make the async request
-        return this._makeRequest(requestPath, 'PUT', putPayloadString);
-    }
-
-    /**
-     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
-     */
-    refreshAuthToken(authInfo) {
-        if (!authInfo) {
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
-        }
-
-        if (authInfo.length !== 2) {
-            // We expect the original authInfo object used in the onboarding flow
-            // not defining a brand new type for the Refresh() contract and re-using
-            // what is defined for Onboarding()
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
-        }
-
-        // POST oauth2/token
-        var postPayloadString = JSON.stringify({
-            'client_id': authInfo[0].client_id,
-            'client_secret': authInfo[0].client_secret,
-            'grant_type': 'refresh_token',
-            'refresh_token': this._authTokens['refresh'].token,
-        });
-
-        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body) => {
-
-            // _makeRequest() already returns a JSON representation of the POST response body
-            // return the auth properties out in our own response back
-
-            // there isn't a 'scopes' property returned as a result of this request according to
-            // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
-            // so am assuming the caller of this API will expect nulls
-
-            var expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds);
-            // default to one year in seconds
-            var refreshExpiration = Math.floor(new Date().getTime() / 1000) + 31557600;
-
-            this._authTokens['refresh'].token = body.refresh_token;
-            this._authTokens['refresh'].expiration = refreshExpiration;
-
-            this._authTokens['access'].token = body.access_token;
-            this._authTokens['access'].expiration = expiration;
-
-            return this._authTokens;
-        });
-    }
-
-    /**
-     * Adding for consistency across hubs
-     */
-    deauthorizeToken(authInfo) {
-        if (!authInfo) {
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
-        }
-        // Not supported
-        return true;
-    }
-
-    /**
-     * Translates an array of provider schemas into an opent2t/OCF representations
-     */
-    _providerSchemaToPlatformSchema(providerSchemas, expand) {
-        var platformPromises = [];
-        var toReturn = {
-            schema: "org.opent2t.sample.hub.superpopular",
-            platforms: [],
-            errors: []
-        };
-
-        // Ensure that we have an array of provider schemas, even if a single object was given.
-        var winkDevices = [].concat(providerSchemas);
-
-        winkDevices.forEach((winkDevice) => {
-            // Ignore physical hubs for now
-            if (winkDevice.object_type && winkDevice.object_type.toLowerCase() === 'hub') {
-               return;
-            }
-            // Ignore hidden devices
-            if (winkDevice.hidden_at) {
-                return;
-            }
-
-            // Get the opent2t schema and translator for the wink device
-            var opent2tInfo = this._getOpent2tInfo(winkDevice);
-
-            if (!opent2tInfo) {
-                // Platforms without translators should be recorded as errors, but can be safely ignored.
-                toReturn.errors.push(new OpenT2TError(404, `${OpenT2TConstants.UnknownPlatform}: ${winkDevice.model_name}`));
-            }
-            else {
-                var deviceInfo = {};
-                deviceInfo.opent2t = {};
-                deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
-
-                // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
-                    .then((translator) => {
-
-                        // Use get to translate the Wink formatted device that we already got in the previous request.
-                        // We already have this data, so no need to make an unnecesary request over the wire.
-                        return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
-                            .then((platformResponse) => {
-                                return platformResponse;
-                            });
-                    }).catch((err) => {
-                        // Being logged in HubController already
-                        return Promise.reject(err);
-                    }));
-            }
-        });
-
-        // Return a promise for all platform translations.
-        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
-        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
-        return Promise.all(platformPromises.map(promiseReflect))
-            .then((values) => {
-                // Resolved promises will be succesfully translated platforms
-                toReturn.platforms = values.filter(v => v.status == 'resolved').map(p => { return p.data; });
-                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
-                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
-                }));
-                return toReturn;
-            });
-    }
-
-    /**
-     * Gets the subscription modes supported by this provider and translator
-     */
-    getSubscribe() {
-        // Wink also supports streaming (via PubNub), but it is currently NotImplemented by this translator.
-        return {
-            supportedModes: ['postbackUrl', 'polling']
-        }
-    }
-
-    /**
-     * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
-     * The first call will contain just the callbackUrl, which will be subscribed for postbacks
-     * from the Wink cloud service.
-     * The second call will contain the request, and response for a GET to the callbackUrl that was
-     * provided in order to complete the verification of the subscription.
-     * 
-     * The expected sequence is as follows:
-     * - Call subscribe with a callback url, get a response.
-     * - Http server running at the callback url receives a GET request, this request and a response string
-     *      are passed to a 2nd call to subscribe() (callbackUrl is ignored in this case)
-     * - Http server responds to the GET with the verificationResponseContent that was populated by subscribe
-     * - Future POST calls to the callback url are passed to the device translator get*Uri function
-     * 
-     * All calls to subscribe will return the expiration time of the subscription.  For Wink, this is
-     * currently 24 hours.  Subsequent calls to subscribe will refresh the expiration time, and in the
-     * case of Wink/Pubsubhubbub will not require verification.
-     * 
-     * @typedef {Object} SubscriptionResponse
-     * @property {number} expiration - Expiration time for the subscription.
-     * @property {string} response - Response payload for the verification request.
-     * 
-     * @param {string} deviceType - Device Type (e.g. 'thermostats')
-     * @param {string|number} deviceId - Id for the specific device
-     * @param {Object} subscriptionInfo - Subscription information
-     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint. This URL will receive verification, and updates.
-     * @param {string} subscriptionInfo.key - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
-     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to (not required for verification)
-     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to (not required for verification)
-     * @param {Object} subscriptionInfo.verificationRequest - The contents of a verification request made to the callbackURl, if 
-     *      verification is being used.
-     * @returns {SubscriptionResponse} - Object containing the subscription expiration time, and any content that
-     *      needs to be included in a response to the original request. Content that should be provided in the response to the
-     *      verification request as {'Content-Type': 'text/plain'}.
-     */
-    postSubscribe(subscriptionInfo) {
-        if (subscriptionInfo.verificationRequest) {
-            // Verify a subscription request by constructing the appropriate response
-
-            var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
-
-            switch (params.query['hub.mode']) {
-                case "denied":
-                    // The subscription cannot be completed, access was denied.
-                    // This is likely due to a bad access token.
-                    throw new OpenT2TError(403, OpenT2TConstants.AccessDenied);
-                case "unsubscribe":
-                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
-                    // with no verification.
-                    return {
-                        expiration: 0,
-                        response: ""
-                    }
-                case "subscribe":
-                    // Successful subscription/unsubscription requires a response to contain the same
-                    // challenge that was included in the request.
-                    return {
-                        expiration: params.query['hub.lease_seconds'],
-                        response: params.query['hub.challenge']
-                    }
-                default:
-                    // Hub mode is unknown.
-                    throw new OpenT2TError(400, OpenT2TConstants.UnknownHubSubscribeRequest);
-            }
-        }
-        else if (subscriptionInfo.callbackUrl) {
-            // If a callbackUrl is provided without a verification request, then it is a new subscription or a refresh.
-
-            // Get the subscription request path for this subscription type.
-            return this._getCallbackSubscriptionRequestPath(subscriptionInfo).then((requestPath) => {
-                // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
-                // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
-                // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
-
-                // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
-                // with another call to this function.
-
-                var postPayload = {
-                    callback: subscriptionInfo.callbackUrl
-                }
-
-                // Secret provided for computing HMAC verification of the payload
-                // this is optional to Wink
-                if (subscriptionInfo.key) {
-                    postPayload.secret = subscriptionInfo.key;
-                }
-
-                var postPayloadString = JSON.stringify(postPayload);
-
-                return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
-                    // Return the expiration time for the subscription
-                    return {
-                        expiration: response.data.expires_at
-                    };
-                })
-            });
-        }
-    }
-
-    /**
-     * Gets the request path for the subscription depending on whether it should subscribe to a single platform or to 
-     * device graph updates on the Wink account.
-     */
-    _getCallbackSubscriptionRequestPath(subscriptionInfo) {
-        if (subscriptionInfo.deviceType && subscriptionInfo.deviceId) {
-            // Platform level subscription
-            return Promise.resolve(`/${subscriptionInfo.deviceType}/${subscriptionInfo.deviceId}/subscriptions`);
-        }
-        else {
-            // Subscribe to device graph updates.
-            // Wink provides a .all groupd at /groups/.all which can be subscribed to for both device graph updates
-            // and ALL platform updates.  Since platform updates can be subscribed to individually, we'll use a different
-            // subscription URL for Wink device changes.
-            // If in the future, support for subscribing to all platforms at once is needed, here is how it will need to be done:
-            //      1. GET to /groups/.all
-            //      2. Retrieve the group_id from the result to get the ID associated with the .all group
-            //      3. POST subscription request to /groups/${group_id}/subscription
-            // For now, just subscribe to device updates found at the following url.
-
-            return Promise.resolve('/users/me/wink_devices/subscriptions');
-        }
-    }
-    /**
-     * Unsubscribes from an existing Wink pubsubhubbub feed.  The subscription id for a
-     * topic is not cached, so this results in 2 web calls:
-     * - GET to return a list of subscriptions
-     * - DELETE to remove the existing subscriptions.
-     * 
-     * Wink's pubsubhubbub is slightly different than standard as it uses DELETE along
-     * with a subscriptionID rather than another GET with a hub.mode of 'unsubscribe'
-     * 
-     * @param {Object} subscriptionInfo - Subscription information
-     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint.
-     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to
-     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to
-     * @returns {Object} Expiration of the subscription (expired)
-     */
-    _unsubscribe(subscriptionInfo) {
-        var subscriptionsToDelete = [];
-        // Find the subscription ID for this callback URL
-        return this._getSubscriptions(subscriptionInfo.deviceType, subscriptionInfo.deviceId).then((subscriptions) => {
-            subscriptions.forEach((sub) => {
-                // Find the subscription id for this callback URL and device
-                if (sub.callback == subscriptionInfo.callbackUrl &&
-                    sub.topic.endsWith(subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId)) {
-                    var requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions/' + sub.subscription_id;
-
-                    // Do the actual unsubscribe
-                    subscriptionsToDelete.push(this._makeRequest(requestPath, 'DELETE'));
-                }
-            });
-
-            // Return all delete requests.
-            return Promise.all(subscriptionsToDelete).then(() => {
-                return {
-                    expiration: 0
-                }
-            });
-        });
-    }
-
-    /**
-     * Gets all subscriptions for a device.
-     * 
-     * @param {string} deviceType - Device Type (e.g. 'thermostats')
-     * @param {string|number} deviceId - Id for the specific device
-     * @returns {request} Promise that supplies the list of subscriptions
-     * 
-     * This is just a helper for tests and verification.
-     */
-    _getSubscriptions(deviceType, deviceId) {
-        // GET /<deviceType>/<device Id>/subscriptions
-        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
-
-        return this._makeRequest(requestPath, 'GET').then((response) => {
-            return response.data;
-        });
-    }
-
-    /** 
-     * Given the hub specific device, returns the opent2t schema and translator
-    */
-    _getOpent2tInfo(winkDevice) {
-        if (winkDevice.thermostat_id) {
-            return {
-                "schema": 'org.opent2t.sample.thermostat.superpopular',
-                "translator": "opent2t-translator-com-wink-thermostat"
-            };
-        }
-        else if (winkDevice.binary_switch_id) {
-            return {
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                "translator": "opent2t-translator-com-wink-binaryswitch"
-            };
-        }
-        else if (winkDevice.light_bulb_id) {
-            return {
-                "schema": 'org.opent2t.sample.lamp.superpopular',
-                "translator": "opent2t-translator-com-wink-lightbulb"
-            };
-        }
-        else if (winkDevice.sensor_pod_id) {
-            return {
-                "schema": 'org.opent2t.sample.multisensor.superpopular',
-                "translator": "opent2t-translator-com-wink-sensorpod"
-            };
-        }
-
-        return undefined;
-    }
-
-    /**
-     * Internal helper method which makes the actual request to the wink service
-     */
-    _makeRequest(path, method, content, includeBearerHeader) {
-
-        includeBearerHeader = (includeBearerHeader !== undefined) ? includeBearerHeader : true;
-
-        // build request URI
-        var requestUri = this._baseUrl + path;
-
-        var headers = [];
-
-        // Set the headers
-        if (includeBearerHeader) {
-            headers['Authorization'] = 'Bearer ' + this._authTokens['access'].token;
-            headers['Accept'] = 'application/json';
-        }
-
-        if (content) {
-            headers['Content-Type'] = 'application/json';
-            headers['Content-length'] = content.length;
-        }
-
-        var options = {
-            url: requestUri,
-            method: method,
-            headers: headers,
-            followAllRedirects: true
-        };
-
-        if (content) {
-            options.body = content;
-        }
-
-        console.log(content);
-
-        // Start the async request
-        return request(options)
-            .then(function (body) {
-                return JSON.parse(body);
-            })
-            .catch((err) => {                
-                this.logger.error(`Request failed to: ${options.method} - ${options.url}`); 
-                return Promise.reject(err);
-            }).bind(this); //Pass in the context via bind() to use instance variables
-
-    }
-
-    /**
-     * Wink has a semi-complicated way of getting the actual device id of a device.
-     */
-    _getDeviceId(winkDevice) {
-        // get the device id
-        var deviceId = winkDevice.light_bulb_id ||
-            winkDevice.air_conditioner_id ||
-            winkDevice.binary_switch_id ||
-            winkDevice.shade_id ||
-            winkDevice.camera_id ||
-            winkDevice.doorbell_id ||
-            winkDevice.eggtray_id ||
-            winkDevice.garage_door_id ||
-            winkDevice.cloud_clock_id ||
-            winkDevice.lock_id ||
-            winkDevice.dial_id ||
-            winkDevice.alarm_id ||
-            winkDevice.power_strip_id ||
-            winkDevice.outlet_id ||
-            winkDevice.piggy_bank_id ||
-            winkDevice.deposit_id ||
-            winkDevice.refrigerator_id ||
-            winkDevice.propane_tank_id ||
-            winkDevice.remote_id ||
-            winkDevice.sensor_pod_id ||
-            winkDevice.siren_id ||
-            winkDevice.smoke_detector_id ||
-            winkDevice.sprinkler_id ||
-            winkDevice.thermostat_id ||
-            winkDevice.water_heater_id ||
-            winkDevice.scene_id ||
-            winkDevice.condition_id ||
-            winkDevice.robot_id;
-
-        return deviceId;
-    }
-
-    /** 
-     * Calculates a new hash of contents using key.
-     */
-    _generateHmac(key, contents) {
-        var hmac = Crypto.createHmac("sha1", key);
-        hmac.update(contents.toString());
-        return hmac.digest("hex");
     }
 }
 
+var deviceHvacModeToTranslatorHvacModeMap = {
+    'cool_only': 'coolOnly',
+    'heat_only': 'heatOnly',
+    'auto': 'auto'
+}
+
+var translatorHvacModeToDeviceHvacModeMap = {
+    'coolOnly': 'cool_only',
+    'heatOnly': 'heat_only',
+    'auto': 'auto'
+}
+
+function deviceHvacModeToTranslatorHvacMode(mode) {
+    return deviceHvacModeToTranslatorHvacModeMap[mode];
+}
+
+function translatorHvacModeToDeviceHvacMode(mode) {
+    return translatorHvacModeToDeviceHvacModeMap[mode];
+}
+
+function deviceSupportedModesToTranslatorSupportedModes(deviceSupportedModes) {
+    var supportedModes = deviceSupportedModes.map(deviceHvacModeToTranslatorHvacMode);
+    return supportedModes.filter((m) => !!m);
+}
+
+function readHvacMode(stateReader) {
+    var supportedHvacModes = deviceSupportedModesToTranslatorSupportedModes(stateReader.get('modes_allowed'))
+    var hvacMode = deviceHvacModeToTranslatorHvacMode(stateReader.get('mode'));
+    var powered = stateReader.get('powered');
+
+    supportedHvacModes.push('off');
+    if (!powered) {
+        hvacMode = 'off';
+    }
+
+    return {
+        supportedModes: supportedHvacModes,
+        modes: [hvacMode]
+    };
+}
+
+function createResource(resourceType, accessLevel, id, expand, state) {
+    var resource = {
+        href: '/' + id,
+        rt: [resourceType],
+        if: [accessLevel, 'oic.if.baseline']
+    }
+
+    if (expand) {
+        resource.id = id;
+        Object.assign(resource, state);
+    }
+
+    return resource;
+}
+
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
+// Helper method to convert the provider schema to the platform schema.
+function providerSchemaToPlatformSchema(providerSchema, expand) {
+    var stateReader = new StateReader(providerSchema.desired_state, providerSchema.last_reading);
+
+    // according to Wink docs the temperature is always returned as C 
+    // state reader shows a 'units' field, return the result in this unit if it exists
+    var units = stateReader.get('units');
+    var temperatureUnits = isDefined(units, 'temperature') ? units.temperature.toLowerCase() : 'c';
+
+    var max = temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('max_set_point')) : stateReader.get('max_set_point');
+    var min = temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('min_set_point')) : stateReader.get('min_set_point');
+
+    var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
+        temperature: temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('temperature')) : stateReader.get('temperature'),
+        units: temperatureUnits
+    });
+
+    var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
+        temperature: (max + min) / 2,
+        units: temperatureUnits
+    });
+
+    var targetTemperatureHigh = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureHigh', expand, {
+        temperature: max,
+        units: temperatureUnits
+    });
+
+    var targetTemperatureLow = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperatureLow', expand, {
+        temperature: min,
+        units: temperatureUnits
+    });
+
+    var awayMode = createResource('oic.r.mode', 'oic.if.a', 'awayMode', expand, {
+        modes: [stateReader.get('users_away') ? 'away' : 'home'],
+        supportedModes: ['home', 'away']
+    });
+
+    var ecoMode = createResource('oic.r.sensor', 'oic.if.s', 'ecoMode', expand, {
+        value: stateReader.get('eco_target')
+    });
+
+    var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, readHvacMode(stateReader));
+
+    var hasFan = createResource('oic.r.sensor', 'oic.if.s', 'hasFan', expand, {
+        value: stateReader.get('has_fan')
+    });
+
+    var fanActive = createResource('oic.r.sensor', 'oic.if.s', 'fanActive', expand, {
+        value: stateReader.get('fan_timer_active')
+    });
+
+    return {
+        opent2t: {
+            schema: 'org.opent2t.sample.thermostat.superpopular',
+            translator: 'opent2t-translator-com-wink-thermostat',
+            controlId: providerSchema.thermostat_id
+        },
+        availability: stateReader.get('connection') ? 'online' : 'offline',
+        pi: providerSchema['uuid'],
+        mnmn: defaultValueIfEmpty(providerSchema['device_manufacturer'], "Wink"),
+        mnmo: defaultValueIfEmpty(providerSchema['manufacturer_device_model'], "Thermostat (Generic)"),
+        n: providerSchema['name'],
+        rt: ['org.opent2t.sample.thermostat.superpopular'],
+        entities: [
+            {
+                n: providerSchema['name'],
+                icv: "core.1.1.0",
+                dmv: "res.1.1.0",
+                rt: ['opent2t.d.thermostat'],
+                di: generateGUID(providerSchema.thermostat_id + 'opent2t.d.thermostat'),
+                resources: [
+                    ambientTemperature,
+                    targetTemperature,
+                    targetTemperatureHigh,
+                    targetTemperatureLow,
+                    awayMode,
+                    ecoMode,
+                    hvacMode,
+                    hasFan,
+                    fanActive
+                ]
+            }
+        ]
+    };
+}
+
+function validateResourceGet(resourceId) {
+    switch (resourceId) {
+        case 'humidity':
+        case 'awayTemperatureHigh':
+        case 'awayTemperatureLow':
+        case 'heatingFuelSource':
+        case 'fanTimerActive':
+        case 'fanTimerTimeout':
+        case 'fanMode':
+            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+    }
+}
+
+/**
+ * If the user provides a unit, validate the value is within the units range.
+ *  Range is defined by min/max_min/max_set_point if available, otherwise:
+ *    c [9-32]
+ *    f [50-90]
+ * 
+ * If the unit is provided and within range, returns provided unit 
+ *  otherwise an exception is thrown.
+ * 
+ * If no unit is provided and the value is within one of the two ranges,
+ *  the unit of the valid range will be returned, otherwise an 
+ *  exception is thrown.
+ *  * 
+ * @param {*} resourceSchema 
+ * @param {*} providerSchema 
+ */
+function getValidatedUnit(resourceSchema, stateReader) {
+    var value = resourceSchema.temperature;
+    if (!value) {
+        throw new OpenT2TError("Invalid target temperature " + value);
+    } 
+    if (isDefined(resourceSchema, 'units')) {
+        var unit = resourceSchema.units.toLowerCase();
+        var value = unit === 'c' ? value : fahrenheitToCelsius(value);
+        var min = getMinTemperatureLow(stateReader);
+        var max = getMaxTemperatureHigh(stateReader);
+        if (value >= min && value <= max) {
+            return unit;
+        }
+        throw new OpenT2TError(440, "Invalid temperature (" + value + ") for unit (c [" + min + ", " + max + "])");
+    } else {
+        var min_c = getMinTemperatureLow(stateReader);
+        var max_c = getMaxTemperatureHigh(stateReader);
+        if (value >= min_c && value <= max_c) {
+            return 'c';
+        }
+        var min_f = celsiusToFahrenheit(min_c);
+        var max_f = celsiusToFahrenheit(max_c);
+        if (value >= min_f && value <= max_f) {
+            return 'f';
+        }
+        throw new OpenT2TError(440, "Temperature outside supported range (" + value + ")");
+    }
+}
+
+/**
+ * Given a target temperature, compute a target 
+ * low and target high centerd around it.
+ * @param {*} resourceSchema 
+ * @param {*} stateReader 
+ */
+function getTargetTemperatureRange(resourceSchema, stateReader) {
+    var result = { 'desired_state': {} };
+    var desired_state = result.desired_state;
+
+    var value = resourceSchema.temperature;
+    var unit = getValidatedUnit(resourceSchema, stateReader);
+    if (unit === 'f') {
+        value = fahrenheitToCelsius(value);
+    }
+
+    var min_low = getMinTemperatureLow(stateReader);
+    var min_high = getMinTemperatureHigh(stateReader);
+
+    var max_low = getMaxTemperatureLow(stateReader);
+    var max_high = getMaxTemperatureHigh(stateReader);
+
+    var minSetPoint = getMinSetPoint(stateReader);
+    var maxSetPoint = getMaxSetPoint(stateReader);
+
+    var range = maxSetPoint - minSetPoint;
+    var halfRange = range / 2;
+    var newMinSetPoint = value - halfRange;
+    var newMaxSetPoint = value + halfRange;
+
+    // If either value is outside min/max range, adjust accordingly
+    if (newMinSetPoint < min_low) {
+        newMinSetPoint = min_low;
+        newMaxSetPoint = min_low + range;
+    }
+
+    if (newMinSetPoint > min_high) {
+        newMinSetPoint = min_high;
+        newMaxSetPoint = min_high + range;
+    }
+
+    if (newMaxSetPoint > max_high) {
+        newMaxSetPoint = max_high;
+        newMinSetPoint = Math.max(min_low, max_high - range);
+    }
+
+    if (newMaxSetPoint < max_low) {
+        newMaxSetPoint = max_low;
+        newMinSetPoint = Math.max(min_low, max_low - range);
+    }
+
+    desired_state['min_set_point'] = newMinSetPoint;
+    desired_state['max_set_point'] = newMaxSetPoint;
+
+    return result;
+}
+
+function getMaxTemperatureHigh(stateReader) {
+    // highest allowed max set point
+    return getNumber(stateReader.get("max_max_set_point"), 32);
+}
+
+function getMaxTemperatureLow(stateReader) {
+    // lowest allowed max set point
+    return getNumber(stateReader.get("min_max_set_point"), 9);
+}
+
+function getMinTemperatureHigh(stateReader) {
+    // highest allowed min set point
+    return getNumber(stateReader.get("max_min_set_point"), 32);
+}
+
+function getMinTemperatureLow(stateReader) {
+    // lowest allowed max set point
+    return getNumber(stateReader.get("min_min_set_point"), 9);
+}
+
+function getMinSetPoint(stateReader) {
+    // min set point for heating in celsius
+    return getNumber(stateReader.get("min_set_point"), 22);
+}
+
+function getMaxSetPoint(stateReader) {
+    // max set point for cooling in celsius
+    return getNumber(stateReader.get("max_set_point"), 22);
+}
+
+function celsiusToFahrenheit(c) {
+    return (c * 1.8) + 32;
+}
+
+function fahrenheitToCelsius(f) {
+    return (f - 32) / 1.8;
+}
+
+function isDefined(object, variable) {
+    return object && object[variable];
+}
+
+function getNumber(value, defaultValue) {
+    return value ? value : defaultValue;
+}
+
+// This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
+class Translator {
+
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-wink-thermostat";
+        this.logger = logger;
+
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.winkHub = deviceInfo.hub;
+        this.deviceType = 'thermostats';
+
+        this.logger.info('Wink Thermostat Translator initialized.');
+    }
+
+    /**
+     * Queries the entire state of the thermostat
+     * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
+     */
+    get(expand, payload) {
+        if (payload) {
+            return providerSchemaToPlatformSchema(payload, expand);
+        } else {
+            return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId)
+                .then((response) => {
+                    return providerSchemaToPlatformSchema(response.data, expand);
+                });
+        }
+    }
+
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(di, resourceId) {
+        validateResourceGet(resourceId);
+
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
+            return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+                .then((putPayload => {
+                    return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
+                        .then((response) => {
+                            var schema = providerSchemaToPlatformSchema(response.data, true);
+                            if (resourceId === 'targetTemperature') {
+                                var low = findResource(schema, di, 'targetTemperatureLow');
+                                var high = findResource(schema, di, 'targetTemperatureHigh');
+                                var hvacMode = findResource(schema, di, 'hvacMode');
+                                return { low, high, hvacMode };
+                            } else {
+                                return findResource(schema, di, resourceId);
+                            }
+                        });
+                }));
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
+        }
+    }
+
+    getDevicesAmbientTemperature(di) {
+        return this.getDeviceResource(di, 'ambientTemperature');
+    }
+
+    getDevicesTargetTemperature(di) {
+        return this.getDeviceResource(di, 'targetTemperature');
+    }
+
+    postDevicesTargetTemperature(di, payload) {
+        return this.postDeviceResource(di, 'targetTemperature', payload);
+    }
+
+    getDevicesHumidity(di) {
+        return this.getDeviceResource(di, 'humidity');
+    }
+
+    getDevicesTargetTemperatureHigh(di) {
+        return this.getDeviceResource(di, 'targetTemperatureHigh');
+    }
+
+    postDevicesTargetTemperatureHigh(di, payload) {
+        return this.postDeviceResource(di, 'targetTemperatureHigh', payload);
+    }
+
+    getDevicesTargetTemperatureLow(di) {
+        return this.getDeviceResource(di, 'targetTemperatureLow');
+    }
+
+    postDevicesTargetTemperatureLow(di, payload) {
+        return this.postDeviceResource(di, 'targetTemperatureLow', payload);
+    }
+
+    getDevicesAwayMode(di) {
+        return this.getDeviceResource(di, 'awayMode');
+    }
+
+    postDevicesAwayMode(di, payload) {
+        return this.postDeviceResource(di, 'awayMode', payload);
+    }
+
+    getDevicesAwayTemperatureHigh(di) {
+        return this.getDeviceResource(di, 'awayTemperatureHigh');
+    }
+
+    postDevicesAwayTemperatureHigh(di, payload) {
+        return this.postDeviceResource(di, 'awayTemperatureHigh', payload);
+    }
+
+    getDevicesAwayTemperatureLow(di) {
+        return this.getDeviceResource(di, 'awayTemperatureLow');
+    }
+
+    postDevicesAwayTemperatureLow(di, payload) {
+        return this.postDeviceResource(di, 'awayTemperatureLow', payload);
+    }
+
+    getDevicesEcoMode(di) {
+        return this.getDeviceResource(di, 'ecoMode');
+    }
+
+    getDevicesHvacMode(di) {
+        return this.getDeviceResource(di, 'hvacMode');
+    }
+
+    postDevicesHvacMode(di, payload) {
+        return this.postDeviceResource(di, 'hvacMode', payload);
+    }
+
+    getDevicesHeatingFuelSource(di) {
+        return this.getDeviceResource(di, 'heatingFuelSource');
+    }
+
+    getDevicesHasFan(di) {
+        return this.getDeviceResource(di, 'hasFan');
+    }
+
+    getDevicesFanActive(di) {
+        return this.getDeviceResource(di, 'fanActive');
+    }
+
+    getDevicesFanTimerActive(di) {
+        return this.getDeviceResource(di, 'fanTimerActive');
+    }
+
+    getDevicesFanTimerTimeout(di) {
+        return this.getDeviceResource(di, 'fanTimerTimeout');
+    }
+
+    postDevicesFanTimerTimeout(di, payload) {
+        return this.postDeviceResource(di, 'fanTimerTimeout', payload);
+    }
+
+    getDevicesFanMode(di) {
+        return this.getDeviceResource(di, 'fanMode');
+    }
+
+    postDevicesFanMode(di, payload) {
+        return this.postDeviceResource(di, 'fanMode', payload);
+    }
+
+    postSubscribe(subscriptionInfo) {
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
+        return this.winkHub.postSubscribe(subscriptionInfo);
+    }
+
+    deleteSubscribe(subscriptionInfo) {
+        subscriptionInfo.deviceId = this.controlId;
+        subscriptionInfo.deviceType = this.deviceType;
+        return this.winkHub._unsubscribe(subscriptionInfo);
+    }
+
+    // Helper method to convert the translator schema to the device schema.
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+
+        // build the object with desired state
+        var result = { 'desired_state': {} };
+        var desired_state = result.desired_state;
+
+        // Quirks:
+        // Wink does not have a target temperature field, so ignoring that resource.
+        // See: http://docs.winkapiv2.apiary.io/#reference/device/thermostats
+        // Instead, we infer it from the max and min setpoint
+        // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
+
+        switch (resourceId) {
+            case 'targetTemperature':
+                return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+                    var stateReader = new StateReader(providerSchema.data.desired_state, providerSchema.data.last_reading);
+                    if (stateReader.get('eco_target')) {
+                        throw new OpenT2TError(448, "Wink thermostat is in eco mode.");
+                    }
+                    var mode = stateReader.get('mode');
+                    if (mode === 'off') {
+                        throw new OpenT2TError(444, "Wink thermostat is off.");
+                    }
+                    if (mode === 'auto') {
+                        return getTargetTemperatureRange(resourceSchema, stateReader);
+                    } else {                        
+                        var result = { 'desired_state': {} };
+                        var desired_state = result.desired_state;
+                        if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
+                            desired_state['max_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                            desired_state['min_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                        } else {
+                            desired_state['max_set_point'] = resourceSchema.temperature;
+                            desired_state['min_set_point'] = resourceSchema.temperature;
+                        }
+                        return result;
+                    }
+                });
+            case 'targetTemperatureHigh':
+                if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
+                    desired_state['max_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                } else {
+                    desired_state['max_set_point'] = resourceSchema.temperature;
+                }
+                break;
+            case 'targetTemperatureLow':
+                if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
+                    desired_state['min_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                } else {
+                    desired_state['min_set_point'] = resourceSchema.temperature;
+                }
+                break;
+            case 'awayMode':
+                desired_state['users_away'] = resourceSchema.modes[0] === 'away';
+                break;
+            case 'hvacMode': {
+                var mode = resourceSchema.modes[0];
+                if (mode === 'off') {
+                    desired_state['powered'] = false;
+                }
+                else {
+                    desired_state['powered'] = true;
+                    desired_state['mode'] = translatorHvacModeToDeviceHvacMode(mode);
+                }
+                break;
+            }
+            case 'targetTemperature':
+            case 'awayTemperatureHigh':
+            case 'awayTemperatureLow':
+            case 'fanTimerTimeout':
+            case 'fanMode':
+                throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+            default:
+                throw new OpenT2TError(404, OpenT2TConstants.ResourceNotFound);
+        }
+
+        return Promise.resolve(result);
+    }
+
+}
+
+// Export the translator from the module.
 module.exports = Translator;
