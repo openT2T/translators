@@ -1,574 +1,492 @@
-/* jshint esversion: 6 */
-/* jshint node: true */
-/* jshint sub:true */
+'use strict';
+var OpenT2TError = require('opent2t').OpenT2TError;
+var OpenT2TConstants = require('opent2t').OpenT2TConstants;
+var crypto = require('crypto');
+
 // This code uses ES2015 syntax that requires at least Node.js v4.
 // For Node.js ES2015 support details, reference http://node.green/
 
-"use strict";
-var request = require('request-promise');
-var OpenT2T = require('opent2t').OpenT2T;
-var OpenT2TError = require('opent2t').OpenT2TError;
-var OpenT2TConstants = require('opent2t').OpenT2TConstants;
-var Crypto = require('crypto');
-var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait for all promises to complete
-
 /**
- * Gets a property from a JSON dictionary without case sensitivity
- * this will return the first item it finds, though multiple may match
- * in JSON.
+ * Generate a GUID for given an ID.
  */
-function getDictionaryItemCaseInsensitive(obj, propertyName) {
-    var upperName = propertyName.toUpperCase();
-    for (var name in obj) {
-        if (upperName === name.toUpperCase()) {
-            return obj[name];
-        }
+function generateGUID(stringID) {
+    var guid = crypto.createHash('sha1').update('SmartThings' + stringID).digest('hex');
+    return `${guid.substr(0, 8)}-${guid.substr(8, 4)}-${guid.substr(12, 4)}-${guid.substr(16, 4)}-${guid.substr(20, 12)}`;
+}
+
+function validateArgumentType(arg, argName, expectedType) {
+    if (typeof arg === 'undefined') {
+        throw new OpenT2TError(400, 'Missing argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + '.');
+    } else if (typeof arg !== expectedType) {
+        throw new OpenT2TError(400, 'Invalid argument: ' + argName + '. ' +
+            'Expected type: ' + expectedType + ', got: ' + (typeof arg));
     }
 }
 
 /**
-* This translator class implements the "Hub" interface.
-*/
-class Translator {
-    constructor(authTokens, logger) {
-        this.name = "opent2t-translator-com-wink-hub";
-        this._authTokens = authTokens;
+ * Finds a resource for an entity in a schema
+ */
+function findResource(schema, di, resourceId) {
+    // Find the entity by the unique di
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
 
-        this._baseUrl = "https://api.wink.com";
-        this._devicesPath = '/users/me/wink_devices';
-        this._oAuthPath = '/oauth2/token';
-        this._name = "Wink Hub";
-        this.logger = logger; 
-        this.opent2t = new OpenT2T(logger);
+    if (!entity) {
+        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
     }
 
-    /**
-     * Get the hub definition and devices
-     */
-    get(expand, payload, verification) {
-        return this.getPlatforms(expand, payload, verification);
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
+
+    if (!resource) {
+        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
     }
+    return resource;
+}
 
-    /**
-     * Get the list of devices discovered through the hub.
-     * 
-     * @param {bool} expand - True to include the current state of the resources.
-     * @param {Buffer} payload - POST content for a subscribed notification
-     * @param {Object} verification - Information used to authenticate that the post is valid
-     * @param {Array} verification.header - Header information that came with the payload POST.
-     *      Should include X-Hub-Signature
-     * @param {verification} verification.key - Secret key used to hash the payload (provided to Wink on subscribe)
-     */
-    getPlatforms(expand, payload, verification) {
+/**
+ * Colour Conversion Funcitons
+ */
 
-        // Payload can contain one or more platforms defined using the provider schema.  This should return those platforms
-        // converted to the opent2t/ocf representation.
-        if (payload !== undefined) {
+const ChangeTolerance = 0.0001;
+const MaxHue = 360.0;
+const MaxColor = 255;
+const OneMil = 1000000.0;
 
-            // The payload must be an object for translation, and a string/buffer for calculating
-            // the HMAC. Ensure we have a copy in both formats
-            var payloadAsString = typeof payload === 'object' ? JSON.stringify(payload) : payload;
-            var payloadAsObject = typeof payload === 'object' ? payload : JSON.parse(payload);
+/**
+ * Convert HSV to RGB colours
+ *   0 <= Hue < 360
+ *   0 <= Saturation <= 1
+ *   0 <= lumosity <= 1
+ */
+function HSVtoRGB(hue, saturation, lumosity) {
 
-            // Calculate the HMAC for the payload using the secret
-            if (verification !== undefined && verification.key !== undefined) {
-                // HTTP headers are case insensitive, while the JSON dictionary is case sensitive,
-                // so the hub signature can be either x-hub-signature or X-Hub-Signature depending on
-                // what server was used to capture the notification POST request.
-                var hashFromWink = getDictionaryItemCaseInsensitive(verification.header, "x-hub-signature");
-                var hashFromPayload = this._generateHmac(verification.key, payloadAsString);
+    var ajdHue = hue >= 360 ? hue - 1 : hue;
 
-                if (!Crypto.timingSafeEqual(hashFromWink, hashFromPayload)) {
-                    throw new OpenT2TError(401, OpenT2TConstants.HMacSignatureVerificationFailed);
-                }
-            }
+    var hi = Math.floor(ajdHue / 60) % 6;
+    var c = saturation * lumosity;
+    var x = c * (1 - Math.abs(((ajdHue / 60) % 2) - 1));
+    var m = lumosity - c;
 
-            // Payload may be a device graph update, in Wink's case, the body payload will contain an array of "objects"
-            // {object_id: "...", object_type: "..."} but will not include state.  Without state, we can't even make non expanded platform schemas
-            // as there is no way to know what resources would be supported where they are optional (a light_bulb object_type optionally supports access
-            // colourRGB resource).
-            // In the case of a device graph update, fall through to the _makeRequest/_providerSchemaToPlatformSchema combo below.
-            if (!payloadAsObject.hasOwnProperty('objects')) {
-                // Return the verified payload
-                return this._providerSchemaToPlatformSchema(payloadAsObject, expand);
-            }
-        }
+    var result;
 
-        return this._makeRequest(this._devicesPath, 'GET').then((response) => {
-            return this._providerSchemaToPlatformSchema(response.data, expand);
-        });
+    switch (hi)
+    {
+        case 0:
+            result = [c, x, 0];
+            break;
+        case 1 :
+            result = [x, c, 0];
+            break;
+        case 2:
+            result = [0, c, x];
+            break;
+        case 3:
+            result = [0, x, c];
+            break;
+        case 4:
+            result = [x, 0, c];
+            break;
+        default:
+            result = [c, 0, x];
+            break;
     }
+    return [Math.round((result[0] + m) * MaxColor), Math.round((result[1] + m) * MaxColor), Math.round((result[2] + m) * MaxColor)]
+}
 
-    /**
-     * Get the name of the hub.  Ties to the n property from oic.core
-     */
-    getN() {
-        return this._name;
-    }
+/**
+ * Convert RGB to HSV colours
+ *   RGB values are in [0 ... 255]
+ */
+function RGBtoHSV(rgbValue) {
+    var red = rgbValue[0] / MaxColor;
+    var green = rgbValue[1] / MaxColor;
+    var blue = rgbValue[2] / MaxColor;
 
-    /**
-     * Gets device details (all fields), response formatted per http://docs.winkapiv2.apiary.io/
-     */
-    getDeviceDetailsAsync(deviceType, deviceId) {
+    var min = Math.min(red, green, blue);
+    var max = Math.max(red, green, blue);
+    var delta = max - min;
 
-        // build request URI
-        var requestPath = '/' + deviceType + '/' + deviceId;
+    // fraction to byte
+    var hue = 0 , saturation = 0;
 
-        // Make the async request
-        return this._makeRequest(requestPath, 'GET');
-    }
-
-    /**
-     * Puts device details (all fields) payload formatted per http://docs.winkapiv2.apiary.io/
-    */
-    putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
-
-        // build request path and body
-        var requestPath = '/' + deviceType + '/' + deviceId;
-        var putPayloadString = JSON.stringify(putPayload);
-
-        // Make the async request
-        return this._makeRequest(requestPath, 'PUT', putPayloadString);
-    }
-
-    /**
-     * Refreshes the OAuth token for the hub by sending a refresh POST to the wink provider
-     */
-    refreshAuthToken(authInfo) {
-        if (!authInfo) {
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
-        }
-
-        if (authInfo.length !== 2) {
-            // We expect the original authInfo object used in the onboarding flow
-            // not defining a brand new type for the Refresh() contract and re-using
-            // what is defined for Onboarding()
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
-        }
-
-        // POST oauth2/token
-        var postPayloadString = JSON.stringify({
-            'client_id': authInfo[0].client_id,
-            'client_secret': authInfo[0].client_secret,
-            'grant_type': 'refresh_token',
-            'refresh_token': this._authTokens['refresh'].token,
-        });
-
-        return this._makeRequest(this._oAuthPath, "POST", postPayloadString, false).then((body) => {
-
-            // _makeRequest() already returns a JSON representation of the POST response body
-            // return the auth properties out in our own response back
-
-            // there isn't a 'scopes' property returned as a result of this request according to
-            // http://docs.wink.apiary.io/#reference/oauth/obtain-access-token/sign-in-as-user,-or-refresh-user's-expired-access-token
-            // so am assuming the caller of this API will expect nulls
-
-            var expiration = Math.floor(new Date().getTime() / 1000) + 86400 // Default to 24 hours (in seconds);
-            // default to one year in seconds
-            var refreshExpiration = Math.floor(new Date().getTime() / 1000) + 31557600;
-
-            this._authTokens['refresh'].token = body.refresh_token;
-            this._authTokens['refresh'].expiration = refreshExpiration;
-
-            this._authTokens['access'].token = body.access_token;
-            this._authTokens['access'].expiration = expiration;
-
-            return this._authTokens;
-        });
-    }
-
-    /**
-     * Adding for consistency across hubs
-     */
-    deauthorizeToken(authInfo) {
-        if (!authInfo) {
-            throw new OpenT2TError(401, OpenT2TConstants.InvalidAuthInfoInput);
-        }
-        // Not supported
-        return true;
-    }
-
-    /**
-     * Translates an array of provider schemas into an opent2t/OCF representations
-     */
-    _providerSchemaToPlatformSchema(providerSchemas, expand) {
-        var platformPromises = [];
-        var toReturn = {
-            schema: "org.opent2t.sample.hub.superpopular",
-            platforms: [],
-            errors: []
-        };
-
-        // Ensure that we have an array of provider schemas, even if a single object was given.
-        var winkDevices = [].concat(providerSchemas);
-
-        winkDevices.forEach((winkDevice) => {
-            // Ignore physical hubs for now
-            if (winkDevice.object_type && winkDevice.object_type.toLowerCase() === 'hub') {
-               return;
-            }
-            // Ignore hidden devices
-            if (winkDevice.hidden_at) {
-                return;
-            }
-
-            // Get the opent2t schema and translator for the wink device
-            var opent2tInfo = this._getOpent2tInfo(winkDevice);
-
-            if (!opent2tInfo) {
-                // Platforms without translators should be recorded as errors, but can be safely ignored.
-                toReturn.errors.push(new OpenT2TError(404, `${OpenT2TConstants.UnknownPlatform}: ${winkDevice.model_name}`));
-            }
-            else {
-                var deviceInfo = {};
-                deviceInfo.opent2t = {};
-                deviceInfo.opent2t.controlId = this._getDeviceId(winkDevice);
-
-                // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, {'deviceInfo': deviceInfo, 'hub': this})
-                    .then((translator) => {
-
-                        // Use get to translate the Wink formatted device that we already got in the previous request.
-                        // We already have this data, so no need to make an unnecesary request over the wire.
-                        return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, winkDevice])
-                            .then((platformResponse) => {
-                                return platformResponse;
-                            });
-                    }).catch((err) => {
-                        // Being logged in HubController already
-                        return Promise.reject(err);
-                    }));
-            }
-        });
-
-        // Return a promise for all platform translations.
-        // Mapping to promiseReflect will allow all promises to complete, regardless of resolution/rejection
-        // Rejections will be converted to OpenT2TErrors and returned along with any valid platform translations.
-        return Promise.all(platformPromises.map(promiseReflect))
-            .then((values) => {
-                // Resolved promises will be succesfully translated platforms
-                toReturn.platforms = values.filter(v => v.status == 'resolved').map(p => { return p.data; });
-                toReturn.errors = toReturn.errors.concat(values.filter(v => v.status === 'rejected').map(r => {
-                    return r.error.name !== 'OpenT2TError' ? new OpenT2TError(500, r.error) : r.error;
-                }));
-                return toReturn;
-            });
-    }
-
-    /**
-     * Gets the subscription modes supported by this provider and translator
-     */
-    getSubscribe() {
-        // Wink also supports streaming (via PubNub), but it is currently NotImplemented by this translator.
-        return {
-            supportedModes: ['postbackUrl', 'polling']
-        }
-    }
-
-    /**
-     * Subscribes to a Wink pubsubhubbub feed.  This function is designed to be called twice.
-     * The first call will contain just the callbackUrl, which will be subscribed for postbacks
-     * from the Wink cloud service.
-     * The second call will contain the request, and response for a GET to the callbackUrl that was
-     * provided in order to complete the verification of the subscription.
-     * 
-     * The expected sequence is as follows:
-     * - Call subscribe with a callback url, get a response.
-     * - Http server running at the callback url receives a GET request, this request and a response string
-     *      are passed to a 2nd call to subscribe() (callbackUrl is ignored in this case)
-     * - Http server responds to the GET with the verificationResponseContent that was populated by subscribe
-     * - Future POST calls to the callback url are passed to the device translator get*Uri function
-     * 
-     * All calls to subscribe will return the expiration time of the subscription.  For Wink, this is
-     * currently 24 hours.  Subsequent calls to subscribe will refresh the expiration time, and in the
-     * case of Wink/Pubsubhubbub will not require verification.
-     * 
-     * @typedef {Object} SubscriptionResponse
-     * @property {number} expiration - Expiration time for the subscription.
-     * @property {string} response - Response payload for the verification request.
-     * 
-     * @param {string} deviceType - Device Type (e.g. 'thermostats')
-     * @param {string|number} deviceId - Id for the specific device
-     * @param {Object} subscriptionInfo - Subscription information
-     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint. This URL will receive verification, and updates.
-     * @param {string} subscriptionInfo.key - (optional) Secret used to compute an HMAC to verify messages sent to the callbackUrl  
-     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to (not required for verification)
-     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to (not required for verification)
-     * @param {Object} subscriptionInfo.verificationRequest - The contents of a verification request made to the callbackURl, if 
-     *      verification is being used.
-     * @returns {SubscriptionResponse} - Object containing the subscription expiration time, and any content that
-     *      needs to be included in a response to the original request. Content that should be provided in the response to the
-     *      verification request as {'Content-Type': 'text/plain'}.
-     */
-    postSubscribe(subscriptionInfo) {
-        if (subscriptionInfo.verificationRequest) {
-            // Verify a subscription request by constructing the appropriate response
-
-            var params = require('url').parse(subscriptionInfo.verificationRequest.url, true, true);
-
-            switch (params.query['hub.mode']) {
-                case "denied":
-                    // The subscription cannot be completed, access was denied.
-                    // This is likely due to a bad access token.
-                    throw new OpenT2TError(403, OpenT2TConstants.AccessDenied);
-                case "unsubscribe":
-                    // Wink doesn't actually use hub.mode unsubscribe, and instead uses DELETE to perform the action
-                    // with no verification.
-                    return {
-                        expiration: 0,
-                        response: ""
-                    }
-                case "subscribe":
-                    // Successful subscription/unsubscription requires a response to contain the same
-                    // challenge that was included in the request.
-                    return {
-                        expiration: params.query['hub.lease_seconds'],
-                        response: params.query['hub.challenge']
-                    }
-                default:
-                    // Hub mode is unknown.
-                    throw new OpenT2TError(400, OpenT2TConstants.UnknownHubSubscribeRequest);
-            }
-        }
-        else if (subscriptionInfo.callbackUrl) {
-            // If a callbackUrl is provided without a verification request, then it is a new subscription or a refresh.
-
-            // Get the subscription request path for this subscription type.
-            return this._getCallbackSubscriptionRequestPath(subscriptionInfo).then((requestPath) => {
-                // Winks implementation of PubSubHubbub differs from the standard in that we do not need to provide
-                // the topic, or mode on this request.  Topic is implicit from the URL (deviceType/deviceId), and
-                // separate requests exist for mode (subscribe and unsubscribe vis POST/DELETE).
-
-                // Additionally, subscriptions will expire after 24 hours (for now), and need to be refreshed
-                // with another call to this function.
-
-                var postPayload = {
-                    callback: subscriptionInfo.callbackUrl
-                }
-
-                // Secret provided for computing HMAC verification of the payload
-                // this is optional to Wink
-                if (subscriptionInfo.key) {
-                    postPayload.secret = subscriptionInfo.key;
-                }
-
-                var postPayloadString = JSON.stringify(postPayload);
-
-                return this._makeRequest(requestPath, 'POST', postPayloadString).then((response) => {
-                    // Return the expiration time for the subscription
-                    return {
-                        expiration: response.data.expires_at
-                    };
-                })
-            });
-        }
-    }
-
-    /**
-     * Gets the request path for the subscription depending on whether it should subscribe to a single platform or to 
-     * device graph updates on the Wink account.
-     */
-    _getCallbackSubscriptionRequestPath(subscriptionInfo) {
-        if (subscriptionInfo.deviceType && subscriptionInfo.deviceId) {
-            // Platform level subscription
-            return Promise.resolve(`/${subscriptionInfo.deviceType}/${subscriptionInfo.deviceId}/subscriptions`);
-        }
-        else {
-            // Subscribe to device graph updates.
-            // Wink provides a .all groupd at /groups/.all which can be subscribed to for both device graph updates
-            // and ALL platform updates.  Since platform updates can be subscribed to individually, we'll use a different
-            // subscription URL for Wink device changes.
-            // If in the future, support for subscribing to all platforms at once is needed, here is how it will need to be done:
-            //      1. GET to /groups/.all
-            //      2. Retrieve the group_id from the result to get the ID associated with the .all group
-            //      3. POST subscription request to /groups/${group_id}/subscription
-            // For now, just subscribe to device updates found at the following url.
-
-            return Promise.resolve('/users/me/wink_devices/subscriptions');
-        }
-    }
-    /**
-     * Unsubscribes from an existing Wink pubsubhubbub feed.  The subscription id for a
-     * topic is not cached, so this results in 2 web calls:
-     * - GET to return a list of subscriptions
-     * - DELETE to remove the existing subscriptions.
-     * 
-     * Wink's pubsubhubbub is slightly different than standard as it uses DELETE along
-     * with a subscriptionID rather than another GET with a hub.mode of 'unsubscribe'
-     * 
-     * @param {Object} subscriptionInfo - Subscription information
-     * @param {string} subscriptionInfo.callbackUrl - Web callback postback endpoint.
-     * @param {string} subscriptionInfo.deviceType - The Wink device type for the platorm being subscribed to
-     * @param {string} subscriptionInfo.deviceId - The unique Wink device Id for the platform being subscribed to
-     * @returns {Object} Expiration of the subscription (expired)
-     */
-    _unsubscribe(subscriptionInfo) {
-        var subscriptionsToDelete = [];
-        // Find the subscription ID for this callback URL
-        return this._getSubscriptions(subscriptionInfo.deviceType, subscriptionInfo.deviceId).then((subscriptions) => {
-            subscriptions.forEach((sub) => {
-                // Find the subscription id for this callback URL and device
-                if (sub.callback == subscriptionInfo.callbackUrl &&
-                    sub.topic.endsWith(subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId)) {
-                    var requestPath = '/' + subscriptionInfo.deviceType + '/' + subscriptionInfo.deviceId + '/subscriptions/' + sub.subscription_id;
-
-                    // Do the actual unsubscribe
-                    subscriptionsToDelete.push(this._makeRequest(requestPath, 'DELETE'));
-                }
-            });
-
-            // Return all delete requests.
-            return Promise.all(subscriptionsToDelete).then(() => {
-                return {
-                    expiration: 0
-                }
-            });
-        });
-    }
-
-    /**
-     * Gets all subscriptions for a device.
-     * 
-     * @param {string} deviceType - Device Type (e.g. 'thermostats')
-     * @param {string|number} deviceId - Id for the specific device
-     * @returns {request} Promise that supplies the list of subscriptions
-     * 
-     * This is just a helper for tests and verification.
-     */
-    _getSubscriptions(deviceType, deviceId) {
-        // GET /<deviceType>/<device Id>/subscriptions
-        var requestPath = '/' + deviceType + '/' + deviceId + '/subscriptions';
-
-        return this._makeRequest(requestPath, 'GET').then((response) => {
-            return response.data;
-        });
-    }
-
-    /** 
-     * Given the hub specific device, returns the opent2t schema and translator
-    */
-    _getOpent2tInfo(winkDevice) {
-        if (winkDevice.thermostat_id) {
-            return {
-                "schema": 'org.opent2t.sample.thermostat.superpopular',
-                "translator": "opent2t-translator-com-wink-thermostat"
-            };
-        }
-        else if (winkDevice.binary_switch_id) {
-            return {
-                "schema": 'org.opent2t.sample.binaryswitch.superpopular',
-                "translator": "opent2t-translator-com-wink-binaryswitch"
-            };
-        }
-        else if (winkDevice.light_bulb_id) {
-            return {
-                "schema": 'org.opent2t.sample.lamp.superpopular',
-                "translator": "opent2t-translator-com-wink-lightbulb"
-            };
-        }
-        else if (winkDevice.sensor_pod_id) {
-            return {
-                "schema": 'org.opent2t.sample.multisensor.superpopular',
-                "translator": "opent2t-translator-com-wink-sensorpod"
-            };
-        }
-
+    if (Math.abs(max) > ChangeTolerance)
+        saturation = delta/max;
+    else
+    {
+        // don't update Hue or saturation
         return undefined;
     }
 
-    /**
-     * Internal helper method which makes the actual request to the wink service
-     */
-    _makeRequest(path, method, content, includeBearerHeader) {
+    if (Math.abs(delta) < ChangeTolerance)
+        return undefined;
 
-        includeBearerHeader = (includeBearerHeader !== undefined) ? includeBearerHeader : true;
+    if (Math.abs(red - max) < ChangeTolerance)
+        hue = (green - blue)/delta; // between yellow & magenta
+    else if (Math.abs(green - max) < ChangeTolerance)
+        hue = 2 + (blue - red)/delta; // between cyan & yellow
+    else
+        hue = 4 + (red - green)/delta; // between magenta & cyan
 
-        // build request URI
-        var requestUri = this._baseUrl + path;
+    hue *= 60; // degrees
+    if (hue < 0)
+        hue += MaxHue;
+    if (hue > MaxHue)
+        hue -= MaxHue;
 
-        var headers = [];
-
-        // Set the headers
-        if (includeBearerHeader) {
-            headers['Authorization'] = 'Bearer ' + this._authTokens['access'].token;
-            headers['Accept'] = 'application/json';
-        }
-
-        if (content) {
-            headers['Content-Type'] = 'application/json';
-            headers['Content-length'] = content.length;
-        }
-
-        var options = {
-            url: requestUri,
-            method: method,
-            headers: headers,
-            followAllRedirects: true
-        };
-
-        if (content) {
-            options.body = content;
-        }
-
-        console.log(content);
-
-        // Start the async request
-        return request(options)
-            .then(function (body) {
-                return JSON.parse(body);
-            })
-            .catch((err) => {                
-                this.logger.error(`Request failed to: ${options.method} - ${options.url}`); 
-                return Promise.reject(err);
-            }).bind(this); //Pass in the context via bind() to use instance variables
-
-    }
-
-    /**
-     * Wink has a semi-complicated way of getting the actual device id of a device.
-     */
-    _getDeviceId(winkDevice) {
-        // get the device id
-        var deviceId = winkDevice.light_bulb_id ||
-            winkDevice.air_conditioner_id ||
-            winkDevice.binary_switch_id ||
-            winkDevice.shade_id ||
-            winkDevice.camera_id ||
-            winkDevice.doorbell_id ||
-            winkDevice.eggtray_id ||
-            winkDevice.garage_door_id ||
-            winkDevice.cloud_clock_id ||
-            winkDevice.lock_id ||
-            winkDevice.dial_id ||
-            winkDevice.alarm_id ||
-            winkDevice.power_strip_id ||
-            winkDevice.outlet_id ||
-            winkDevice.piggy_bank_id ||
-            winkDevice.deposit_id ||
-            winkDevice.refrigerator_id ||
-            winkDevice.propane_tank_id ||
-            winkDevice.remote_id ||
-            winkDevice.sensor_pod_id ||
-            winkDevice.siren_id ||
-            winkDevice.smoke_detector_id ||
-            winkDevice.sprinkler_id ||
-            winkDevice.thermostat_id ||
-            winkDevice.water_heater_id ||
-            winkDevice.scene_id ||
-            winkDevice.condition_id ||
-            winkDevice.robot_id;
-
-        return deviceId;
-    }
-
-    /** 
-     * Calculates a new hash of contents using key.
-     */
-    _generateHmac(key, contents) {
-        var hmac = Crypto.createHmac("sha1", key);
-        hmac.update(contents.toString());
-        return hmac.digest("hex");
+    return {
+        'hue': hue,
+        'saturation': saturation,
+        'level': max
     }
 }
 
+/**
+ * Returns a default value if the specified property is null, undefined, or an empty string
+ */
+function defaultValueIfEmpty(property, defaultValue) {
+    if (property === undefined || property === null || property === "") {
+        return defaultValue;
+    } else {
+        return property;
+    }
+}
+
+/**
+ * Given a SmartThings provider formatted Schema, calculate the
+ * desired brightness as a percentage of the current setting
+ */
+function getDesiredBrightnessState(providerSchema, resourceSchema) {
+
+    var result = {};
+
+    if (providerSchema.attributes.hasOwnProperty('level')) {
+
+        var level = parseInt(providerSchema.attributes.level);
+
+        // Special case: light is off
+        if (providerSchema.attributes.hasOwnProperty('switch') &&
+            providerSchema.attributes.switch == 'off') {
+            level = 0; // Treat current dimmness as 0
+        }
+
+        if (resourceSchema.hasOwnProperty('dimmingSetPercentage')) {
+            level = resourceSchema.dimmingSetPercentage;
+        } else if (resourceSchema.hasOwnProperty('dimmingIncrementPercentage')) {
+            level += resourceSchema.dimmingIncrementPercentage;
+        } else if (resourceSchema.hasOwnProperty('dimmingDecrementPercentage')) {
+            level -= resourceSchema.dimmingDecrementPercentage;
+        }
+
+        if (level < 0) {
+            level = 0;
+        } else if (level > 100) {
+            level = 100;
+        }
+
+        result['switch'] = level > 0 ? 'on' : 'off';
+        result['level'] = level;
+    }
+
+    return result;
+}
+
+/**
+ * Converts a representation of a platform from the Wink API into an OCF representation.
+ */
+function providerSchemaToPlatformSchema(providerSchema, expand) {
+
+    var supportCT = providerSchema['attributes'].colorTemperature !== undefined;
+    var supportColour = ( providerSchema['attributes'].hue !== undefined
+        && providerSchema['attributes'].saturation !== undefined
+        && providerSchema['attributes'].level !== undefined ) ;
+
+    // Build the power resource
+    var power = {
+        "href": "/power",
+        "rt": ["oic.r.switch.binary"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    // Build the dimming resource
+    var dim = {
+        "href": "/dim",
+        "rt": ["oic.r.light.dimming"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    // Build the org.opent2t.r.light.dimPercentage resource
+    var dimPercentage  = {
+         "href": "/dimPercentage",
+         "rt": ["org.opent2t.r.light.dimming"],
+         "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    // Build the colourMode resource
+    var colourMode = {
+        "href": "/colourMode",
+        "rt": ["oic.r.mode"],
+        "if": ["oic.if.s", "oic.if.baseline"]
+    }
+
+    // Build the colourRGB resource
+    var colourRGB = {
+        "href": "/colourRGB",
+        "rt": ["oic.r.colour.rgb"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    // Build the colourChroma resource
+    var colourChroma = {
+        "href": "/colourChroma",
+        "rt": ["oic.r.colour.chroma"],
+        "if": ["oic.if.a", "oic.if.baseline"]
+    }
+
+    // Include the values is expand is specified
+    if (expand) {
+        power.id = 'power';
+        power.value = providerSchema['attributes'].switch == 'on';
+
+        dim.id = 'dim';
+        dim.dimmingSetting = providerSchema['attributes'].level;
+        if (dim.dimmingSetting > 100 ) dim.dimmingSetting = 100;
+        dim.range = [0, 100];
+
+        dimPercentage.id = 'dimPercentage';
+        dimPercentage.dimmingSetPercentage = dim.dimmingSetting;
+        dimPercentage.dimmingIncrementPercentage = 0;
+        dimPercentage.dimmingDecrementPercentage = 0;
+
+        if (supportColour) {
+            colourMode.id = 'colourMode';
+            colourMode.modes = ['rgb'];
+            colourMode.supportedModes = ['rgb'];
+
+            colourRGB.id = 'colourRGB';
+            colourRGB.rgbValue = HSVtoRGB(providerSchema['attributes'].hue * MaxHue / 100.0,
+                                          providerSchema['attributes'].saturation / 100.0,
+                                          providerSchema['attributes'].level / 100.0);
+            colourRGB.range = [0, 255];
+        }
+
+        if (supportCT) {
+            colourChroma.id = 'colourChroma';
+            colourChroma.ct = Math.round( OneMil / providerSchema['attributes'].colorTemperature );
+
+            if (supportColour) {
+                colourMode.supportedModes = ['rgb', 'chroma'];
+            } else {
+                colourMode.id = 'colourMode';
+                colourMode.modes = ['chroma'];
+                colourMode.supportedModes = ['chroma'];
+            }
+        }
+    }
+
+    var resources = [power, dim, dimPercentage];
+
+    if (supportColour && supportCT) {
+        resources.push(colourMode);
+        resources.push(colourChroma);
+        resources.push(colourRGB);
+    } else if (supportColour) {
+        resources.push(colourMode);
+        resources.push(colourRGB);
+    } else if (supportCT) {
+        resources.push(colourMode);
+        resources.push(colourChroma);
+    }
+
+    return {
+        opent2t: {
+            schema: 'org.opent2t.sample.lamp.superpopular',
+            translator: 'opent2t-translator-com-smartthings-lightbulb',
+            controlId: providerSchema['id'],
+            endpointUri: providerSchema['endpointUri']
+        },
+        availability: providerSchema['status'] === 'ONLINE' || providerSchema['status'] === 'ACTIVE' ? 'online' : 'offline',
+        pi: providerSchema['id'],
+        mnmn: defaultValueIfEmpty(providerSchema['manufacturer'], "SmartThings"),
+        mnmo: defaultValueIfEmpty(providerSchema['model'], "Light Bulb (Generic)"),
+        n: providerSchema['name'],
+        rt: ['org.opent2t.sample.lamp.superpopular'],
+        entities: [
+            {
+                n: providerSchema['name'],
+                rt: ['opent2t.d.light'],
+                di: generateGUID( providerSchema['id'] + 'opent2t.d.light' ),
+                icv: 'core.1.1.0',
+                dmv: 'res.1.1.0',
+                resources: resources
+            }
+        ]
+    };
+}
+
+// This translator class implements the 'org.opent2t.sample.lamp.superpopular' schema.
+class Translator {
+
+    constructor(deviceInfo, logger) {
+        this.name = "opent2t-translator-com-smartthings-lightbulb";
+        this.logger = logger;
+
+        validateArgumentType(deviceInfo, "deviceInfo", "object");
+
+        this.controlId = deviceInfo.deviceInfo.opent2t.controlId;
+        this.endpointUri = deviceInfo.deviceInfo.opent2t.endpointUri;
+        this.smartThingsHub = deviceInfo.hub;
+
+        this.logger.info('SmartThings Lightbulb initializing...Done');
+    }
+
+    /**
+     * Queries the entire state of the lamp
+     * and returns an object that maps to the json schema org.opent2t.sample.lamp.superpopular
+     */
+    get(expand, payload) {
+        if (payload) {
+            return providerSchemaToPlatformSchema(payload, expand);
+        } else {
+            return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId)
+                .then((response) => {
+                    return providerSchemaToPlatformSchema(response, expand);
+                });
+        }
+    }
+
+    /**
+     * Finds a resource on a platform by the id
+     */
+    getDeviceResource(di, resourceId) {
+        return this.get(true)
+            .then(response => {
+                return findResource(response, di, resourceId);
+            });
+    }
+
+    /**
+     * Updates the specified resource with the provided payload.
+     */
+    postDeviceResource(di, resourceId, payload) {
+        if (di === generateGUID( this.controlId + 'opent2t.d.light' )) {
+          return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+            .then((putPayload) => {
+                return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
+                    .then((response) => {
+                        var schema = providerSchemaToPlatformSchema(response, true);
+                        return findResource(schema, di, resourceId);
+                    });
+                });
+        } else {
+            throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
+        }
+    }
+
+    getDevicesPower(di) {
+        return this.getDeviceResource(di, "power");
+    }
+
+    postDevicesPower(di, payload) {
+        return this.postDeviceResource(di, "power", payload)
+    }
+
+    getDevicesColourMode(di) {
+        return this.getDeviceResource(di, "colourMode");
+    }
+
+    getDevicesColourRGB(di) {
+        return this.getDeviceResource(di, "colourRGB");
+    }
+
+    postDevicesColourRGB(di, payload) {
+        return this.postDeviceResource(di, "colourRGB", payload);
+    }
+
+    getDevicesDim(di) {
+        return this.getDeviceResource(di, "dim");
+    }
+
+    postDevicesDim(di, payload) {
+        return this.postDeviceResource(di, "dim", payload);
+    }
+
+    getDevicesDimPercentage(di) {
+        return this.getDeviceResource(di, "dimPercentage");
+    }
+
+    postDevicesDimPercentage(di, payload) {
+        return this.postDeviceResource(di, "dimPercentage", payload);
+    }
+
+    getDevicesColourChroma(di) {
+        return this.getDeviceResource(di, "colourChroma");
+    }
+
+    postDevicesColourChroma(di, payload) {
+        return this.postDeviceResource(di, "colourChroma", payload);
+    }
+
+    postSubscribe(subscriptionInfo) {
+        subscriptionInfo.controlId = this.controlId;
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartThingsHub.postSubscribe(subscriptionInfo);
+    }
+
+    deleteSubscribe(subscriptionInfo) {
+        subscriptionInfo.controlId = this.controlId;
+        subscriptionInfo.endpointUri = this.endpointUri;
+        return this.smartThingsHub._unsubscribe(subscriptionInfo);
+    }
+
+     /***
+     * Converts an OCF platform/resource schema for calls to the SmartThings API
+     */
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+
+        // build the object with desired state
+        var result = {};
+
+        switch (resourceId) {
+            case 'power':
+                result['switch'] = resourceSchema.value ? 'on' : 'off';
+                break;
+            case 'dim':
+                result['level'] = resourceSchema.dimmingSetting;
+                break;
+            case 'dimPercentage':
+                // Get the device from SmartThings in order to figure out what the current dimness setting is
+                return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId).then((providerSchema) => {
+                    return getDesiredBrightnessState(providerSchema, resourceSchema);
+                });
+            case 'colourRGB':
+                var HSVColor = RGBtoHSV(resourceSchema.rgbValue);
+                if (HSVColor !== undefined)
+                {
+                    result['hue'] = Math.round(HSVColor.hue / MaxHue * 100);
+                    result['saturation'] = Math.round(HSVColor.saturation * 100);
+                    result['level'] = Math.round(HSVColor.level * 100);
+                }
+                break;
+            case 'colourChroma':
+                if (resourceSchema.ct !== undefined)
+                {
+                    result['colorTemperature'] = Math.round( OneMil / resourceSchema.ct );
+                } else {
+                    return Promise.reject(OpenT2TConstants.InvalidResourceId);
+                }
+                break
+            default:
+                // Error case
+                return Promise.reject(OpenT2TConstants.InvalidResourceId);
+        }
+
+        return Promise.resolve(result);
+    }
+}
+
+// Export the translator from the module.
 module.exports = Translator;
