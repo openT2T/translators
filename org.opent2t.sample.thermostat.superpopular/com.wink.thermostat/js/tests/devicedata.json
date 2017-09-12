@@ -46,8 +46,8 @@
         "SetTargetTemperature" :
             [
                 {
-                    "min_set_point" : 28,
-                    "max_set_point" : 32
+                    "max_set_point" : 30,
+                    "min_set_point" : 30
                 }
             ],
         "SetTargetTemperatureHigh" :
