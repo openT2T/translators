@@ -8,7 +8,6 @@
         "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "GetAwayMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "GetEcoMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
-        "SetTargetTemperature" : {"statusCode": 403, "message" : "Resource is not mutable"},
         "SetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "SetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
