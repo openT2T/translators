@@ -256,7 +256,7 @@ function getValidatedUnit(resourceSchema, stateReader) {
     } 
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
-        var value = unit === 'c' ? value : fahrenheitToCelsius(value);
+        value = unit === 'c' ? value : fahrenheitToCelsius(value);
         var min = getMinTemperatureLow(stateReader);
         var max = getMaxTemperatureHigh(stateReader);
         if (value >= min && value <= max) {
@@ -628,7 +628,6 @@ class Translator {
                 }
                 break;
             }
-            case 'targetTemperature':
             case 'awayTemperatureHigh':
             case 'awayTemperatureLow':
             case 'fanTimerTimeout':
