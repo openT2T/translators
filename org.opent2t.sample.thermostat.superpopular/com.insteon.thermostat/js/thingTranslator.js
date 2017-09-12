@@ -136,7 +136,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var max = providerSchema['cool_point'] || 0;
     var min = providerSchema['heat_point'] || 0;
-    var targetTemperature = (max > 0 && min > 0) ? ((max + min) / 2) : max > 0 ? max : min;
+    var temperature = (max > 0 && min > 0) ? ((max + min) / 2) : max > 0 ? max : min;
     var temperatureUnits = getUnitSafe(providerSchema, undefined);
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
@@ -145,7 +145,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
-        temperature: targetTemperature,
+        temperature: temperature,
         units: temperatureUnits
     });
 
@@ -598,10 +598,6 @@ class Translator {
                 break;
             case 'targetTemperature':
                 return this.insteonHub.getDeviceDetailsAsync(this.controlId).then((providerSchema) => {
-                    var result = {};
-                    var unit = getValidatedUnit(resourceSchema);
-                    var providerUnit = providerSchema.hasOwnProperty('unit') ? providerSchema.unit : unit;
-                    var temperature = convertTemperature(resourceSchema.temperature, providerUnit, unit);
                     switch (providerSchema.mode) {
                         case 'heat':
                             return getTargetTemperatureLow(resourceSchema, providerSchema);
@@ -611,9 +607,7 @@ class Translator {
                             return getTargetTemperatureRange(resourceSchema, providerSchema);
                         case 'off':
                             throw new OpenT2TError(444, "Insteon thermostat is off.");
-                            break;
                     }
-                    return result;
                 });
             case 'targetTemperatureHigh':
                 result.command = 'set_cool_to';
