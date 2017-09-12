@@ -2,8 +2,8 @@
     {   "data" :
         {
             "desired_state" : {
-                "max_set_point" : 100,
-                "min_set_point" : 0,
+                "max_set_point" : 24,
+                "min_set_point" : 20,
                 "temperature" : 50,
                 "users_away" : false,
                 "has_fan" : true,
@@ -15,8 +15,8 @@
             "powered" : false
             },
             "last_reading" : {
-                "max_set_point" : 100,
-                "min_set_point" : 0,
+                "max_set_point" : 24,
+                "min_set_point" : 20,
                 "units" : { "temperature": "c" },
                 "temperature" : 50,
                 "users_away" : false,
@@ -46,7 +46,8 @@
         "SetTargetTemperature" :
             [
                 {
-                    "max_set_point" : 30
+                    "min_set_point" : 28,
+                    "max_set_point" : 32
                 }
             ],
         "SetTargetTemperatureHigh" :
