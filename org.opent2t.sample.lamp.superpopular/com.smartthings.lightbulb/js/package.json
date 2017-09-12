@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-com-smartthings-lightbulb",
-    "version": "0.3.4",
+    "version": "1.4.0",
     "description": "SmartThings Light Bulb",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
@@ -20,7 +20,7 @@
     },
     "dependencies": {
       "opent2t": "^1.1.0",
-      "opent2t-translator-com-smartthings-hub": "^0.3.0"
+      "opent2t-translator-com-smartthings-hub": "^1.4.0"
     },
     "devDependencies": {
         "optimist": "*",
