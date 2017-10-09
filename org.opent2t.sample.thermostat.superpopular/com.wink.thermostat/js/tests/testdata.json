@@ -7,7 +7,6 @@
         "GetFanTimerActive" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "GetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "GetFanMode" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
-        "SetTargetTemperature" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "SetAwayTemperatureHigh" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "SetAwayTemperatureLow" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
         "SetFanTimerTimeout" : {"statusCode" : 501, "messageConst" : "NotImplemented"},
