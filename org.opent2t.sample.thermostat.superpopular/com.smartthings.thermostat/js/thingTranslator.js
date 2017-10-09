@@ -27,24 +27,24 @@ function validateArgumentType(arg, argName, expectedType) {
 /**
  * Finds a resource for an entity in a schema
  */
-function findResource(schema, di, resourceId) { 
+function findResource(schema, di, resourceId) {
     // Find the entity by the unique di 
-    var entity = schema.entities.find((d) => { 
-        return d.di === di; 
-    }); 
-    
+    var entity = schema.entities.find((d) => {
+        return d.di === di;
+    });
+
     if (!entity) {
-        throw new OpenT2TError(404, 'Entity - '+ di +' not found.');
+        throw new OpenT2TError(404, 'Entity - ' + di + ' not found.');
     }
-    
-    var resource = entity.resources.find((r) => { 
-        return r.id === resourceId;  
-    }); 
+
+    var resource = entity.resources.find((r) => {
+        return r.id === resourceId;
+    });
 
     if (!resource) {
-        throw new OpenT2TError(404, 'Resource with resourceId \"' +  resourceId + '\" not found.');
-    } 
-    return resource; 
+        throw new OpenT2TError(404, 'Resource with resourceId \"' + resourceId + '\" not found.');
+    }
+    return resource;
 }
 
 function deviceSupportedModesToTranslatorSupportedModes(deviceSupportedModes) {
@@ -106,17 +106,23 @@ function defaultValueIfEmpty(property, defaultValue) {
 // Helper method to convert the provider schema to the platform schema.
 function providerSchemaToPlatformSchema(providerSchema, expand) {
 
-    var max = providerSchema['attributes'].coolingSetpoint;
-    var min = providerSchema['attributes'].heatingSetpoint;
-    var temperatureUnits = providerSchema['attributes'].temperatureScale;
+    var attributes = providerSchema.attributes;
+
+    var max = getIntSafe(attributes.coolingSetpoint, 0);
+    var min = getIntSafe(attributes.heatingSetpoint, 0);
+
+    // TODO: deviceTemperatureUnits is the units displayed on the device
+    // temperatureScale is the value of the variables - we should
+    // convert and return the values to deviceTemperatureUnits
+    var temperatureUnits = getUnitSafe(attributes);
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
-        temperature: providerSchema['attributes'].temperature,
+        temperature: getIntSafe(attributes.temperature, 0),
         units: temperatureUnits
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
-        temperature: providerSchema['attributes'].thermostatMode === 'auto' ? (max + min) / 2 : providerSchema['attributes'].thermostatSetpoint,
+        temperature: attributes.thermostatMode === 'auto' ? ((max + min) / 2) : getIntSafe(attributes.thermostatSetpoint, 0),
         units: temperatureUnits
     });
 
@@ -137,20 +143,20 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var hvacMode = createResource('oic.r.mode', 'oic.if.a', 'hvacMode', expand, {
         supportedModes: ['coolOnly', 'heatOnly', 'auto', 'off'],
-        modes: [deviceHvacModeToTranslatorHvacMode(providerSchema['attributes'].thermostatMode)]
+        modes: [deviceHvacModeToTranslatorHvacMode(attributes.thermostatMode)]
     });
 
     var hasFan = createResource('oic.r.sensor', 'oic.if.s', 'hasFan', expand, {
-        value: providerSchema['attributes'].thermostatFanMode !== undefined && providerSchema['attributes'].thermostatFanMode !== null
+        value: attributes.thermostatFanMode ? true : false
     });
 
     var fanMode = createResource('oic.r.mode', 'oic.if.s', 'fanMode', expand, {
         supportedModes: ['auto', 'on'],
-        modes: [providerSchema['attributes'].thermostatFanMode]
+        modes: [attributes.thermostatFanMode]
     });
 
     var humidity = createResource('oic.r.humidity', 'oic.if.s', 'humidity', expand, {
-        humidity: providerSchema['attributes'].humidity
+        humidity: attributes.humidity
     });
 
     return {
@@ -172,8 +178,8 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 icv: "core.1.1.0",
                 dmv: "res.1.1.0",
                 rt: ['opent2t.d.thermostat'],
-                di: generateGUID( providerSchema['id'] + 'opent2t.d.thermostat' ),
-                    resources: [
+                di: generateGUID(providerSchema['id'] + 'opent2t.d.thermostat'),
+                resources: [
                     ambientTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
@@ -189,42 +195,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     };
 }
 
-// Helper method to convert the translator schema to the device schema.
-function resourceSchemaToProviderSchema(resourceId, resourceSchema) {
-
-    // build the object with desired state
-    var result = {};
-
-    switch (resourceId) {
-        case 'targetTemperatureHigh':
-            result['coolingSetpoint'] = resourceSchema.temperature;
-            break;
-        case 'targetTemperatureLow':
-            result['heatingSetpoint'] = resourceSchema.temperature;
-            break;
-        case 'awayMode':
-            result['awayMode'] = resourceSchema.modes[0] === 'away' ? 'Away' : 'Home';
-            break;
-        case 'hvacMode':
-            result['hvacMode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
-            break;
-        case 'fanMode':
-            result['fanMode'] = resourceSchema.modes[0];       //TODO: convert mode?
-            break;
-        case 'targetTemperature':
-            result['thermostatSetpoint'] = resourceSchema.temperature;
-            break;
-        case 'awayTemperatureHigh':
-        case 'awayTemperatureLow':
-        case 'fanTimerTimeout':
-            throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
-        default:
-            throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
-    }
-
-    return result;
-}
-
 function validateResourceGet(resourceId) {
     switch (resourceId) {
         case 'ecoMode':
@@ -238,9 +208,194 @@ function validateResourceGet(resourceId) {
     }
 }
 
+/**
+ * If the user provides a unit, validate the value is within the units range.
+ *  Range is defined by [min/max][Heating/Cooling]SetPoint if available, otherwise:
+ *    c [9-32]
+ *    f [50-90]
+ * 
+ * If the unit is provided and within range, returns provided unit 
+ *  otherwise an exception is thrown.
+ * 
+ * If no unit is provided and the value is within one of the two ranges,
+ *  the unit of the valid range will be returned, otherwise an 
+ *  exception is thrown.
+ *  * 
+ * @param {*} resourceSchema 
+ * @param {*} providerSchema 
+ */
+function getValidatedUnit(resourceSchema, attributes) {
+    var value = resourceSchema.temperature;
+    var providerUnit = getUnitSafe(attributes);
+    var min = getMinHeatingSetpoint(attributes);
+    var max = getMaxCoolingSetpoint(attributes);
+    if (isDefined(resourceSchema, 'units')) {
+        var unit = resourceSchema.units.toLowerCase();
+        if (unit === 'c' && providerUnit === 'f') {
+            value = celsiusToFahrenheit(value);
+        } else if (unit === 'f' && providerUnit === 'c') {
+            value = fahrenheitToCelsius(value);
+        }
+        if (value >= min && value <= max) {
+            return unit;
+        }
+        throw new OpenT2TError(440, "Invalid temperature (" + value + ") for unit (" + unit + "[" + min + ", " + max + "])");
+    } else {
+        if (value >= min && value <= max) {
+            return providerUnit;
+        }
+        if (providerUnit === 'c') {
+            min = celsiusToFahrenheit(min);
+            max = celsiusToFahrenheit(max);
+            if (value >= min && value <= max) {
+                return 'f';
+            }
+        } else if (providerUnit === 'f') {
+            min = fahrenheitToCelsius(min);
+            max = fahrenheitToCelsius(max);
+            if (value >= min && value <= max) {
+                return 'c';
+            }
+        }
+        throw new OpenT2TError(440, "Temperature outside supported range (" + value + ")");
+    }
+}
+
+/**
+ * Given a target temperature, compute a target 
+ * low and target high centered around it.
+ * @param {*} resourceSchema 
+ * @param {*} stateReader 
+ */
+function getTargetTemperatureRange(resourceSchema, attributes) {
+
+    var unit = getValidatedUnit(resourceSchema, attributes);
+    var providerUnit = getUnitSafe(attributes);
+
+    var value = resourceSchema.temperature;
+    if (unit === 'c' && providerUnit === 'f') {
+        value = celsiusToFahrenheit(value);
+    } else if (unit === 'f' && providerUnit === 'c') {
+        value = fahrenheitToCelsius(value);
+    }
+
+    // cooling = temperatureHigh
+    var minTemperatureHigh = getMinCoolingSetpoint(attributes);
+    var maxTemperatureHigh = getMaxCoolingSetpoint(attributes);
+
+    // heating = temperatureLow
+    var minTemperatureLow = getMinHeatingSetpoint(attributes);
+    var maxTemperatureLow = getMaxHeatingSetpoint(attributes);
+
+    var targetTemperatureHigh = getIntSafe(attributes.coolingSetpoint, 0);
+    var targetTemperatureLow = getIntSafe(attributes.heatingSetpoint, 0);
+
+    var range = targetTemperatureHigh - targetTemperatureLow;
+    var halfRange = range / 2;
+    var newTargetTemperatureHigh = value + halfRange;
+    var newTargetTemperatureLow = value - halfRange;
+
+    // If either value is outside min/max range, adjust accordingly
+    if (newTargetTemperatureLow < minTemperatureLow) {
+        newTargetTemperatureLow = minTemperatureLow;
+        newTargetTemperatureHigh = minTemperatureLow + range;
+    }
+
+    if (newTargetTemperatureLow > maxTemperatureLow) {
+        newTargetTemperatureLow = maxTemperatureLow;
+        newTargetTemperatureHigh = maxTemperatureLow + range;
+    }
+
+    if (newTargetTemperatureHigh > maxTemperatureHigh) {
+        newTargetTemperatureHigh = maxTemperatureHigh;
+        newTargetTemperatureLow = Math.max(minTemperatureLow, maxTemperatureHigh - range);
+    }
+
+    if (newTargetTemperatureHigh < minTemperatureHigh) {
+        newTargetTemperatureHigh = minTemperatureHigh;
+        newTargetTemperatureLow = Math.max(minTemperatureLow, minTemperatureHigh - range);
+    }
+
+    var response = {};
+    var command = {}
+
+    response['temperature_scale'] = providerUnit;
+    response['thermostatMode'] = attributes.thermostatMode;
+
+    command['coolingSetpoint'] = newTargetTemperatureHigh;
+    command['heatingSetpoint'] = newTargetTemperatureLow;
+
+    return { response, command };
+}
+
+function getTargetTemperature(resourceSchema, attributes) {
+
+    var unit = getValidatedUnit(resourceSchema, attributes);
+    var providerUnit = getUnitSafe(attributes);
+
+    var value = resourceSchema.temperature;
+    if (unit === 'c' && providerUnit === 'f') {
+        value = celsiusToFahrenheit(value);
+    } else if (unit === 'f' && providerUnit === 'c') {
+        value = fahrenheitToCelsius(value);
+    }
+
+    var response = {};
+    var command = {}
+
+    response['temperature_scale'] = providerUnit; // not used - units comes back from hub
+    response['thermostatMode'] = attributes.thermostatMode;
+
+    command['thermostatSetpoint'] = value;
+
+    return { response, command };
+}
+
+function getMaxHeatingSetpoint(attributes) {
+    return getIntSafe(attributes.maxHeatingSetpoint, (getUnitSafe(attributes) === 'f' ? 50 : 9));
+}
+
+function getMinHeatingSetpoint(attributes) {
+    return getIntSafe(attributes.minHeatingSetpoint, (getUnitSafe(attributes) === 'f' ? 50 : 9));
+}
+
+function getMaxCoolingSetpoint(attributes) {
+    return getIntSafe(attributes.maxCoolingSetpoint, (getUnitSafe(attributes) === 'f' ? 90 : 32));
+}
+
+function getMinCoolingSetpoint(attributes) {
+    return getIntSafe(attributes.minCoolingSetpoint, (getUnitSafe(attributes) === 'f' ? 90 : 32));
+}
+
+/**
+ * SmartThings attributes can be strings, check for existence and return as int
+ * @param {*} i 
+ */
+
+function getIntSafe(i, defaultValue) {
+    return i !== undefined && i != null ? parseInt(i) : defaultValue;
+}
+
+function getUnitSafe(attributes) {
+    return attributes.hasOwnProperty('temperatureScale') ?
+        attributes.temperatureScale.toLowerCase() : 'c';
+}
+
+function celsiusToFahrenheit(c) {
+    return (c * 1.8) + 32;
+}
+
+function fahrenheitToCelsius(f) {
+    return (f - 32) / 1.8;
+}
+
+function isDefined(object, variable) {
+    return object && object[variable];
+}
+
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
 class Translator {
-     
+
     constructor(deviceInfo, logger) {
         this.name = "opent2t-translator-com-smartthings-thermostat";
         this.logger = logger;
@@ -253,7 +408,7 @@ class Translator {
 
         this.logger.info('SmartThings Thermostat initializing...Done');
     }
-    
+
     /**
      * Queries the entire state of the thermostat
      * and returns an object that maps to the json schema org.opent2t.sample.thermostat.superpopular
@@ -285,20 +440,36 @@ class Translator {
      * Updates the specified resource with the provided payload.
      */
     postDeviceResource(di, resourceId, payload) {
-        if (di === generateGUID( this.controlId + 'opent2t.d.thermostat') )
-        {
-            var putPayload = resourceSchemaToProviderSchema(resourceId, payload);
+        if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
+            return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
+                .then((putPayload => {
+                    if (resourceId === 'targetTemperature') {
+                        return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload.command).then((response) => {
+                            Object.assign(response, putPayload.response);
+                            var schema = providerSchemaToPlatformSchema(response, true);
+                            if (response.thermostatMode === 'auto') {
+                                var low = findResource(schema, di, 'targetTemperatureLow');
+                                var high = findResource(schema, di, 'targetTemperatureHigh');
+                                var hvacMode = findResource(schema, di, 'hvacMode');
+                                var result = { low, high, hvacMode };
+                                return result;
+                            } else {
+                                return findResource(schema, di, resourceId);
+                            }
+                        });
 
-            return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload)
-                .then((response) => {
-                    var schema = providerSchemaToPlatformSchema(response, true);
-                    return findResource(schema, di, resourceId);
-                });
+                    } else {
+                        return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload).then((response) => {
+                            var schema = providerSchemaToPlatformSchema(response, true);
+                            return findResource(schema, di, resourceId);
+                        });
+                    }
+                }));
         } else {
             throw new OpenT2TError(404, OpenT2TConstants.DeviceNotFound);
         }
     }
-  
+
     getDevicesAmbientTemperature(di) {
         return this.getDeviceResource(di, 'ambientTemperature');
     }
@@ -410,6 +581,51 @@ class Translator {
         subscriptionInfo.endpointUri = this.endpointUri;
         return this.smartThingsHub._unsubscribe(subscriptionInfo);
     }
+
+    _resourceSchemaToProviderSchemaAsync(resourceId, resourceSchema) {
+
+        // build the object with desired state
+        var result = {};
+
+        switch (resourceId) {
+            case 'targetTemperature':
+                return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId).then((providerSchema) => {
+                    var attributes = providerSchema.attributes;
+                    if (attributes.thermostatMode === 'off') {
+                        throw new OpenT2TError(444, "SmartThings thermostat is off.");
+                    }
+                    if (attributes.thermostatMode === 'auto') {
+                        return getTargetTemperatureRange(resourceSchema, attributes);
+                    } else {
+                        return getTargetTemperature(resourceSchema, attributes);
+                    }
+                });
+            case 'targetTemperatureHigh':
+                result['coolingSetpoint'] = resourceSchema.temperature;
+                break;
+            case 'targetTemperatureLow':
+                result['heatingSetpoint'] = resourceSchema.temperature;
+                break;
+            case 'awayMode':
+                result['awayMode'] = resourceSchema.modes[0] === 'away' ? 'Away' : 'Home';
+                break;
+            case 'hvacMode':
+                result['hvacMode'] = translatorHvacModeToDeviceHvacMode(resourceSchema.modes[0]);
+                break;
+            case 'fanMode':
+                result['fanMode'] = resourceSchema.modes[0];       //TODO: convert mode?
+                break;
+            case 'awayTemperatureHigh':
+            case 'awayTemperatureLow':
+            case 'fanTimerTimeout':
+                throw new OpenT2TError(501, OpenT2TConstants.NotImplemented);
+            default:
+                throw new OpenT2TError(400, OpenT2TConstants.InvalidResourceId);
+        }
+
+        return Promise.resolve(result);
+    }
+
 }
 
 // Export the translator from the module.

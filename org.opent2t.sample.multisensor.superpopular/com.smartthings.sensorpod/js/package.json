@@ -1,6 +1,6 @@
 {
     "name": "opent2t-translator-com-smartthings-sensorpod",
-    "version": "0.3.2",
+    "version": "1.4.0",
     "description": "SmartThings Sensorpod",
     "homepage": "http://opentranslatorstothings.org",
     "repository": {
@@ -19,7 +19,7 @@
         ]
     },
     "dependencies": {
-        "opent2t-translator-com-smartthings-hub": "^0.3.0",
+        "opent2t-translator-com-smartthings-hub": "^1.4.0",
         "opent2t": "^1.1.0"
     },
     "devDependencies": {
