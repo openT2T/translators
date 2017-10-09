@@ -13,7 +13,7 @@ var promiseReflect = require('promise-reflect'); // Allows Promise.all to wait f
 * This translator class implements the "Hub" interface.
 */
 class Translator {
-    constructor(authTokens,logger) {
+    constructor(authTokens, logger) {
         this.name = "opent2t-translator-com-nest-hub";
         this._authTokens = authTokens;
         this._baseUrl = "https://developer-api.nest.com";
@@ -22,7 +22,7 @@ class Translator {
         this._name = "Nest Hub";
         this._firebaseRef = new Firebase(this._baseUrl);
         this._firebaseRef.authWithCustomToken(this._authTokens['access'].token);
-        this.logger = logger; 
+        this.logger = logger;
         this.opent2t = new OpenT2T(logger);
     }
 
@@ -37,12 +37,12 @@ class Translator {
      * Get the list of devices discovered through the hub.
      */
     getPlatforms(expand, payload) {
-        if(payload !== undefined){
-            return this._providerSchemaToPlatformSchema( payload, expand );
-        } else {
+        if (payload === undefined) {
             return this._firebaseRef.child(this._devicesPath).once('value').then((snapshot) => {
                 return this._providerSchemaToPlatformSchema(snapshot.val(), expand);
             });
+        } else {
+            return this._providerSchemaToPlatformSchema(payload, expand);
         }
     }
 
@@ -57,13 +57,13 @@ class Translator {
         return this._authTokens;
     }
 
-    
+
     /**
      * Deauthorizes the OAuth token for the hub by calling DELETE with the current access token.
      * https://developers.nest.com/documentation/cloud/deauthorization-overview
      */
     deauthorizeToken(authInfo) {
-        
+
         var options = {
             url: 'https://api.home.nest.com/oauth2/access_tokens/' + this._authTokens['access'].token,
             method: 'DELETE'
@@ -73,7 +73,12 @@ class Translator {
             .then(function (body) {
                 return true;
             })
-            .catch((err) => {              
+            .catch((err) => {
+                var str = err.toString();
+                var startInd = str.indexOf('{');
+                var endInd = str.lastIndexOf('}');
+                var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
+                this.logger.error(`Ran into error in deauthorizeToken: ${errorMsg.error}`);
                 return false;
             });
     }
@@ -118,11 +123,10 @@ class Translator {
             errors: []
         };
 
-
-        if(providerSchemas.thermostats !== undefined){
+        if (providerSchemas.thermostats !== undefined) {
 
             // get the opent2t schema and translator for Nest thermostat
-            var opent2tInfo = { 
+            var opent2tInfo = {
                 "schema": 'org.opent2t.sample.thermostat.superpopular',
                 "translator": "opent2t-translator-com-nest-thermostat"
             };
@@ -182,7 +186,7 @@ class Translator {
      * Gets device details (all fields), response formatted per nest api
      */
     getDeviceDetailsAsync(deviceType, deviceId) {
-        return this._firebaseRef.child(this._devicesPath + deviceType + '/' +deviceId).once('value').then((snapshot) => {
+        return this._firebaseRef.child(this._devicesPath + deviceType + '/' + deviceId).once('value').then((snapshot) => {
             var deviceSchema = snapshot.val();
             return this._getAwayMode(deviceSchema['structure_id']).then((result) => {
                 deviceSchema.away = result;
@@ -195,19 +199,13 @@ class Translator {
      * Puts device details (all fields) payload formatted per nest api
      */
     putDeviceDetailsAsync(deviceType, deviceId, putPayload) {
-        var propertyName = Object.keys(putPayload);
-        var path = this._devicesPath + deviceType + '/' + deviceId + '/' + propertyName[0];
-        return this._firebaseRef.child(path).set(putPayload[propertyName[0]]).then((response) => {
+        var path = this._devicesPath + deviceType + '/' + deviceId;
+        return this._firebaseRef.child(path).set(putPayload).then((response) => {
             if (response === undefined) { //success
                 var result = {
-                    device_id:deviceId
+                    device_id: deviceId
                 };
-                result[propertyName] = putPayload[propertyName[0]];
-                
-                //get temperature scale
-                if (propertyName[0].includes('_temperature_')) {
-                    result['temperature_scale'] = propertyName[0].charAt(propertyName[0].length -1);
-                }
+                Object.assign(result, putPayload)
                 return result;
             }
         }).catch(function (err) {
@@ -216,10 +214,10 @@ class Translator {
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
             this.logger.error(`Ran into error in putDeviceDetailsAsync: ${errorMsg.error}`);
-            return Promise.reject(errorMsg.error);        
+            return Promise.reject(errorMsg.error);
         }.bind(this));
     }
-    
+
     /**
      * Internal Helper function to get the away status for structure with structureId
      */
@@ -247,7 +245,7 @@ class Translator {
             var endInd = str.lastIndexOf('}');
             var errorMsg = JSON.parse(str.substring(startInd, endInd + 1));
             this.logger.error(`Ran into error in setAwayMode: ${errorMsg.error}`);
-            return Promise.reject(errorMsg.error);        
+            return Promise.reject(errorMsg.error);
         }.bind(this));
     }
 }

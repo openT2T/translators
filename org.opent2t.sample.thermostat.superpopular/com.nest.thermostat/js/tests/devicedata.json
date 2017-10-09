@@ -4,7 +4,7 @@
         "temperature_scale" : "c",
         "ambient_temperature_c" : 25,
         "target_temperature_c" : 22,
-        "target_temperature_high_c" : 27,
+        "target_temperature_high_c" : 24,
         "target_temperature_low_c" : 20,
         "away_temperature_high_c" : 26,
         "away_temperature_low_c" : 21,
@@ -33,18 +33,21 @@
         "SetTargetTemperature" :
             [
                 {
-                    "target_temperature_c" : 30
+                    "target_temperature_high_c" : 32,
+                    "target_temperature_low_c" : 28
                 }
             ],
         "SetTargetTemperatureHigh" :
             [
                 {
+					"temperature_scale" : "c",
                     "target_temperature_high_c" : 7
                 }
             ],
         "SetTargetTemperatureLow" :
             [
                 {
+					"temperature_scale" : "c",
                     "target_temperature_low_c" : 19
                 }
             ],
