@@ -448,7 +448,6 @@ class Translator {
                             Object.assign(response, putPayload.response);
                             var schema = providerSchemaToPlatformSchema(response, true);
                             // from logs: autocool does not allow changing thermostat setpoint - we'll do target high/low for this case
-                            console.log(response.thermostatMode);
                             if (response.thermostatMode === 'auto' ||
                                 response.thermostatMode === 'autoheat' ||
                                 response.thermostatMode === 'autocool') {
