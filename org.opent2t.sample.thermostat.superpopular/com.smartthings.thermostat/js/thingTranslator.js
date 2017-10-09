@@ -598,7 +598,9 @@ class Translator {
                     if (attributes.thermostatMode === 'off') {
                         throw new OpenT2TError(444, "SmartThings thermostat is off.");
                     }
-                    if (attributes.thermostatMode === 'auto') {
+                    if (attributes.thermostatMode === 'auto' ||
+                        response.thermostatMode === 'autoheat' ||
+                        response.thermostatMode === 'autocool') {
                         return getTargetTemperatureRange(resourceSchema, attributes);
                     } else {
                         return getTargetTemperature(resourceSchema, attributes);
