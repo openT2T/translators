@@ -11,7 +11,7 @@ function modifyDeviceState(deviceState, modifications) {
 }
 
 function verifyPayload(modification, t, args) {
-    let expectedPayload = undefined;
+    let expectedPayload = modification;
     if(modification.Power !== undefined) {
         expectedPayload = {command: modification.Power};
     }

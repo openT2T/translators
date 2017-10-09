@@ -4,7 +4,7 @@
         "DeviceID" : "Mock Device ID",
         "DeviceName" : "Mock Device",
         "unit" : "c",
-        "cool_point" : 28,
+        "cool_point" : 24,
         "heat_point" : 20,
         "mode" : "auto",
         "fan" : "auto",
@@ -22,7 +22,8 @@
         "SetTargetTemperature" :
             [
                 {
-                    "max_set_point" : 30
+					"command" : "temp_up",
+					"temp" : 8
                 }
             ],
         "SetTargetTemperatureHigh" :
