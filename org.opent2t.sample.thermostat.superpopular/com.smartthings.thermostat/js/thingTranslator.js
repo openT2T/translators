@@ -447,7 +447,11 @@ class Translator {
                         return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload.command).then((response) => {
                             Object.assign(response, putPayload.response);
                             var schema = providerSchemaToPlatformSchema(response, true);
-                            if (response.thermostatMode === 'auto') {
+                            // from logs: autocool does not allow changing thermostat setpoint - we'll do target high/low for this case
+                            console.log(response.thermostatMode);
+                            if (response.thermostatMode === 'auto' ||
+                                response.thermostatMode === 'autoheat' ||
+                                response.thermostatMode === 'autocool') {
                                 var low = findResource(schema, di, 'targetTemperatureLow');
                                 var high = findResource(schema, di, 'targetTemperatureHigh');
                                 var hvacMode = findResource(schema, di, 'hvacMode');
