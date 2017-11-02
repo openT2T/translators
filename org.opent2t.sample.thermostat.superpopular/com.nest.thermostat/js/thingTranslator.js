@@ -121,13 +121,19 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // Get temperature scale
     var ts = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].toLowerCase() : undefined;
     var targetLow = providerSchema['target_temperature_low_' + ts];
-    var targetHigh =  providerSchema['target_temperature_high_' + ts];
+    var targetHigh = providerSchema['target_temperature_high_' + ts];
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient_temperature_' + ts],
         units: ts
     });
 
+    var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
+        temperature: 0,
+        units: 'c'
+    });
+
+    //max look here
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
         temperature: providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + ts],
         units: ts
@@ -202,6 +208,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: generateGUID(providerSchema['device_id'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
+                    adjustTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
@@ -249,10 +256,10 @@ function validateResourceGet(resourceId) {
  * @param {*} providerSchema 
  */
 function getValidatedUnit(resourceSchema, providerSchema) {
-    var value = resourceSchema.temperature;    
+    var value = resourceSchema.temperature;
     if (!value) {
         throw new OpenT2TError("Invalid target temperature " + value);
-    }        
+    }
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
         var min = getMinTemperature(providerSchema, unit);
@@ -309,13 +316,13 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
             range = 1.5;
         }
         // Value must be either a whole number or .5 increment
-        value = roundToHalf(value); 
+        value = roundToHalf(value);
         halfRange = roundToHalf(halfRange);
     }
 
     // Keeps the range, but may not be perfectly centered over new target
     var newTargetLow = value - halfRange;
-    var newTargetHigh = value + (range - halfRange); 
+    var newTargetHigh = value + (range - halfRange);
 
     // If either value is outside min/max range, adjust accordingly
     if (newTargetLow < min) {
@@ -465,13 +472,14 @@ class Translator {
         if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
             return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
                 .then((putPayload => {
+                    console.log(payload);
                     if (resourceId === 'awayMode') {
                         return this.nestHub.setAwayMode(this.structureId, this.controlId, putPayload)
                             .then((response) => {
                                 var schema = providerSchemaToPlatformSchema(response, true);
                                 return findResource(schema, di, resourceId);
                             });
-                    } else if (resourceId === 'targetTemperature') {
+                    } else if (resourceId === 'targetTemperature' || resourceId === 'adjustTemperature') {
                         return this.nestHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload.command).then((response) => {
                             Object.assign(response, putPayload.response);
                             var schema = providerSchemaToPlatformSchema(response, true);
@@ -518,6 +526,14 @@ class Translator {
      */
     postDevicesTargetTemperature(di, payload) {
         return this.postDeviceResource(di, 'targetTemperature', payload);
+    }
+
+    getDevicesAdjustTemperature(di) {
+        return this.getDeviceResource(di, 'adjustTemperature');
+    }
+
+    postDevicesAdjustTemperature(di, payload) {
+        return this.postDeviceResource(di, 'adjustTemperature', payload);
     }
 
     getDevicesHumidity(di) {
@@ -626,7 +642,23 @@ class Translator {
         var result = {};
         switch (resourceId) {
             case 'targetTemperature':
+            case 'adjustTemperature':
                 return this.nestHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+
+                    if (resourceid === 'adjustTemperature') {
+                        var ts = (resourceSchema.units ? resourceSchema.units : (providerSchema['temperature_scale'] ? providerSchema['temperature_scale'] : 'f')).substr(0, 1).toLowerCase();
+
+                        if (ts !== 'c' || ts !== 'f') {
+                            ts = 'f';
+                        }
+
+                        var targetLow = providerSchema['target_temperature_low_' + ts];
+                        var targetHigh = providerSchema['target_temperature_high_' + ts];
+                        var currentTemperature = providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + ts];
+
+                        resourceSchema.temperature = resourceSchema.temperature + currentTemperature;
+                        resourceSchema.units = ts.toUpperCase();
+                    }
                     switch (providerSchema.hvac_mode) {
                         case 'heat':
                         case 'cool':
