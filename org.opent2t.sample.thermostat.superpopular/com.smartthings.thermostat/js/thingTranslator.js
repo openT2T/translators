@@ -447,7 +447,10 @@ class Translator {
                         return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload.command).then((response) => {
                             Object.assign(response, putPayload.response);
                             var schema = providerSchemaToPlatformSchema(response, true);
-                            if (response.thermostatMode === 'auto') {
+                            // from logs: autocool does not allow changing thermostat setpoint - we'll do target high/low for this case
+                            if (response.thermostatMode === 'auto' ||
+                                response.thermostatMode === 'autoheat' ||
+                                response.thermostatMode === 'autocool') {
                                 var low = findResource(schema, di, 'targetTemperatureLow');
                                 var high = findResource(schema, di, 'targetTemperatureHigh');
                                 var hvacMode = findResource(schema, di, 'hvacMode');
@@ -594,7 +597,9 @@ class Translator {
                     if (attributes.thermostatMode === 'off') {
                         throw new OpenT2TError(444, "SmartThings thermostat is off.");
                     }
-                    if (attributes.thermostatMode === 'auto') {
+                    if (attributes.thermostatMode === 'auto' ||
+                        attributes.thermostatMode === 'autoheat' ||
+                        attributes.thermostatMode === 'autocool') {
                         return getTargetTemperatureRange(resourceSchema, attributes);
                     } else {
                         return getTargetTemperature(resourceSchema, attributes);
