@@ -143,6 +143,11 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         temperature: providerSchema['ambient'],
         units: temperatureUnits
     });
+    
+    var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
+        temperature: 0,
+        units: 'f'
+    });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
         temperature: temperature,
@@ -191,6 +196,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: generateGUID(providerSchema['DeviceID'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
+                    adjustTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
@@ -272,7 +278,7 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
 
     var unit = getValidatedUnit(resourceSchema);
     var providerUnit = getUnitSafe(providerSchema, unit);
-    var temperature = convertTemperature(resourceSchema.temperature, unit, providerUnit);
+    var temperature = convertTemperatureAbsolute(resourceSchema.temperature, unit, providerUnit);
     var min = getMinTemperature(providerUnit);
     var max = getMaxTemperature(providerUnit);
 
@@ -314,8 +320,8 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
     var command = {}
 
     // Temp, just for the response - convert back to users units
-    response.cool_point = convertTemperature(newTargetHigh, providerUnit, unit);
-    response.heat_point = convertTemperature(newTargetLow, providerUnit, unit);
+    response.cool_point = convertTemperatureAbsolute(newTargetHigh, providerUnit, unit);
+    response.heat_point = convertTemperatureAbsolute(newTargetLow, providerUnit, unit);
     response.mode = 'auto';
     response.unit = unit;
 
@@ -340,7 +346,7 @@ function getTargetTemperatureHigh(resourceSchema, providerSchema) {
 
     // Command for insteon
     command.command = 'set_cool_to';
-    command.temp = convertTemperature(resourceSchema.temperature, unit, providerUnit);
+    command.temp = convertTemperatureAbsolute(resourceSchema.temperature, unit, providerUnit);
 
     return { response, command };
 }
@@ -359,7 +365,7 @@ function getTargetTemperatureLow(resourceSchema, providerSchema) {
 
     // Command for insteon
     command.command = 'set_heat_to';
-    command.temp = convertTemperature(resourceSchema.temperature, unit, providerUnit);
+    command.temp = convertTemperatureAbsolute(resourceSchema.temperature, unit, providerUnit);
 
     return { response, command };
 }
@@ -381,21 +387,22 @@ function getMaxTemperature(unit) {
     return unit === 'f' ? 90 : 32;
 }
 
-function convertTemperature(temperature, from, to) {
+function convertTemperatureAbsolute(temperature, from, to) {
     if (from === 'c' && to === 'f') {
-        return celsiusToFahrenheit(temperature);
+        return (temperature * 1.8) + 32;
     } else if (from === 'f' && to === 'c') {
-        return fahrenheitToCelsius(temperature);
+        return (temperature - 32) / 1.8;
     }
     return temperature;
 }
 
-function celsiusToFahrenheit(c) {
-    return (c * 1.8) + 32;
-}
-
-function fahrenheitToCelsius(f) {
-    return (f - 32) / 1.8;
+function convertTemperatureIncrement(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return temperature * 1.8;
+    } else if (from === 'f' && to === 'c') {
+        return temperature / 1.8;
+    }
+    return temperature;
 }
 
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' schema.
@@ -448,7 +455,7 @@ class Translator {
                 .then((putPayload => {
                     // Resource payload has a few extra values passed along to create a valid response
                     // Trim down to the actual command before sending.
-                    if (resourceId === 'targetTemperature') {
+                    if (resourceId === 'targetTemperature' || resourceId === 'adjustTemperature') {
                         return this.insteonHub.putDeviceDetailsAsync(this.controlId, putPayload.command)
                             .then((response) => {
                                 // Merge the responses                           
@@ -596,8 +603,26 @@ class Translator {
             case 'n':
                 result['DeviceName'] = resourceSchema.n;
                 break;
+            case 'adjustTemperature':
             case 'targetTemperature':
                 return this.insteonHub.getDeviceDetailsAsync(this.controlId).then((providerSchema) => {
+                    if (providerSchema.mode === 'off') {
+                        throw new OpenT2TError(444, "Insteon thermostat is off.");
+                    }
+
+                    if(resourceId == 'adjustTemperature')
+                    {
+                        var currentUnits = getUnitSafe(providerSchema, 'f');
+                        resourceSchema.units = isDefined(resourceSchema, 'units') ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
+
+                        var currentHigh = providerSchema.hasOwnProperty('heat_point') ? providerSchema.hasOwnProperty('heat_point') : providerSchema.hasOwnProperty('cool_point');
+                        var currentLow = providerSchema.hasOwnProperty('cool_point') ? providerSchema.hasOwnProperty('cool_point') : providerSchema.hasOwnProperty('heat_point');
+                        var currentTemp = (currentHigh + currentLow) / 2;
+
+                        resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
+                        resourceSchema.units = currentUnits;
+                    }
+                    
                     switch (providerSchema.mode) {
                         case 'heat':
                             return getTargetTemperatureLow(resourceSchema, providerSchema);
@@ -605,8 +630,6 @@ class Translator {
                             return getTargetTemperatureHigh(resourceSchema, providerSchema);
                         case 'auto':
                             return getTargetTemperatureRange(resourceSchema, providerSchema);
-                        case 'off':
-                            throw new OpenT2TError(444, "Insteon thermostat is off.");
                     }
                 });
             case 'targetTemperatureHigh':

@@ -130,10 +130,9 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
         temperature: 0,
-        units: 'c'
+        units: 'f'
     });
 
-    //max look here
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
         temperature: providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + ts],
         units: ts
@@ -422,6 +421,16 @@ function getNumber(value, defaultValue) {
     return value ? value : defaultValue;
 }
 
+
+function convertTemperatureIncrement(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return temperature * 1.8;
+    } else if (from === 'f' && to === 'c') {
+        return temperature / 1.8;
+    }
+    return temperature;
+}
+
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
@@ -472,7 +481,6 @@ class Translator {
         if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
             return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
                 .then((putPayload => {
-                    console.log(payload);
                     if (resourceId === 'awayMode') {
                         return this.nestHub.setAwayMode(this.structureId, this.controlId, putPayload)
                             .then((response) => {
@@ -641,34 +649,34 @@ class Translator {
         // build the object with desired state
         var result = {};
         switch (resourceId) {
-            case 'targetTemperature':
             case 'adjustTemperature':
+            case 'targetTemperature':
                 return this.nestHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+                    if (providerSchema.hvac_mode === 'eco') {
+                        throw new OpenT2TError(448, "Nest thermostat is in eco mode.");
+                    }
+                    if (providerSchema.hvac_mode === 'off') {
+                        throw new OpenT2TError(444, "Nest thermostat is off.");
+                    }
 
                     if (resourceid === 'adjustTemperature') {
-                        var ts = (resourceSchema.units ? resourceSchema.units : (providerSchema['temperature_scale'] ? providerSchema['temperature_scale'] : 'f')).substr(0, 1).toLowerCase();
+                        var currentUnits = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].substr(0, 1).toLowerCase() : 'f';
+                        resourceSchema.units = resourceSchema.units ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
 
-                        if (ts !== 'c' || ts !== 'f') {
-                            ts = 'f';
-                        }
+                        var targetLow = providerSchema['target_temperature_low_' + currentUnits];
+                        var targetHigh = providerSchema['target_temperature_high_' + currentUnits];
+                        var currentTemp = providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + currentUnits];
 
-                        var targetLow = providerSchema['target_temperature_low_' + ts];
-                        var targetHigh = providerSchema['target_temperature_high_' + ts];
-                        var currentTemperature = providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + ts];
-
-                        resourceSchema.temperature = resourceSchema.temperature + currentTemperature;
-                        resourceSchema.units = ts.toUpperCase();
+                        resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
+                        resourceSchema.units = currentUnits;
                     }
+
                     switch (providerSchema.hvac_mode) {
                         case 'heat':
                         case 'cool':
                             return getTargetTemperature(resourceSchema, providerSchema);
                         case 'heat-cool':
                             return getTargetTemperatureRange(resourceSchema, providerSchema);
-                        case 'eco':
-                            throw new OpenT2TError(448, "Nest thermostat is in eco mode.");
-                        case 'off':
-                            throw new OpenT2TError(444, "Nest thermostat is off.");
                     }
                     return result;
                 });
