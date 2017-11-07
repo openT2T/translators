@@ -659,7 +659,7 @@ class Translator {
                         throw new OpenT2TError(444, "Nest thermostat is off.");
                     }
 
-                    if (resourceid === 'adjustTemperature') {
+                    if (resourceId === 'adjustTemperature') {
                         var currentUnits = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].substr(0, 1).toLowerCase() : 'f';
                         resourceSchema.units = resourceSchema.units ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
 
