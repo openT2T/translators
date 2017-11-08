@@ -625,18 +625,18 @@ class Translator {
                         var currentUnits = getUnitSafe(providerSchema.attributes);
                         resourceSchema.units = resourceSchema.units ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
                         
-                        var max = getIntSafe(attributes.coolingSetpoint, 0);
-                        var min = getIntSafe(attributes.heatingSetpoint, 0);
-                        var currentTemp = attributes.thermostatMode === 'auto' ? ((max + min) / 2) : getIntSafe(attributes.thermostatSetpoint, 0);
+                        var max = getIntSafe(providerSchema.attributes.coolingSetpoint, 0);
+                        var min = getIntSafe(providerSchema.attributes.heatingSetpoint, 0);
+                        var currentTemp = providerSchema.attributes.thermostatMode === 'auto' ? ((max + min) / 2) : getIntSafe(providerSchema.attributes.thermostatSetpoint, 0);
 
                         resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
                         resourceSchema.units = currentUnits;
                     }
                     
                     if (providerSchema.attributes.thermostatMode === 'auto') {
-                        return getTargetTemperatureRange(resourceSchema, attributes);
+                        return getTargetTemperatureRange(resourceSchema, providerSchema.attributes);
                     } else {
-                        return getTargetTemperature(resourceSchema, attributes);
+                        return getTargetTemperature(resourceSchema, providerSchema.attributes);
                     }
                 });
             case 'targetTemperatureHigh':

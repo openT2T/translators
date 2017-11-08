@@ -472,6 +472,10 @@ class Translator {
     getDevicesAdjustTemperature(di) {
         return this.getDeviceResource(di, 'adjustTemperature');
     }
+    
+    postDevicesAdjustTemperature(di, payload) {
+        return this.postDeviceResource(di, 'adjustTemperature', payload);
+    }
 
     getDevicesTargetTemperature(di) {
         return this.getDeviceResource(di, 'targetTemperature');
@@ -614,7 +618,7 @@ class Translator {
                         var currentTemp = (stateReader.get('max_set_point') + stateReader.get('min_set_point')) / 2;
 
                         resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, 'c');
-                        resourceSchema.units = currentUnits;
+                        resourceSchema.units = 'c';
                     }
 
                     if (mode === 'auto') {
