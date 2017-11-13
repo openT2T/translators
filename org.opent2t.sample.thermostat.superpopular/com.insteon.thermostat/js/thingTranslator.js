@@ -138,6 +138,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     var min = providerSchema['heat_point'] || 0;
     var temperature = (max > 0 && min > 0) ? ((max + min) / 2) : max > 0 ? max : min;
     var temperatureUnits = getUnitSafe(providerSchema, undefined);
+    var mode = providerSchema.mode;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient'],
@@ -146,11 +147,11 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     
     var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
         temperature: 0,
-        units: 'f'
+        units: temperatureUnits
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
-        temperature: temperature,
+        temperature: (providerSchema.mode === 'heat' ? min : (providerSchema.mode === 'cool' ? max : temperature)),
         units: temperatureUnits
     });
 
@@ -299,7 +300,7 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
     }
 
     var range = targetHigh - targetLow;
-    var halfRange = Math.round(range / 2);
+    var halfRange = range / 2;
     var newTargetLow = temperature - halfRange;
     var newTargetHigh = temperature + halfRange;
 
@@ -489,6 +490,14 @@ class Translator {
     getDevicesAmbientTemperature(di) {
         return this.getDeviceResource(di, 'ambientTemperature');
     }
+    
+    getDevicesAdjustTemperature(di) {
+        return this.getDeviceResource(di, 'adjustTemperature');
+    }
+
+    postDevicesAdjustTemperature(di, payload) {
+        return this.postDeviceResource(di, 'adjustTemperature', payload);
+    }
 
     getDevicesTargetTemperature(di) {
         return this.getDeviceResource(di, 'targetTemperature');
@@ -610,14 +619,14 @@ class Translator {
                         throw new OpenT2TError(444, "Insteon thermostat is off.");
                     }
 
-                    if(resourceId == 'adjustTemperature')
+                    if (resourceId == 'adjustTemperature')
                     {
                         var currentUnits = getUnitSafe(providerSchema, 'f');
                         resourceSchema.units = isDefined(resourceSchema, 'units') ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
 
-                        var currentHigh = providerSchema.hasOwnProperty('heat_point') ? providerSchema.hasOwnProperty('heat_point') : providerSchema.hasOwnProperty('cool_point');
-                        var currentLow = providerSchema.hasOwnProperty('cool_point') ? providerSchema.hasOwnProperty('cool_point') : providerSchema.hasOwnProperty('heat_point');
-                        var currentTemp = (currentHigh + currentLow) / 2;
+                        var heatPoint = providerSchema.hasOwnProperty('heat_point') ? providerSchema.heat_point : providerSchema.cool_point;
+                        var coolPoint = providerSchema.hasOwnProperty('cool_point') ? providerSchema.cool_point : providerSchema.heat_point;
+                        var currentTemp = providerSchema.mode === 'heat' ? heatPoint : (providerSchema.mode === 'cool' ? coolPoint : (heatPoint + coolPoint) / 2);
 
                         resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
                         resourceSchema.units = currentUnits;

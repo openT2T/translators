@@ -130,7 +130,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
 
     var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
         temperature: 0,
-        units: 'f'
+        units: ts
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
@@ -420,7 +420,6 @@ function isDefined(object, variable) {
 function getNumber(value, defaultValue) {
     return value ? value : defaultValue;
 }
-
 
 function convertTemperatureIncrement(temperature, from, to) {
     if (from === 'c' && to === 'f') {

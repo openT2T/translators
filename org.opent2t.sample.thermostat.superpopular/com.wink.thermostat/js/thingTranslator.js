@@ -141,13 +141,14 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // according to Wink docs the temperature is always returned as C 
     // state reader shows a 'units' field, return the result in this unit if it exists
     var units = stateReader.get('units');
-    var temperatureUnits = isDefined(units, 'temperature') ? units.temperature.toLowerCase() : 'c';
+    var temperatureUnits = isDefined(units, 'temperature') ? units.temperature.substr(0, 1).toLowerCase() : 'c';
+    var mode = stateReader.get('mode');
 
-    var max = temperatureUnits === 'f' ? convertTemperatureAbsolute(stateReader.get('max_set_point'), 'c', 'f') : stateReader.get('max_set_point');
-    var min = temperatureUnits === 'f' ? convertTemperatureAbsolute(stateReader.get('min_set_point'), 'c', 'f') : stateReader.get('min_set_point');
+    var max = convertTemperatureAbsolute(stateReader.get('max_set_point'), 'c', temperatureUnits);
+    var min = convertTemperatureAbsolute(stateReader.get('min_set_point'), 'c', temperatureUnits);
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
-        temperature: temperatureUnits === 'f' ? convertTemperatureAbsolute(stateReader.get('temperature'), 'c', 'f') : stateReader.get('temperature'),
+        temperature: convertTemperatureAbsolute(stateReader.get('temperature'), 'c', temperatureUnits),
         units: temperatureUnits
     });
     
@@ -157,7 +158,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
-        temperature: (max + min) / 2,
+        temperature: mode === 'heatOnly' ? min : (mode === 'coolOnly' ? max : (max + min) / 2),
         units: temperatureUnits
     });
 
@@ -614,10 +615,24 @@ class Translator {
                     if (resourceId === 'adjustTemperature')
                     {
                         resourceSchema.units = resourceSchema.hasOwnProperty('units') ? resourceSchema.units.substr(0, 1).toLowerCase() : 'f';
-                        
-                        var currentTemp = (stateReader.get('max_set_point') + stateReader.get('min_set_point')) / 2;
+                        var currentUnits = stateReader.get('units') ? (stateReader.get('units').temperature ? stateReader.get('units').temperature : 'f') : 'f';
 
-                        resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, 'c');
+                        //Rounds to ensure temperatures look exactly as they do on the user's thermostat
+                        var coolPoint = currentUnits === 'f' ? Math.round(convertTemperatureAbsolute(stateReader.get('max_set_point'), 'c', 'f')) : stateReader.get('max_set_point');
+                        var heatPoint = currentUnits === 'f' ? Math.round(convertTemperatureAbsolute(stateReader.get('min_set_point'), 'c', 'f')) : stateReader.get('min_set_point');
+                        var currentTemp = mode === 'heat' ? heatPoint : (mode === 'cool' ? coolPoint : (coolPoint + heatPoint) / 2);
+
+                        if (resourceSchema.units === 'f' && currentUnits === 'f') {
+                            //Adjust the temperature and then convert to C
+                            resourceSchema.temperature = convertTemperatureAbsolute(currentTemp + resourceSchema.temperature, 'f', 'c');
+                        } else if (resourceSchema.unit === 'c' && currentUnits === 'f') {
+                            //Convert the rounded, current temperature then add.
+                            resourceSchema.temperature = convertTemperatureAbsolute(currentTemp, 'f', 'c') + resourceSchema.temperature;
+                        } else {
+                            //currentUnits === 'c' so convert requested temp if necessary
+                            resourceSchema.temperature = convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, 'c') + currentTemp;
+                        } 
+
                         resourceSchema.units = 'c';
                     }
 

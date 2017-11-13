@@ -625,9 +625,9 @@ class Translator {
                         var currentUnits = getUnitSafe(providerSchema.attributes);
                         resourceSchema.units = resourceSchema.units ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
                         
-                        var max = getIntSafe(providerSchema.attributes.coolingSetpoint, 0);
-                        var min = getIntSafe(providerSchema.attributes.heatingSetpoint, 0);
-                        var currentTemp = providerSchema.attributes.thermostatMode === 'auto' ? ((max + min) / 2) : getIntSafe(providerSchema.attributes.thermostatSetpoint, 0);
+                        var coolPoint = getIntSafe(providerSchema.attributes.coolingSetpoint, 0);
+                        var heatPoint = getIntSafe(providerSchema.attributes.heatingSetpoint, 0);
+                        var currentTemp = providerSchema.attributes.thermostatMode === 'auto' ? ((coolPoint + heatPoint) / 2) : getIntSafe(providerSchema.attributes.thermostatSetpoint, 0);
 
                         resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
                         resourceSchema.units = currentUnits;
