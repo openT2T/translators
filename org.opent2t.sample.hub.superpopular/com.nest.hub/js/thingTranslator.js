@@ -123,7 +123,7 @@ class Translator {
             errors: []
         };
 
-        if (providerSchemas.thermostats !== undefined) {
+        if (providerSchemas && providerSchemas.thermostats !== undefined) {
 
             // get the opent2t schema and translator for Nest thermostat
             var opent2tInfo = {
@@ -136,28 +136,32 @@ class Translator {
 
                 var nestThermostat = providerSchemas.thermostats[nestThermostatId];
 
-                // set the opent2t info for the Nest Device
-                var deviceInfo = {};
-                deviceInfo.opent2t = {};
-                deviceInfo.opent2t.controlId = nestThermostatId;
-                deviceInfo.opent2t.structureId = nestThermostat['structure_id'];
+                // We seem to have a few accounts where the thermostat id exists,
+                // but the thermostat is null we will ignore these for now
+                if (nestThermostat) {
+                    // set the opent2t info for the Nest Device
+                    var deviceInfo = {};
+                    deviceInfo.opent2t = {};
+                    deviceInfo.opent2t.controlId = nestThermostatId;
+                    deviceInfo.opent2t.structureId = nestThermostat['structure_id'];
 
-                // Create a translator for this device and get the platform information, possibly expanded
-                platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
-                    .then((translator) => {
-                        // Use get to translate the Nest formatted device that we already got in the previous request.
-                        // We already have this data, so no need to make an unnecesary request over the wire.
-                        var deviceSchema = providerSchemas.thermostats[nestThermostatId];
-                        return this._getAwayMode(nestThermostat['structure_id']).then((result) => {
-                            deviceSchema.away = result;
-                            return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
-                                .then((platformResponse) => {
-                                    return Promise.resolve(platformResponse);
-                                });
-                        });
-                    }).catch((err) => {
-                        return Promise.reject(err);
-                    }));
+                    // Create a translator for this device and get the platform information, possibly expanded
+                    platformPromises.push(this.opent2t.createTranslatorAsync(opent2tInfo.translator, { 'deviceInfo': deviceInfo, 'hub': this })
+                        .then((translator) => {
+                            // Use get to translate the Nest formatted device that we already got in the previous request.
+                            // We already have this data, so no need to make an unnecesary request over the wire.
+                            var deviceSchema = providerSchemas.thermostats[nestThermostatId];
+                            return this._getAwayMode(nestThermostat['structure_id']).then((result) => {
+                                deviceSchema.away = result;
+                                return this.opent2t.invokeMethodAsync(translator, opent2tInfo.schema, 'get', [expand, nestThermostat])
+                                    .then((platformResponse) => {
+                                        return Promise.resolve(platformResponse);
+                                    });
+                            });
+                        }).catch((err) => {
+                            return Promise.reject(err);
+                        }));
+                }
             });
         }
 
