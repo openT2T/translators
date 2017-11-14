@@ -391,7 +391,8 @@ function getMaxTemperature(unit) {
 function convertTemperatureAbsolute(temperature, from, to) {
     if (from === 'c' && to === 'f') {
         return (temperature * 1.8) + 32;
-    } else if (from === 'f' && to === 'c') {
+    } 
+    if (from === 'f' && to === 'c') {
         return (temperature - 32) / 1.8;
     }
     return temperature;
@@ -400,7 +401,8 @@ function convertTemperatureAbsolute(temperature, from, to) {
 function convertTemperatureIncrement(temperature, from, to) {
     if (from === 'c' && to === 'f') {
         return temperature * 1.8;
-    } else if (from === 'f' && to === 'c') {
+    } 
+    if (from === 'f' && to === 'c') {
         return temperature / 1.8;
     }
     return temperature;

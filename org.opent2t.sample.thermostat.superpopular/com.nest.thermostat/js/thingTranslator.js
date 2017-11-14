@@ -424,7 +424,8 @@ function getNumber(value, defaultValue) {
 function convertTemperatureIncrement(temperature, from, to) {
     if (from === 'c' && to === 'f') {
         return temperature * 1.8;
-    } else if (from === 'f' && to === 'c') {
+    } 
+    if (from === 'f' && to === 'c') {
         return temperature / 1.8;
     }
     return temperature;
