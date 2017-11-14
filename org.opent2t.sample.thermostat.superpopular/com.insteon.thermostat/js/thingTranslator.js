@@ -138,7 +138,6 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     var min = providerSchema['heat_point'] || 0;
     var temperature = (max > 0 && min > 0) ? ((max + min) / 2) : max > 0 ? max : min;
     var temperatureUnits = getUnitSafe(providerSchema, undefined);
-    var mode = providerSchema.mode;
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient'],

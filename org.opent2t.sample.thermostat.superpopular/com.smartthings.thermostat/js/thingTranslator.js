@@ -237,11 +237,7 @@ function getValidatedUnit(resourceSchema, attributes) {
     var max = getMaxCoolingSetpoint(attributes);
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
-        if (unit === 'c' && providerUnit === 'f') {
-            value = celsiusToFahrenheit(value);
-        } else if (unit === 'f' && providerUnit === 'c') {
-            value = fahrenheitToCelsius(value);
-        }
+        value = convertTemperatureAbsolute(value, unit, providerUnit);
         if (value >= min && value <= max) {
             return unit;
         }
@@ -251,14 +247,14 @@ function getValidatedUnit(resourceSchema, attributes) {
             return providerUnit;
         }
         if (providerUnit === 'c') {
-            min = celsiusToFahrenheit(min);
-            max = celsiusToFahrenheit(max);
+            min = convertTemperatureAbsolute(min, providerUnit, 'f');
+            max = convertTemperatureAbsolute(max, providerUnit, 'f');
             if (value >= min && value <= max) {
                 return 'f';
             }
         } else if (providerUnit === 'f') {
-            min = fahrenheitToCelsius(min);
-            max = fahrenheitToCelsius(max);
+            min = convertTemperatureAbsolute(min, providerUnit, 'c');
+            max = convertTemperatureAbsolute(max, providerUnit, 'c');
             if (value >= min && value <= max) {
                 return 'c';
             }
@@ -278,12 +274,7 @@ function getTargetTemperatureRange(resourceSchema, attributes) {
     var unit = getValidatedUnit(resourceSchema, attributes);
     var providerUnit = getUnitSafe(attributes);
 
-    var value = resourceSchema.temperature;
-    if (unit === 'c' && providerUnit === 'f') {
-        value = celsiusToFahrenheit(value);
-    } else if (unit === 'f' && providerUnit === 'c') {
-        value = fahrenheitToCelsius(value);
-    }
+    var value = convertTemperatureAbsolute(resourceSchema.temperature, unit, providerUnit);
 
     // cooling = temperatureHigh
     var minTemperatureHigh = getMinCoolingSetpoint(attributes);

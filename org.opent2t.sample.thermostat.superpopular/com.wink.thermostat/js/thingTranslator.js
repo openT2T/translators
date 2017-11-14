@@ -277,7 +277,7 @@ function getValidatedUnit(resourceSchema, stateReader) {
             return 'c';
         }
         var min_f = convertTemperatureAbsolute(min_c, 'c', 'f');
-        var max_f = convertTemperatureAbsolute(max_c, 'c', 'f');;
+        var max_f = convertTemperatureAbsolute(max_c, 'c', 'f');
         if (value >= min_f && value <= max_f) {
             return 'f';
         }
