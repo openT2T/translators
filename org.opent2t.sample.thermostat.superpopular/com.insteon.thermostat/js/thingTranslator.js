@@ -616,7 +616,7 @@ class Translator {
             case 'adjustTemperature':
             case 'targetTemperature':
                 return this.insteonHub.getDeviceDetailsAsync(this.controlId).then((providerSchema) => {
-                    if (providerSchema.mode === 'off') {
+                    if (providerSchema.mode === 'all_off') {
                         throw new OpenT2TError(444, "Insteon thermostat is off.");
                     }
 
