@@ -121,10 +121,15 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // Get temperature scale
     var ts = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].toLowerCase() : undefined;
     var targetLow = providerSchema['target_temperature_low_' + ts];
-    var targetHigh =  providerSchema['target_temperature_high_' + ts];
+    var targetHigh = providerSchema['target_temperature_high_' + ts];
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
         temperature: providerSchema['ambient_temperature_' + ts],
+        units: ts
+    });
+
+    var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
+        temperature: 0,
         units: ts
     });
 
@@ -202,6 +207,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: generateGUID(providerSchema['device_id'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
+                    adjustTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
@@ -249,10 +255,10 @@ function validateResourceGet(resourceId) {
  * @param {*} providerSchema 
  */
 function getValidatedUnit(resourceSchema, providerSchema) {
-    var value = resourceSchema.temperature;    
+    var value = resourceSchema.temperature;
     if (!value) {
         throw new OpenT2TError("Invalid target temperature " + value);
-    }        
+    }
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
         var min = getMinTemperature(providerSchema, unit);
@@ -309,13 +315,13 @@ function getTargetTemperatureRange(resourceSchema, providerSchema) {
             range = 1.5;
         }
         // Value must be either a whole number or .5 increment
-        value = roundToHalf(value); 
+        value = roundToHalf(value);
         halfRange = roundToHalf(halfRange);
     }
 
     // Keeps the range, but may not be perfectly centered over new target
     var newTargetLow = value - halfRange;
-    var newTargetHigh = value + (range - halfRange); 
+    var newTargetHigh = value + (range - halfRange);
 
     // If either value is outside min/max range, adjust accordingly
     if (newTargetLow < min) {
@@ -415,6 +421,16 @@ function getNumber(value, defaultValue) {
     return value ? value : defaultValue;
 }
 
+function convertTemperatureIncrement(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return temperature * 1.8;
+    } 
+    if (from === 'f' && to === 'c') {
+        return temperature / 1.8;
+    }
+    return temperature;
+}
+
 // This translator class implements the 'org.opent2t.sample.thermostat.superpopular' interface.
 class Translator {
 
@@ -471,7 +487,7 @@ class Translator {
                                 var schema = providerSchemaToPlatformSchema(response, true);
                                 return findResource(schema, di, resourceId);
                             });
-                    } else if (resourceId === 'targetTemperature') {
+                    } else if (resourceId === 'targetTemperature' || resourceId === 'adjustTemperature') {
                         return this.nestHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload.command).then((response) => {
                             Object.assign(response, putPayload.response);
                             var schema = providerSchemaToPlatformSchema(response, true);
@@ -518,6 +534,14 @@ class Translator {
      */
     postDevicesTargetTemperature(di, payload) {
         return this.postDeviceResource(di, 'targetTemperature', payload);
+    }
+
+    getDevicesAdjustTemperature(di) {
+        return this.getDeviceResource(di, 'adjustTemperature');
+    }
+
+    postDevicesAdjustTemperature(di, payload) {
+        return this.postDeviceResource(di, 'adjustTemperature', payload);
     }
 
     getDevicesHumidity(di) {
@@ -625,18 +649,34 @@ class Translator {
         // build the object with desired state
         var result = {};
         switch (resourceId) {
+            case 'adjustTemperature':
             case 'targetTemperature':
                 return this.nestHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
+                    if (providerSchema.hvac_mode === 'eco') {
+                        throw new OpenT2TError(448, "Nest thermostat is in eco mode.");
+                    }
+                    if (providerSchema.hvac_mode === 'off') {
+                        throw new OpenT2TError(444, "Nest thermostat is off.");
+                    }
+
+                    if (resourceId === 'adjustTemperature') {
+                        var currentUnits = providerSchema['temperature_scale'] ? providerSchema['temperature_scale'].substr(0, 1).toLowerCase() : 'f';
+                        resourceSchema.units = resourceSchema.units ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
+
+                        var targetLow = providerSchema['target_temperature_low_' + currentUnits];
+                        var targetHigh = providerSchema['target_temperature_high_' + currentUnits];
+                        var currentTemp = providerSchema['hvac_mode'] === 'heat-cool' ? ((targetHigh + targetLow) / 2) : providerSchema['target_temperature_' + currentUnits];
+
+                        resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
+                        resourceSchema.units = currentUnits;
+                    }
+
                     switch (providerSchema.hvac_mode) {
                         case 'heat':
                         case 'cool':
                             return getTargetTemperature(resourceSchema, providerSchema);
                         case 'heat-cool':
                             return getTargetTemperatureRange(resourceSchema, providerSchema);
-                        case 'eco':
-                            throw new OpenT2TError(448, "Nest thermostat is in eco mode.");
-                        case 'off':
-                            throw new OpenT2TError(444, "Nest thermostat is off.");
                     }
                     return result;
                 });

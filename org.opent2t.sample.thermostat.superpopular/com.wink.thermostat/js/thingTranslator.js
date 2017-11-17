@@ -141,18 +141,24 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
     // according to Wink docs the temperature is always returned as C 
     // state reader shows a 'units' field, return the result in this unit if it exists
     var units = stateReader.get('units');
-    var temperatureUnits = isDefined(units, 'temperature') ? units.temperature.toLowerCase() : 'c';
+    var temperatureUnits = isDefined(units, 'temperature') ? units.temperature.substr(0, 1).toLowerCase() : 'c';
+    var mode = stateReader.get('mode');
 
-    var max = temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('max_set_point')) : stateReader.get('max_set_point');
-    var min = temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('min_set_point')) : stateReader.get('min_set_point');
+    var max = convertTemperatureAbsolute(stateReader.get('max_set_point'), 'c', temperatureUnits);
+    var min = convertTemperatureAbsolute(stateReader.get('min_set_point'), 'c', temperatureUnits);
 
     var ambientTemperature = createResource('oic.r.temperature', 'oic.if.s', 'ambientTemperature', expand, {
-        temperature: temperatureUnits === 'f' ? celsiusToFahrenheit(stateReader.get('temperature')) : stateReader.get('temperature'),
+        temperature: convertTemperatureAbsolute(stateReader.get('temperature'), 'c', temperatureUnits),
+        units: temperatureUnits
+    });
+    
+    var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
+        temperature: 0,
         units: temperatureUnits
     });
 
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
-        temperature: (max + min) / 2,
+        temperature: mode === 'heatOnly' ? min : (mode === 'coolOnly' ? max : (max + min) / 2),
         units: temperatureUnits
     });
 
@@ -206,6 +212,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: generateGUID(providerSchema.thermostat_id + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
+                    adjustTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
@@ -256,7 +263,7 @@ function getValidatedUnit(resourceSchema, stateReader) {
     } 
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
-        value = unit === 'c' ? value : fahrenheitToCelsius(value);
+        value = unit === 'c' ? value : convertTemperatureAbsolute(value, 'f', 'c');
         var min = getMinTemperatureLow(stateReader);
         var max = getMaxTemperatureHigh(stateReader);
         if (value >= min && value <= max) {
@@ -269,8 +276,8 @@ function getValidatedUnit(resourceSchema, stateReader) {
         if (value >= min_c && value <= max_c) {
             return 'c';
         }
-        var min_f = celsiusToFahrenheit(min_c);
-        var max_f = celsiusToFahrenheit(max_c);
+        var min_f = convertTemperatureAbsolute(min_c, 'c', 'f');
+        var max_f = convertTemperatureAbsolute(max_c, 'c', 'f');
         if (value >= min_f && value <= max_f) {
             return 'f';
         }
@@ -291,7 +298,7 @@ function getTargetTemperatureRange(resourceSchema, stateReader) {
     var value = resourceSchema.temperature;
     var unit = getValidatedUnit(resourceSchema, stateReader);
     if (unit === 'f') {
-        value = fahrenheitToCelsius(value);
+        value = convertTemperatureAbsolute(value, 'f', 'c');
     }
 
     var min_low = getMinTemperatureLow(stateReader);
@@ -365,12 +372,24 @@ function getMaxSetPoint(stateReader) {
     return getNumber(stateReader.get("max_set_point"), 22);
 }
 
-function celsiusToFahrenheit(c) {
-    return (c * 1.8) + 32;
+function convertTemperatureAbsolute(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return (temperature * 1.8) + 32;
+    } 
+    if (from === 'f' && to === 'c') {
+        return (temperature - 32) / 1.8;
+    }
+    return temperature;
 }
 
-function fahrenheitToCelsius(f) {
-    return (f - 32) / 1.8;
+function convertTemperatureIncrement(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return temperature * 1.8;
+    } 
+    if (from === 'f' && to === 'c') {
+        return temperature / 1.8;
+    }
+    return temperature;
 }
 
 function isDefined(object, variable) {
@@ -434,7 +453,7 @@ class Translator {
                     return this.winkHub.putDeviceDetailsAsync(this.deviceType, this.controlId, putPayload)
                         .then((response) => {
                             var schema = providerSchemaToPlatformSchema(response.data, true);
-                            if (resourceId === 'targetTemperature') {
+                            if (resourceId === 'targetTemperature' || resourceId === 'adjustTemperature') {
                                 var low = findResource(schema, di, 'targetTemperatureLow');
                                 var high = findResource(schema, di, 'targetTemperatureHigh');
                                 var hvacMode = findResource(schema, di, 'hvacMode');
@@ -451,6 +470,14 @@ class Translator {
 
     getDevicesAmbientTemperature(di) {
         return this.getDeviceResource(di, 'ambientTemperature');
+    }
+
+    getDevicesAdjustTemperature(di) {
+        return this.getDeviceResource(di, 'adjustTemperature');
+    }
+    
+    postDevicesAdjustTemperature(di, payload) {
+        return this.postDeviceResource(di, 'adjustTemperature', payload);
     }
 
     getDevicesTargetTemperature(di) {
@@ -575,6 +602,7 @@ class Translator {
         // Wink has a separate 'powered' property rather than 'off' being part of the 'mode' property
 
         switch (resourceId) {
+            case 'adjustTemperature':
             case 'targetTemperature':
                 return this.winkHub.getDeviceDetailsAsync(this.deviceType, this.controlId).then((providerSchema) => {
                     var stateReader = new StateReader(providerSchema.data.desired_state, providerSchema.data.last_reading);
@@ -585,31 +613,53 @@ class Translator {
                     if (mode === 'off') {
                         throw new OpenT2TError(444, "Wink thermostat is off.");
                     }
+
+                    if (resourceId === 'adjustTemperature')
+                    {
+                        resourceSchema.units = resourceSchema.hasOwnProperty('units') ? resourceSchema.units.substr(0, 1).toLowerCase() : 'f';
+                        var currentUnits = stateReader.get('units') ? (stateReader.get('units').temperature ? stateReader.get('units').temperature : 'f') : 'f';
+
+                        //Rounds to ensure temperatures look exactly as they do on the user's thermostat
+                        var coolPoint = currentUnits === 'f' ? Math.round(convertTemperatureAbsolute(stateReader.get('max_set_point'), 'c', 'f')) : stateReader.get('max_set_point');
+                        var heatPoint = currentUnits === 'f' ? Math.round(convertTemperatureAbsolute(stateReader.get('min_set_point'), 'c', 'f')) : stateReader.get('min_set_point');
+                        var currentTemp = mode === 'heat' ? heatPoint : (mode === 'cool' ? coolPoint : (coolPoint + heatPoint) / 2);
+
+                        if (resourceSchema.units === 'f' && currentUnits === 'f') {
+                            //Adjust the temperature and then convert to C
+                            resourceSchema.temperature = convertTemperatureAbsolute(currentTemp + resourceSchema.temperature, 'f', 'c');
+                        } else if (resourceSchema.unit === 'c' && currentUnits === 'f') {
+                            //Convert the rounded, current temperature then add.
+                            resourceSchema.temperature = convertTemperatureAbsolute(currentTemp, 'f', 'c') + resourceSchema.temperature;
+                        } else {
+                            //currentUnits === 'c' so convert requested temp if necessary
+                            resourceSchema.temperature = convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, 'c') + currentTemp;
+                        } 
+
+                        resourceSchema.units = 'c';
+                    }
+
                     if (mode === 'auto') {
                         return getTargetTemperatureRange(resourceSchema, stateReader);
                     } else {                        
                         var result = { 'desired_state': {} };
                         var desired_state = result.desired_state;
-                        if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
-                            desired_state['max_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
-                            desired_state['min_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
-                        } else {
-                            desired_state['max_set_point'] = resourceSchema.temperature;
-                            desired_state['min_set_point'] = resourceSchema.temperature;
-                        }
+
+                        desired_state['max_set_point'] = convertTemperatureAbsolute(resourceSchema.temperature, resourceSchema.units, 'c');
+                        desired_state['min_set_point'] = convertTemperatureAbsolute(resourceSchema.temperature, resourceSchema.units, 'c');
+
                         return result;
                     }
                 });
             case 'targetTemperatureHigh':
-                if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
-                    desired_state['max_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.substr(0, 1).toLowerCase() === 'f') {
+                    desired_state['max_set_point'] = convertTemperatureAbsolute(resourceSchema.temperature, 'f', 'c');
                 } else {
                     desired_state['max_set_point'] = resourceSchema.temperature;
                 }
                 break;
             case 'targetTemperatureLow':
                 if (resourceSchema.hasOwnProperty('units') && resourceSchema.units.toLowerCase() === 'f') {
-                    desired_state['min_set_point'] = fahrenheitToCelsius(resourceSchema.temperature);
+                    desired_state['min_set_point'] = convertTemperatureAbsolute(resourceSchema.temperature, 'f', 'c');
                 } else {
                     desired_state['min_set_point'] = resourceSchema.temperature;
                 }

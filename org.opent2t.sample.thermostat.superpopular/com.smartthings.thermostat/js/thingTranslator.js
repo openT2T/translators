@@ -121,6 +121,11 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
         units: temperatureUnits
     });
 
+    var adjustTemperature = createResource('oic.r.temperature', 'oic.if.a', 'adjustTemperature', expand, {
+        temperature: 0,
+        units: 'f'
+    });
+
     var targetTemperature = createResource('oic.r.temperature', 'oic.if.a', 'targetTemperature', expand, {
         temperature: attributes.thermostatMode === 'auto' ? ((max + min) / 2) : getIntSafe(attributes.thermostatSetpoint, 0),
         units: temperatureUnits
@@ -181,6 +186,7 @@ function providerSchemaToPlatformSchema(providerSchema, expand) {
                 di: generateGUID(providerSchema['id'] + 'opent2t.d.thermostat'),
                 resources: [
                     ambientTemperature,
+                    adjustTemperature,
                     targetTemperature,
                     targetTemperatureHigh,
                     targetTemperatureLow,
@@ -231,11 +237,7 @@ function getValidatedUnit(resourceSchema, attributes) {
     var max = getMaxCoolingSetpoint(attributes);
     if (isDefined(resourceSchema, 'units')) {
         var unit = resourceSchema.units.toLowerCase();
-        if (unit === 'c' && providerUnit === 'f') {
-            value = celsiusToFahrenheit(value);
-        } else if (unit === 'f' && providerUnit === 'c') {
-            value = fahrenheitToCelsius(value);
-        }
+        value = convertTemperatureAbsolute(value, unit, providerUnit);
         if (value >= min && value <= max) {
             return unit;
         }
@@ -245,14 +247,14 @@ function getValidatedUnit(resourceSchema, attributes) {
             return providerUnit;
         }
         if (providerUnit === 'c') {
-            min = celsiusToFahrenheit(min);
-            max = celsiusToFahrenheit(max);
+            min = convertTemperatureAbsolute(min, providerUnit, 'f');
+            max = convertTemperatureAbsolute(max, providerUnit, 'f');
             if (value >= min && value <= max) {
                 return 'f';
             }
         } else if (providerUnit === 'f') {
-            min = fahrenheitToCelsius(min);
-            max = fahrenheitToCelsius(max);
+            min = convertTemperatureAbsolute(min, providerUnit, 'c');
+            max = convertTemperatureAbsolute(max, providerUnit, 'c');
             if (value >= min && value <= max) {
                 return 'c';
             }
@@ -272,12 +274,7 @@ function getTargetTemperatureRange(resourceSchema, attributes) {
     var unit = getValidatedUnit(resourceSchema, attributes);
     var providerUnit = getUnitSafe(attributes);
 
-    var value = resourceSchema.temperature;
-    if (unit === 'c' && providerUnit === 'f') {
-        value = celsiusToFahrenheit(value);
-    } else if (unit === 'f' && providerUnit === 'c') {
-        value = fahrenheitToCelsius(value);
-    }
+    var value = convertTemperatureAbsolute(resourceSchema.temperature, unit, providerUnit);
 
     // cooling = temperatureHigh
     var minTemperatureHigh = getMinCoolingSetpoint(attributes);
@@ -333,12 +330,7 @@ function getTargetTemperature(resourceSchema, attributes) {
     var unit = getValidatedUnit(resourceSchema, attributes);
     var providerUnit = getUnitSafe(attributes);
 
-    var value = resourceSchema.temperature;
-    if (unit === 'c' && providerUnit === 'f') {
-        value = celsiusToFahrenheit(value);
-    } else if (unit === 'f' && providerUnit === 'c') {
-        value = fahrenheitToCelsius(value);
-    }
+    var value = convertTemperatureAbsolute(resourceSchema.temperature, unit, providerUnit);
 
     var response = {};
     var command = {}
@@ -378,15 +370,27 @@ function getIntSafe(i, defaultValue) {
 
 function getUnitSafe(attributes) {
     return attributes.hasOwnProperty('temperatureScale') ?
-        attributes.temperatureScale.toLowerCase() : 'c';
+        attributes.temperatureScale.substr(0, 1).toLowerCase() : 'f';
 }
 
-function celsiusToFahrenheit(c) {
-    return (c * 1.8) + 32;
+function convertTemperatureAbsolute(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return (temperature * 1.8) + 32;
+    } 
+    if (from === 'f' && to === 'c') {
+        return (temperature - 32) / 1.8;
+    }
+    return temperature;
 }
 
-function fahrenheitToCelsius(f) {
-    return (f - 32) / 1.8;
+function convertTemperatureIncrement(temperature, from, to) {
+    if (from === 'c' && to === 'f') {
+        return temperature * 1.8;
+    } 
+    if (from === 'f' && to === 'c') {
+        return temperature / 1.8;
+    }
+    return temperature;
 }
 
 function isDefined(object, variable) {
@@ -443,7 +447,7 @@ class Translator {
         if (di === generateGUID(this.controlId + 'opent2t.d.thermostat')) {
             return this._resourceSchemaToProviderSchemaAsync(resourceId, payload)
                 .then((putPayload => {
-                    if (resourceId === 'targetTemperature') {
+                    if (resourceId === 'targetTemperature' || resourceId === 'adjustTemperature') {
                         return this.smartThingsHub.putDeviceDetailsAsync(this.endpointUri, this.controlId, putPayload.command).then((response) => {
                             Object.assign(response, putPayload.response);
                             var schema = providerSchemaToPlatformSchema(response, true);
@@ -475,6 +479,14 @@ class Translator {
 
     getDevicesAmbientTemperature(di) {
         return this.getDeviceResource(di, 'ambientTemperature');
+    }
+    
+    getDevicesAdjustTemperature(di) {
+        return this.getDeviceResource(di, 'adjustTemperature');
+    }
+
+    postDevicesAdjustTemperature(di, payload) {
+        return this.postDeviceResource(di, 'adjustTemperature', payload);
     }
 
     getDevicesTargetTemperature(di) {
@@ -591,18 +603,38 @@ class Translator {
         var result = {};
 
         switch (resourceId) {
+            case 'adjustTemperature':
             case 'targetTemperature':
                 return this.smartThingsHub.getDeviceDetailsAsync(this.endpointUri, this.controlId).then((providerSchema) => {
-                    var attributes = providerSchema.attributes;
-                    if (attributes.thermostatMode === 'off') {
+                    if (!providerSchema || !providerSchema.attributes) {
+                        throw new OpenT2TError(500, "SmartThings providerSchema or providerSchema.attributes does not exist.");
+                    }
+                    if (!resourceSchema) {
+                        throw new OpenT2TError(500, "resourceSchema does not exist.");
+                    }
+                    if (providerSchema.attributes.thermostatMode === 'off') {
                         throw new OpenT2TError(444, "SmartThings thermostat is off.");
                     }
-                    if (attributes.thermostatMode === 'auto' ||
-                        attributes.thermostatMode === 'autoheat' ||
-                        attributes.thermostatMode === 'autocool') {
-                        return getTargetTemperatureRange(resourceSchema, attributes);
+
+                    if (resourceId === 'adjustTemperature') {
+                        // Get current units of thermostat and requested adjustBy increment units
+                        var currentUnits = getUnitSafe(providerSchema.attributes);
+                        resourceSchema.units = resourceSchema.units ? resourceSchema.units.substr(0, 1).toLowerCase() : currentUnits;
+                        
+                        var coolPoint = getIntSafe(providerSchema.attributes.coolingSetpoint, 0);
+                        var heatPoint = getIntSafe(providerSchema.attributes.heatingSetpoint, 0);
+                        var currentTemp = providerSchema.attributes.thermostatMode === 'auto' ? ((coolPoint + heatPoint) / 2) : getIntSafe(providerSchema.attributes.thermostatSetpoint, 0);
+
+                        resourceSchema.temperature = currentTemp + convertTemperatureIncrement(resourceSchema.temperature, resourceSchema.units, currentUnits);
+                        resourceSchema.units = currentUnits;
+                    }
+                    
+                    if (providerSchema.attributes.thermostatMode === 'auto' ||
+                        providerSchema.attributes.thermostatMode === 'autoheat' ||
+                        providerSchema.attributes.thermostatMode === 'autocool') {
+                        return getTargetTemperatureRange(resourceSchema, providerSchema.attributes);
                     } else {
-                        return getTargetTemperature(resourceSchema, attributes);
+                        return getTargetTemperature(resourceSchema, providerSchema.attributes);
                     }
                 });
             case 'targetTemperatureHigh':
